@@ -1,0 +1,6 @@
+{
+  "name": "Peer Notebook - HIPAA Compliant Peer Support Documentation",
+  "description": "Offline-first clinical and peer support specialist documentation notebook with HIPAA compliance, audit trails, supervisor sign-offs, and Medicaid-ready encounter notes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
