@@ -83,40 +83,40 @@ export const SettingsPanel: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       {/* HIPAA Compliance & BAA Card */}
-      <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+      <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4 max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-2">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-50 text-[#16A34A] rounded-xl border border-emerald-200">
-              <Shield className="w-6 h-6" />
+            <div className="p-2 sm:p-2.5 bg-emerald-50 text-[#16A34A] rounded-xl border border-emerald-200 shrink-0">
+              <Shield className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-[#1E3A8A]">HIPAA Business Associate Agreement (BAA)</h3>
+              <h3 className="text-sm sm:text-base font-bold text-[#1E3A8A]">HIPAA Business Associate Agreement (BAA)</h3>
               <p className="text-xs text-slate-500">45 CFR § 164.502(e) & 164.504(e) Executed Compliance Standard</p>
             </div>
           </div>
-          <span className="px-3 py-1 bg-emerald-50 text-[#16A34A] border border-emerald-300 rounded-full text-xs font-bold">
+          <span className="self-start sm:self-auto px-3 py-1 bg-emerald-50 text-[#16A34A] border border-emerald-300 rounded-full text-xs font-bold shrink-0">
             BAA Active
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs">
+          <div className="p-3 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200">
             <span className="text-slate-500 block mb-0.5 font-semibold">Covered Agency:</span>
-            <span className="font-bold text-slate-900">{currentOrg?.name}</span>
+            <span className="font-bold text-slate-900 break-words">{currentOrg?.name}</span>
           </div>
-          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="p-3 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200">
             <span className="text-slate-500 block mb-0.5 font-semibold">NPI / Medi-Cal ID:</span>
-            <span className="font-mono text-[#1E3A8A] font-bold">{currentOrg?.npi} • {currentOrg?.medicaidProviderId}</span>
+            <span className="font-mono text-[#1E3A8A] font-bold break-words">{currentOrg?.npi} • {currentOrg?.medicaidProviderId}</span>
           </div>
-          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="p-3 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200">
             <span className="text-slate-500 block mb-0.5 font-semibold">BAA Specification:</span>
-            <span className="font-mono text-[#0F766E] font-bold">{currentOrg?.baaVersion || 'v2.4-GA8-CalAIM'}</span>
+            <span className="font-mono text-[#0F766E] font-bold break-words">{currentOrg?.baaVersion || 'v2.4-GA8-CalAIM'}</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-1 gap-2">
           <p className="text-xs text-slate-600 leading-relaxed max-w-2xl">
             Peer Notebook client records are encrypted locally in Dexie.js before being transmitted to the central cloud. Strict role-based client pseudonymization protects peer identities.
           </p>
@@ -124,79 +124,79 @@ export const SettingsPanel: React.FC = () => {
             href="https://peernotebook.com/docs/04-technical-architecture/08_HIPAA_BAA_Consent_Model"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-[#0F766E] font-semibold hover:underline flex items-center gap-1 shrink-0 ml-4"
+            className="text-xs text-[#0F766E] font-semibold hover:underline flex items-center gap-1 shrink-0"
           >
             <span>View BAA White Paper</span>
-            <ExternalLink className="w-3 h-3" />
+            <ExternalLink className="w-3 h-3 shrink-0" />
           </a>
         </div>
       </div>
 
       {/* Dual-Layer Persistence Engine (Dexie.js / IndexedDB) */}
-      <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+      <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4 max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-2">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200">
-              <Database className="w-6 h-6" />
+            <div className="p-2 sm:p-2.5 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200 shrink-0">
+              <Database className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-[#1E3A8A]">Local Storage Persistence (Dexie.js / IndexedDB)</h3>
+              <h3 className="text-sm sm:text-base font-bold text-[#1E3A8A]">Local Storage Persistence (Dexie.js / IndexedDB)</h3>
               <p className="text-xs text-slate-500">Offline-first local cache for field encounters with low connectivity</p>
             </div>
           </div>
-          <span className="text-xs font-mono text-[#1E3A8A] bg-blue-50 border border-blue-200 px-3 py-1 rounded-md font-semibold">
+          <span className="self-start sm:self-auto text-xs font-mono text-[#1E3A8A] bg-blue-50 border border-blue-200 px-3 py-1 rounded-md font-semibold shrink-0">
             Store: PeerNotebook_GA8_DB
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-            <span className="text-2xl font-black text-[#1E3A8A]">{clientCount}</span>
-            <span className="text-xs text-slate-500 block mt-0.5 font-medium">Cached Clients</span>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+          <div className="p-2.5 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+            <span className="text-xl sm:text-2xl font-black text-[#1E3A8A]">{clientCount}</span>
+            <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5 font-medium truncate">Cached Clients</span>
           </div>
-          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-            <span className="text-2xl font-black text-[#0F766E]">{noteCount}</span>
-            <span className="text-xs text-slate-500 block mt-0.5 font-medium">CalAIM Notes</span>
+          <div className="p-2.5 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+            <span className="text-xl sm:text-2xl font-black text-[#0F766E]">{noteCount}</span>
+            <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5 font-medium truncate">CalAIM Notes</span>
           </div>
-          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-            <span className="text-2xl font-black text-[#16A34A]">{logCount}</span>
-            <span className="text-xs text-slate-500 block mt-0.5 font-medium">Audit Events</span>
+          <div className="p-2.5 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+            <span className="text-xl sm:text-2xl font-black text-[#16A34A]">{logCount}</span>
+            <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5 font-medium truncate">Audit Events</span>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
           <button
             onClick={handleExportAuditLogs}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-lg text-xs font-semibold transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-lg text-xs font-semibold transition-colors"
           >
-            <Download className="w-4 h-4 text-[#0F766E]" />
+            <Download className="w-4 h-4 text-[#0F766E] shrink-0" />
             <span>Export SHA-256 Audit Trail (JSON)</span>
           </button>
 
           <button
             onClick={() => setResetConfirmOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 text-rose-700 hover:bg-rose-50 border border-rose-200 rounded-lg text-xs font-semibold transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 text-rose-700 hover:bg-rose-50 border border-rose-200 rounded-lg text-xs font-semibold transition-colors"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4 shrink-0" />
             <span>Purge Local Storage</span>
           </button>
         </div>
       </div>
 
       {/* Cloud & Supabase Backend Sync Configuration */}
-      <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+      <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4 max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-2">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-200">
-              <Cloud className="w-6 h-6" />
+            <div className="p-2 sm:p-2.5 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-200 shrink-0">
+              <Cloud className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-[#1E3A8A]">PostgreSQL / Supabase Cloud Endpoint</h3>
+              <h3 className="text-sm sm:text-base font-bold text-[#1E3A8A]">PostgreSQL / Supabase Cloud Endpoint</h3>
               <p className="text-xs text-slate-500">Dual-layer remote relational store with multi-tenant RLS</p>
             </div>
           </div>
           {isSupabaseSaved ? (
-            <span className="px-3 py-1 bg-emerald-50 text-[#16A34A] border border-emerald-300 rounded-full text-xs font-bold flex items-center gap-1">
+            <span className="self-start sm:self-auto px-3 py-1 bg-emerald-50 text-[#16A34A] border border-emerald-300 rounded-full text-xs font-bold flex items-center gap-1 shrink-0">
               <Check className="w-3.5 h-3.5" /> Connected
             </span>
           ) : (

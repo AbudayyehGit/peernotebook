@@ -127,66 +127,66 @@ export const SupervisorDashboard: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-2xs">
-          <span className="text-xs font-bold text-slate-500 block mb-1">Awaiting Cosign</span>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="p-3.5 sm:p-5 bg-white border border-slate-200 rounded-2xl shadow-2xs">
+          <span className="text-[11px] sm:text-xs font-bold text-slate-500 block mb-1">Awaiting Cosign</span>
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-black text-[#D97706]">{pendingNotes.length}</span>
-            <Clock className="w-5 h-5 text-[#D97706]/70" />
+            <span className="text-xl sm:text-2xl font-black text-[#D97706]">{pendingNotes.length}</span>
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#D97706]/70 shrink-0" />
           </div>
-          <span className="text-[11px] text-slate-500 mt-1 block">Clinical review required</span>
+          <span className="text-[10px] sm:text-[11px] text-slate-500 mt-1 block truncate">Clinical review required</span>
         </div>
 
-        <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-2xs">
-          <span className="text-xs font-bold text-slate-500 block mb-1">Approved & Cosigned</span>
+        <div className="p-3.5 sm:p-5 bg-white border border-slate-200 rounded-2xl shadow-2xs">
+          <span className="text-[11px] sm:text-xs font-bold text-slate-500 block mb-1">Approved & Cosigned</span>
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-black text-[#16A34A]">{approvedNotes.length}</span>
-            <CheckCircle2 className="w-5 h-5 text-[#16A34A]/70" />
+            <span className="text-xl sm:text-2xl font-black text-[#16A34A]">{approvedNotes.length}</span>
+            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#16A34A]/70 shrink-0" />
           </div>
-          <span className="text-[11px] text-slate-500 mt-1 block">Medi-Cal claim ready</span>
+          <span className="text-[10px] sm:text-[11px] text-slate-500 mt-1 block truncate">Medi-Cal claim ready</span>
         </div>
 
-        <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-2xs">
-          <span className="text-xs font-bold text-slate-500 block mb-1">Total Billable Units</span>
+        <div className="p-3.5 sm:p-5 bg-white border border-slate-200 rounded-2xl shadow-2xs">
+          <span className="text-[11px] sm:text-xs font-bold text-slate-500 block mb-1">Total Billable Units</span>
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-black text-[#1E3A8A]">{totalUnits}</span>
-            <FileText className="w-5 h-5 text-[#1E3A8A]/70" />
+            <span className="text-xl sm:text-2xl font-black text-[#1E3A8A]">{totalUnits}</span>
+            <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[#1E3A8A]/70 shrink-0" />
           </div>
-          <span className="text-[11px] text-slate-500 mt-1 block">H0038 (15m increments)</span>
+          <span className="text-[10px] sm:text-[11px] text-slate-500 mt-1 block truncate">H0038 (15m increments)</span>
         </div>
 
-        <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-2xs">
-          <span className="text-xs font-bold text-slate-500 block mb-1">Safety Risk Flags</span>
+        <div className="p-3.5 sm:p-5 bg-white border border-slate-200 rounded-2xl shadow-2xs">
+          <span className="text-[11px] sm:text-xs font-bold text-slate-500 block mb-1">Safety Risk Flags</span>
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-black text-rose-600">{safetyCount}</span>
-            <AlertCircle className="w-5 h-5 text-rose-500" />
+            <span className="text-xl sm:text-2xl font-black text-rose-600">{safetyCount}</span>
+            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-rose-500 shrink-0" />
           </div>
-          <span className="text-[11px] text-slate-500 mt-1 block">Safety plan documented</span>
+          <span className="text-[10px] sm:text-[11px] text-slate-500 mt-1 block truncate">Safety plan documented</span>
         </div>
       </div>
 
       {actionMessage && (
         <div className="p-3 bg-emerald-50 border border-emerald-300 text-[#16A34A] rounded-xl text-xs font-semibold flex items-center gap-2">
-          <Check className="w-4 h-4" />
+          <Check className="w-4 h-4 shrink-0" />
           <span>{actionMessage}</span>
         </div>
       )}
 
       {/* Filter bar */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <h3 className="font-bold text-[#1E3A8A] text-base flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-[#0F766E]" />
+          <ShieldCheck className="w-5 h-5 text-[#0F766E] shrink-0" />
           Supervisor Sign-Off & CalAIM QA Queue
         </h3>
 
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-400" />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:outline-hidden shadow-2xs"
+            className="w-full sm:w-auto px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:outline-hidden shadow-2xs truncate"
           >
             <option value="pending_supervisor">Pending Cosignature ({pendingNotes.length})</option>
             <option value="approved">Approved & Cosigned ({approvedNotes.length})</option>
@@ -202,10 +202,10 @@ export const SupervisorDashboard: React.FC = () => {
           return (
             <div
               key={note.id}
-              className="p-5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl transition-all shadow-2xs space-y-3"
+              className="p-4 sm:p-5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl transition-all shadow-2xs space-y-3"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2.5">
                   <span className="font-bold text-[#1E3A8A] text-base">{note.clientName}</span>
                   <span className="font-mono text-xs text-[#0F766E] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded font-semibold">
                     {note.clientIdentifier}
@@ -216,7 +216,7 @@ export const SupervisorDashboard: React.FC = () => {
                     </span>
                   )}
                   <span
-                    className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                    className={`text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
                       note.status === 'pending_supervisor'
                         ? 'bg-amber-50 text-[#D97706] border border-amber-300'
                         : note.status === 'approved'
@@ -232,7 +232,7 @@ export const SupervisorDashboard: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                   <span>Encounter: <strong className="text-slate-900">{note.encounterDate}</strong></span>
                   <span>•</span>
                   <span>Units: <strong className="text-[#1E3A8A] font-mono">{note.billingUnits} (H0038)</strong></span>
@@ -303,8 +303,8 @@ export const SupervisorDashboard: React.FC = () => {
 
       {/* Supervisor Review Modal */}
       {selectedNote && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full max-w-[calc(100vw-1.5rem)] p-4 sm:p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-4 my-auto">
             <button
               onClick={() => setSelectedNote(null)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100"
@@ -312,22 +312,22 @@ export const SupervisorDashboard: React.FC = () => {
               ✕
             </button>
 
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-100">
+            <div className="flex items-center gap-3 pr-6">
+              <div className="p-2 sm:p-2.5 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-100 shrink-0">
                 <FileCheck className="w-5 h-5" />
               </div>
-              <div>
-                <h3 className="text-base font-bold text-[#1E3A8A]">
+              <div className="min-w-0">
+                <h3 className="text-base font-bold text-[#1E3A8A] truncate">
                   Clinical Cosignature & QA Review
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 truncate">
                   Peer: {selectedNote.clientName} ({selectedNote.clientIdentifier}) • Date: {selectedNote.encounterDate}
                 </p>
               </div>
             </div>
 
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-              <div className="flex justify-between text-slate-700">
+            <div className="p-3 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+              <div className="flex flex-col xs:flex-row justify-between text-slate-700 gap-1">
                 <span>Specialist: <strong>{selectedNote.authorName}</strong></span>
                 <span>Code: <strong>{selectedNote.billingCode} ({selectedNote.billingUnits} units)</strong></span>
               </div>
@@ -361,20 +361,20 @@ export const SupervisorDashboard: React.FC = () => {
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+            <div className="flex flex-col xs:flex-row justify-end gap-2 pt-3 border-t border-slate-200">
               <button
                 type="button"
                 onClick={() => handleRequestRevision(selectedNote)}
-                className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-semibold border border-rose-300"
+                className="w-full xs:w-auto px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-semibold border border-rose-300 text-center"
               >
                 Request Revision
               </button>
               <button
                 type="button"
                 onClick={() => handleApprove(selectedNote)}
-                className="px-5 py-2 bg-[#16A34A] hover:bg-green-700 text-white rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5"
+                className="w-full xs:w-auto px-5 py-2 bg-[#16A34A] hover:bg-green-700 text-white rounded-lg text-xs font-semibold shadow-xs flex items-center justify-center gap-1.5"
               >
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>Cosign & Approve for Claiming</span>
               </button>
             </div>

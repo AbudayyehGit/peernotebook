@@ -141,13 +141,13 @@ export const PeerNotebookWorkspace: React.FC = () => {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Primary Navigation Tabs */}
-      <div className="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 gap-2">
-        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+      {/* Primary Navigation Tabs - Smooth Horizontal Touch Scroll on Mobile */}
+      <div className="border-b border-slate-200 pb-2 w-full max-w-full overflow-hidden">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 px-0.5 max-w-full overscroll-x-contain sm:flex-wrap">
           <button
             onClick={() => navigateToTab('clients')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
               activeTab === 'clients'
                 ? 'bg-[#1E3A8A] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -159,7 +159,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
 
           <button
             onClick={() => navigateToTab('notes')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
               activeTab === 'notes'
                 ? 'bg-[#1E3A8A] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -175,7 +175,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
               setSelectedClientForNote(null);
               navigateToTab('new_note');
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
               activeTab === 'new_note'
                 ? 'bg-[#0F766E] text-white shadow-xs'
                 : 'text-[#0F766E] hover:text-white hover:bg-[#0F766E] border border-teal-200 bg-teal-50'
@@ -188,7 +188,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
           {canApproveNotes && (
             <button
               onClick={() => navigateToTab('supervisor')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
                 activeTab === 'supervisor'
                   ? 'bg-[#1E3A8A] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -201,7 +201,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
 
           <button
             onClick={() => navigateToTab('audit')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
               activeTab === 'audit'
                 ? 'bg-[#1E3A8A] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -213,7 +213,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
 
           <button
             onClick={() => navigateToTab('architecture')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
               activeTab === 'architecture'
                 ? 'bg-[#1E3A8A] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -222,14 +222,12 @@ export const PeerNotebookWorkspace: React.FC = () => {
             <BookOpen className="w-4 h-4" />
             <span>GA #8 White Papers</span>
           </button>
-        </div>
 
-        <div>
           <button
             onClick={() => navigateToTab('settings')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors ${
+            className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-colors shrink-0 whitespace-nowrap ${
               activeTab === 'settings'
-                ? 'bg-[#1E3A8A] text-white'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
             }`}
           >
@@ -259,7 +257,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
       {activeTab === 'notes' && (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1 max-w-full sm:max-w-md">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
@@ -270,11 +268,11 @@ export const PeerNotebookWorkspace: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 w-full sm:w-auto">
               <select
                 value={notesFilter}
                 onChange={(e) => setNotesFilter(e.target.value)}
-                className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:outline-hidden shadow-2xs"
+                className="w-full xs:w-auto flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:outline-hidden shadow-2xs truncate"
               >
                 <option value="ALL">All Notes ({notes.length})</option>
                 <option value="approved">Approved & Cosigned</option>
@@ -289,7 +287,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
                   setSelectedClientForNote(null);
                   navigateToTab('new_note');
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-lg text-xs font-semibold shadow-xs"
+                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-lg text-xs font-semibold shadow-xs shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 <span>New Note</span>
@@ -301,12 +299,12 @@ export const PeerNotebookWorkspace: React.FC = () => {
             {filteredNotes.map((note) => (
               <div
                 key={note.id}
-                className="p-5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl transition-all shadow-2xs space-y-3 flex flex-col justify-between"
+                className="p-4 sm:p-5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl transition-all shadow-2xs space-y-3 flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-start justify-between">
+                  <div className="flex flex-col xs:flex-row xs:items-start justify-between gap-2">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <h4 className="font-bold text-[#1E3A8A] text-base">{note.clientName}</h4>
                         <span className="font-mono text-xs text-[#0F766E] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded font-semibold">
                           {note.clientIdentifier}
@@ -323,7 +321,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
                     </div>
 
                     <span
-                      className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                      className={`text-[10px] xs:text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0 self-start xs:self-auto ${
                         note.status === 'approved'
                           ? 'bg-emerald-50 text-[#16A34A] border border-emerald-300'
                           : note.status === 'pending_supervisor'
@@ -343,34 +341,34 @@ export const PeerNotebookWorkspace: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="mt-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                  <div className="mt-3 p-3 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
                     <div>
                       <span className="text-slate-600 font-bold">Goal Addressed:</span>
-                      <p className="text-slate-800 truncate">{note.goalAddressed}</p>
+                      <p className="text-slate-800 break-words">{note.goalAddressed}</p>
                     </div>
                     <div>
                       <span className="text-slate-600 font-bold">Peer Intervention:</span>
-                      <p className="text-slate-700 line-clamp-2 leading-relaxed">{note.peerIntervention}</p>
+                      <p className="text-slate-700 line-clamp-2 leading-relaxed break-words">{note.peerIntervention}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <span className="font-mono text-[#1E3A8A] font-bold">
+                <div className="pt-3 border-t border-slate-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 text-xs">
+                  <span className="font-mono text-[#1E3A8A] font-bold text-[11px] sm:text-xs">
                     {note.billingCode} • {note.billingUnits} units (15m each)
                   </span>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 w-full xs:w-auto justify-end">
                     <button
                       onClick={() => setSelectedNoteForExport(note)}
-                      className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 text-xs font-semibold flex items-center gap-1 transition-colors"
+                      className="flex-1 xs:flex-none px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
                     >
                       <Download className="w-3.5 h-3.5 text-[#0F766E]" />
                       <span>PDF</span>
                     </button>
                     <button
                       onClick={() => handleEditNote(note)}
-                      className="px-3 py-1 bg-teal-50 hover:bg-[#0F766E] text-[#0F766E] hover:text-white rounded-lg text-xs font-semibold transition-colors border border-teal-200"
+                      className="flex-1 xs:flex-none px-3 py-1 bg-teal-50 hover:bg-[#0F766E] text-[#0F766E] hover:text-white rounded-lg text-xs font-semibold transition-colors border border-teal-200 text-center"
                     >
                       Edit
                     </button>
@@ -394,47 +392,53 @@ export const PeerNotebookWorkspace: React.FC = () => {
 
       {activeTab === 'audit' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="font-bold text-[#1E3A8A] text-base flex items-center gap-2">
-                <Lock className="w-4 h-4 text-[#0F766E]" />
+                <Lock className="w-4 h-4 text-[#0F766E] shrink-0" />
                 Immutable HIPAA Cryptographic Audit Trail
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 45 CFR § 164.312(b) Audit Controls & 42 CFR Part 2 Confidentiality Verification
               </p>
             </div>
-            <span className="text-xs font-mono text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200 font-semibold shadow-2xs">
-              {auditLogs.length} Events Verified
-            </span>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="text-xs font-mono text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200 font-semibold shadow-2xs">
+                {auditLogs.length} Events Verified
+              </span>
+            </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-800">
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs max-w-full">
+            <div className="overflow-x-auto no-scrollbar sm:overflow-x-auto touch-pan-x">
+              <table className="w-full min-w-[620px] text-left text-xs text-slate-800">
                 <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 uppercase tracking-wider text-[10px]">
                   <tr>
-                    <th className="p-3.5">Timestamp</th>
-                    <th className="p-3.5">Actor / Specialist</th>
-                    <th className="p-3.5">Role</th>
-                    <th className="p-3.5">Action</th>
-                    <th className="p-3.5">Target Entity</th>
-                    <th className="p-3.5">Tamper-Proof Checksum</th>
+                    <th className="p-3 sm:p-3.5">Timestamp</th>
+                    <th className="p-3 sm:p-3.5">Actor / Specialist</th>
+                    <th className="p-3 sm:p-3.5">Role</th>
+                    <th className="p-3 sm:p-3.5">Action</th>
+                    <th className="p-3 sm:p-3.5">Target Entity</th>
+                    <th className="p-3 sm:p-3.5">Tamper-Proof Checksum</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
                   {auditLogs.slice(0, 25).map((log) => (
                     <tr key={log.id} className="hover:bg-slate-50">
-                      <td className="p-3.5 text-slate-500 whitespace-nowrap">{log.timestamp.replace('T', ' ').substring(0, 19)}</td>
-                      <td className="p-3.5 text-slate-900 font-sans font-semibold">{log.actorName}</td>
-                      <td className="p-3.5 text-[#0F766E] font-medium capitalize">{log.actorRole.replace('_', ' ')}</td>
-                      <td className="p-3.5 text-[#1E3A8A] font-bold">{log.action}</td>
-                      <td className="p-3.5 text-slate-700">{log.entityType} ({log.entityId})</td>
-                      <td className="p-3.5 text-slate-400 font-mono text-[10px]">{log.tamperProofChecksum.substring(0, 18)}...</td>
+                      <td className="p-3 sm:p-3.5 text-slate-500 whitespace-nowrap">{log.timestamp.replace('T', ' ').substring(0, 19)}</td>
+                      <td className="p-3 sm:p-3.5 text-slate-900 font-sans font-semibold whitespace-nowrap">{log.actorName}</td>
+                      <td className="p-3 sm:p-3.5 text-[#0F766E] font-medium capitalize whitespace-nowrap">{log.actorRole.replace('_', ' ')}</td>
+                      <td className="p-3 sm:p-3.5 text-[#1E3A8A] font-bold whitespace-nowrap">{log.action}</td>
+                      <td className="p-3 sm:p-3.5 text-slate-700 whitespace-nowrap">{log.entityType} ({log.entityId})</td>
+                      <td className="p-3 sm:p-3.5 text-slate-400 font-mono text-[10px] whitespace-nowrap">{log.tamperProofChecksum.substring(0, 18)}...</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="px-3 py-2 bg-slate-50 border-t border-slate-100 text-[10px] text-slate-400 sm:hidden flex items-center justify-between">
+              <span>← Swipe table horizontally →</span>
+              <span>SHA-256 Tamper Evident</span>
             </div>
           </div>
         </div>
