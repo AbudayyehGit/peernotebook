@@ -12,6 +12,7 @@ import { SessionNoteForm } from './SessionNoteForm';
 import { SupervisorDashboard } from './SupervisorDashboard';
 import { SettingsPanel } from './SettingsPanel';
 import { ExportSessionPDF } from './ExportSessionPDF';
+import { DocumentationViewer } from './DocumentationViewer';
 import {
   Users,
   FileText,
@@ -22,16 +23,13 @@ import {
   Plus,
   Download,
   Search,
-  ExternalLink,
-  Lock,
-  Database,
-  ArrowRight
+  Lock
 } from 'lucide-react';
 
 export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'supervisor' | 'audit' | 'architecture' | 'settings';
 
 export const PeerNotebookWorkspace: React.FC = () => {
-  const { currentOrg, role, canApproveNotes } = useAuth();
+  const { currentOrg, canApproveNotes } = useAuth();
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('clients');
   const [selectedClientForNote, setSelectedClientForNote] = useState<Client | null>(null);
   const [selectedNoteForEdit, setSelectedNoteForEdit] = useState<SessionNote | null>(null);
@@ -169,7 +167,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
             onClick={() => setActiveTab('settings')}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors ${
               activeTab === 'settings'
-                ? 'bg-slate-800 text-white'
+                ? 'bg-[#1E3A8A] text-white'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
             }`}
           >
@@ -380,122 +378,9 @@ export const PeerNotebookWorkspace: React.FC = () => {
         </div>
       )}
 
+      {/* GA #8 White Papers & Specs Tab */}
       {activeTab === 'architecture' && (
-        <div className="space-y-6">
-          <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200">
-                  <BookOpen className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-[#1E3A8A]">
-                    GA #8 Production Architecture & Compliance Documentation
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Dual-Layer Persistence (Dexie.js + Supabase) • CalAIM & Medi-Cal H0038 Compliance
-                  </p>
-                </div>
-              </div>
-
-              <a
-                href="https://peernotebook.com/docs"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-4 py-2 bg-[#1E3A8A] hover:bg-blue-950 text-white rounded-lg text-xs font-semibold shadow-xs"
-              >
-                <span>Browse peernotebook.com Docs</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-[#1E3A8A] text-sm">1. Dual-Layer Persistence Architecture</h4>
-                  <span className="text-[10px] bg-teal-50 text-[#0F766E] border border-teal-200 px-2 py-0.5 rounded font-mono font-bold">
-                    07_Offline_Sync_IndexedDB.md
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Peer Notebook utilizes a client-side Dexie.js (IndexedDB) datastore paired with a PostgreSQL/Supabase remote instance. Encounter notes and client demographic mutations are recorded in local transactional stores first, ensuring zero failure during fieldwork without internet. The background Sync Worker automatically drains queued mutations upon re-establishing network access.
-                </p>
-                <a
-                  href="https://peernotebook.com/docs/04-technical-architecture/07_Offline_Sync_IndexedDB"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-[#0F766E] font-semibold hover:underline inline-flex items-center gap-1 pt-1"
-                >
-                  <span>Read Offline Sync Spec on peernotebook.com</span>
-                  <ArrowRight className="w-3 h-3" />
-                </a>
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-[#1E3A8A] text-sm">2. CalAIM & Medi-Cal Payment Reform</h4>
-                  <span className="text-[10px] bg-blue-50 text-[#1E3A8A] border border-blue-200 px-2 py-0.5 rounded font-mono font-bold">
-                    05_Compliance_Engine_PDF_Export.md
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Under California DHCS Behavioral Health Payment Reform, Certified Peer Support Specialists bill under procedure code H0038 in 15-minute increments. Peer Notebook accounts for direct face-to-face engagement, travel time, and direct documentation minutes to formulate exact claims, complete with supervisor cosignature compliance.
-                </p>
-                <a
-                  href="https://peernotebook.com/docs/04-technical-architecture/05_Compliance_Engine_PDF_Export"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-[#0F766E] font-semibold hover:underline inline-flex items-center gap-1 pt-1"
-                >
-                  <span>Read CalAIM Compliance Engine on peernotebook.com</span>
-                  <ArrowRight className="w-3 h-3" />
-                </a>
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-[#1E3A8A] text-sm">3. HIPAA Security & 42 CFR Part 2</h4>
-                  <span className="text-[10px] bg-emerald-50 text-[#16A34A] border border-emerald-200 px-2 py-0.5 rounded font-mono font-bold">
-                    08_HIPAA_BAA_Consent_Model.md
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Confidentiality of substance use disorder records is safeguarded by client pseudonymization (MRN PN-XXXX), granular consent tracking, and an immutable SHA-256 audit ledger capturing every client record inspection, encounter edit, and supervisor cosignature stamp.
-                </p>
-                <a
-                  href="https://peernotebook.com/docs/04-technical-architecture/08_HIPAA_BAA_Consent_Model"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-[#0F766E] font-semibold hover:underline inline-flex items-center gap-1 pt-1"
-                >
-                  <span>Read HIPAA BAA & Security Model on peernotebook.com</span>
-                  <ArrowRight className="w-3 h-3" />
-                </a>
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-[#1E3A8A] text-sm">4. Database ERD & Data Dictionary</h4>
-                  <span className="text-[10px] bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded font-mono font-bold">
-                    02_Database_ERD_Data_Dictionary.md
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Comprehensive relational entity mapping across organizations, users, clients, session_notes, audit_logs, and sync_queue tables with multi-tenant row-level security (RLS) enforcement and UUID primary key guarantees.
-                </p>
-                <a
-                  href="https://peernotebook.com/docs/04-technical-architecture/02_Database_ERD_Data_Dictionary"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-[#0F766E] font-semibold hover:underline inline-flex items-center gap-1 pt-1"
-                >
-                  <span>Read Database ERD & Dictionary on peernotebook.com</span>
-                  <ArrowRight className="w-3 h-3" />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DocumentationViewer />
       )}
 
       {activeTab === 'settings' && (
