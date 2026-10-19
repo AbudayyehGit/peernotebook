@@ -2,6 +2,7 @@
  * Peer Notebook - Main Clinical & Peer Support Specialist Workspace
  * Visual Palette: Soft Slate (#F8FAFC), Deep Navy (#1E3A8A), Muted Teal (#0F766E)
  * CalAIM & Medi-Cal H0038 Compliant • GA #8 Verified
+ * Dynamic Route Handling for /docs, /clients, /notes, /supervisor, /audit, /settings
  */
 
 import React, { useState, useEffect } from 'react';
@@ -30,7 +31,30 @@ export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'supervisor' | 'au
 
 export const PeerNotebookWorkspace: React.FC = () => {
   const { currentOrg, canApproveNotes } = useAuth();
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>('clients');
+  
+  // Parse route from window.location.pathname
+  const parseRoute = (): { tab: WorkspaceTab; slug?: string } => {
+    if (typeof window === 'undefined') return { tab: 'clients' };
+    const path = window.location.pathname.toLowerCase();
+
+    if (path.startsWith('/docs')) {
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      const slug = parts.length > 1 ? parts.slice(1).join('/') : undefined;
+      return { tab: 'architecture', slug };
+    }
+    if (path.startsWith('/clients')) return { tab: 'clients' };
+    if (path.startsWith('/notes')) return { tab: 'notes' };
+    if (path.startsWith('/new-note') || path.startsWith('/new_note')) return { tab: 'new_note' };
+    if (path.startsWith('/supervisor')) return { tab: 'supervisor' };
+    if (path.startsWith('/audit')) return { tab: 'audit' };
+    if (path.startsWith('/settings')) return { tab: 'settings' };
+
+    return { tab: 'clients' };
+  };
+
+  const initialRoute = parseRoute();
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>(initialRoute.tab);
+  const [docSlug, setDocSlug] = useState<string | undefined>(initialRoute.slug);
   const [selectedClientForNote, setSelectedClientForNote] = useState<Client | null>(null);
   const [selectedNoteForEdit, setSelectedNoteForEdit] = useState<SessionNote | null>(null);
   const [selectedNoteForExport, setSelectedNoteForExport] = useState<SessionNote | null>(null);
@@ -40,6 +64,44 @@ export const PeerNotebookWorkspace: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [notesSearch, setNotesSearch] = useState('');
   const [notesFilter, setNotesFilter] = useState('ALL');
+
+  // Handle browser popstate (back/forward)
+  useEffect(() => {
+    const handlePopState = () => {
+      const route = parseRoute();
+      setActiveTab(route.tab);
+      setDocSlug(route.slug);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateToTab = (tab: WorkspaceTab, slug?: string) => {
+    setActiveTab(tab);
+    setDocSlug(slug);
+
+    let path = '/';
+    if (tab === 'architecture') {
+      path = slug ? `/docs/${slug}` : '/docs';
+    } else if (tab === 'clients') {
+      path = '/clients';
+    } else if (tab === 'notes') {
+      path = '/notes';
+    } else if (tab === 'new_note') {
+      path = '/new-note';
+    } else if (tab === 'supervisor') {
+      path = '/supervisor';
+    } else if (tab === 'audit') {
+      path = '/audit';
+    } else if (tab === 'settings') {
+      path = '/settings';
+    }
+
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, '', path);
+    }
+  };
 
   const refreshData = async () => {
     const allNotes = await peerNotebookDB.getAllNotes();
@@ -60,13 +122,13 @@ export const PeerNotebookWorkspace: React.FC = () => {
   const handleStartNoteForClient = (client: Client) => {
     setSelectedClientForNote(client);
     setSelectedNoteForEdit(null);
-    setActiveTab('new_note');
+    navigateToTab('new_note');
   };
 
   const handleEditNote = (note: SessionNote) => {
     setSelectedNoteForEdit(note);
     setSelectedClientForNote(null);
-    setActiveTab('new_note');
+    navigateToTab('new_note');
   };
 
   const filteredNotes = notes.filter(n => {
@@ -84,7 +146,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 gap-2">
         <div className="flex flex-wrap items-center gap-1 sm:gap-2">
           <button
-            onClick={() => setActiveTab('clients')}
+            onClick={() => navigateToTab('clients')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'clients'
                 ? 'bg-[#1E3A8A] text-white shadow-xs'
@@ -96,7 +158,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('notes')}
+            onClick={() => navigateToTab('notes')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'notes'
                 ? 'bg-[#1E3A8A] text-white shadow-xs'
@@ -111,7 +173,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
             onClick={() => {
               setSelectedNoteForEdit(null);
               setSelectedClientForNote(null);
-              setActiveTab('new_note');
+              navigateToTab('new_note');
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'new_note'
@@ -125,7 +187,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
 
           {canApproveNotes && (
             <button
-              onClick={() => setActiveTab('supervisor')}
+              onClick={() => navigateToTab('supervisor')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'supervisor'
                   ? 'bg-[#1E3A8A] text-white shadow-xs'
@@ -138,7 +200,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
           )}
 
           <button
-            onClick={() => setActiveTab('audit')}
+            onClick={() => navigateToTab('audit')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'audit'
                 ? 'bg-[#1E3A8A] text-white shadow-xs'
@@ -150,7 +212,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('architecture')}
+            onClick={() => navigateToTab('architecture')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'architecture'
                 ? 'bg-[#1E3A8A] text-white shadow-xs'
@@ -164,7 +226,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
 
         <div>
           <button
-            onClick={() => setActiveTab('settings')}
+            onClick={() => navigateToTab('settings')}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors ${
               activeTab === 'settings'
                 ? 'bg-[#1E3A8A] text-white'
@@ -188,9 +250,9 @@ export const PeerNotebookWorkspace: React.FC = () => {
           existingNote={selectedNoteForEdit}
           onSaveSuccess={() => {
             refreshData();
-            setActiveTab('notes');
+            navigateToTab('notes');
           }}
-          onCancel={() => setActiveTab('notes')}
+          onCancel={() => navigateToTab('notes')}
         />
       )}
 
@@ -225,7 +287,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
                 onClick={() => {
                   setSelectedNoteForEdit(null);
                   setSelectedClientForNote(null);
-                  setActiveTab('new_note');
+                  navigateToTab('new_note');
                 }}
                 className="flex items-center gap-1.5 px-4 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-lg text-xs font-semibold shadow-xs"
               >
@@ -378,9 +440,18 @@ export const PeerNotebookWorkspace: React.FC = () => {
         </div>
       )}
 
-      {/* GA #8 White Papers & Specs Tab */}
+      {/* GA #8 White Papers & Specs Tab with Slug Binding */}
       {activeTab === 'architecture' && (
-        <DocumentationViewer />
+        <DocumentationViewer
+          initialSlug={docSlug}
+          onSlugChange={(slug) => {
+            setDocSlug(slug);
+            const path = `/docs/${slug}`;
+            if (window.location.pathname !== path) {
+              window.history.pushState(null, '', path);
+            }
+          }}
+        />
       )}
 
       {activeTab === 'settings' && (

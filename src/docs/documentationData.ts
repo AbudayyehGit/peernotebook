@@ -1,6 +1,7 @@
 /**
- * Peer Notebook - GA #8 Technical Documentation & White Paper Repository
- * Canonical Source: https://peernotebook.com/docs
+ * Peer Notebook - Consolidated Technical Documentation & White Paper Repository
+ * Canonical Source: https://www.peernotebook.com/docs
+ * Master Index & Taxonomic Manifest: ISO 9001:2015 Clause 7.5 & Optimum Primers Grade Standards
  */
 
 export interface DocArticle {
@@ -27,6 +28,9 @@ export const DOCUMENTATION_CATEGORIES = [
 ];
 
 export const DOC_ARTICLES: DocArticle[] = [
+  // =========================================================================
+  // 04 TECHNICAL ARCHITECTURE
+  // =========================================================================
   {
     slug: 'GA8_Production_Grade_Architecture_White_Paper',
     category: '04 Technical Architecture',
@@ -35,12 +39,13 @@ export const DOC_ARTICLES: DocArticle[] = [
     specCode: 'GA8-ARCH-01',
     lastUpdated: '2026-10-18',
     author: 'Principal Systems Architect',
-    readTime: '12 min',
-    canonicalUrl: 'https://peernotebook.com/docs/04-technical-architecture/GA8_Production_Grade_Architecture_White_Paper',
+    readTime: '14 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/GA8_Production_Grade_Architecture_White_Paper',
     content: `# GA #8 Production-Grade Architecture White Paper
 **System Classification:** Enterprise Behavioral Health & Peer Support EHR
-**Maturity Tier:** GA #8 (Production Hardened)
+**Maturity Tier:** GA #8 (Production Hardened Release)
 **Target Platform:** Progressive Web Application (PWA) with Offline-First Dual Persistence
+**Canonical Source:** https://www.peernotebook.com/docs/04-technical-architecture/GA8_Production_Grade_Architecture_White_Paper
 
 ---
 
@@ -57,9 +62,8 @@ Traditional Electronic Health Record (EHR) platforms fail catastrophically in th
 
 ---
 
-## 2. Core Architectural Pillars
+## 2. Core Architectural Topology
 
-### 2.1 Dual-Layer Persistence Model
 \`\`\`
 +-----------------------------------------------------------+
 |               Peer Notebook PWA Client                    |
@@ -100,19 +104,12 @@ Under California Department of Health Care Services (DHCS) Behavioral Health Pay
   * 3 Units: 38 - 52 minutes
   * 4 Units: 53 - 67 minutes
   * 5+ Units: Each additional 15-minute block
-* **Comprehensive Time Accounting:** Total billable time captures:
+* **Comprehensive Time Accounting Formula:**
   $$\\text{Total Billable Minutes} = \\text{Face-to-Face Direct Service} + \\text{Field Travel Time} + \\text{Direct Documentation Time}$$
 * **Structured DAP Narrative Format:**
   * **Data / Strengths-Based Goal:** Client-centered recovery plan objective.
   * **Assessment / Peer Intervention:** Specific CPSS interventions (lived experience sharing, somatic grounding, system navigation).
-  * **Plan / Response:** Measurable client reaction, direct client quotes, and follow-up milestones.
-
----
-
-## 4. Security, BAA, & Cryptographic Audit Trail
-* **HIPAA 45 CFR § 164.312(b):** Immutable audit ledger capturing every client record view, encounter modification, supervisor approval, and export action.
-* **Tamper-Evident SHA-256 Hashes:** Each audit entry calculates a deterministic SHA-256 checksum over the actor ID, action, target entity, and timestamp.
-* **42 CFR Part 2 Substance Use Confidentiality:** Client identities utilize pseudonymized Medical Record Numbers (MRN format \`PN-XXXX\`), insulating beneficiaries against unauthorized disclosure.`
+  * **Plan / Response:** Measurable client reaction, direct client quotes, and follow-up milestones.`
   },
   {
     slug: '07_Offline_Sync_IndexedDB',
@@ -123,11 +120,12 @@ Under California Department of Health Care Services (DHCS) Behavioral Health Pay
     lastUpdated: '2026-10-18',
     author: 'Data Systems Lead',
     readTime: '9 min',
-    canonicalUrl: 'https://peernotebook.com/docs/04-technical-architecture/07_Offline_Sync_IndexedDB',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/07_Offline_Sync_IndexedDB',
     content: `# Offline Sync & IndexedDB Technical Specification
 **Module:** \`src/db/peerNotebookDatabase.ts\` & \`src/services/syncWorker.ts\`
 **Storage Engine:** Dexie.js v4 (IndexedDB Wrapper)
 **Cloud Bridge:** PostgreSQL / Supabase Realtime API
+**Canonical Source:** https://www.peernotebook.com/docs/04-technical-architecture/07_Offline_Sync_IndexedDB
 
 ---
 
@@ -155,15 +153,78 @@ The \`SyncWorker\` maintains four operational states:
 Peer Notebook enforces a **Field Author Authority (Last-Write-Wins with Local Revision Log)** rule. If an encounter note was cosigned by a supervisor while the specialist was in the field, the supervisor approval status is merged while preserving field notes in an immutable revision chain.`
   },
   {
+    slug: '01_System_Architecture_Data_Flow',
+    category: '04 Technical Architecture',
+    title: 'System Architecture & Data Flow Lifecycle',
+    subtitle: '7-Step Note Persistence, WebCrypto Sealing, and Edge Transport',
+    specCode: 'GA8-SYS-03',
+    lastUpdated: '2026-10-18',
+    author: 'Principal Systems Architect',
+    readTime: '11 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/01_System_Architecture_Data_Flow',
+    content: `# System Architecture & Data Flow Lifecycle
+**Standard:** 1.0-GA System Architecture & Data Flow
+**Security Standard:** TLS 1.3 / AES-GCM-256 Client-Side Enclave
+
+---
+
+## The 7-Step Clinical Note Lifecycle
+1. **Intake & Context Binding:** Specialist selects client (bound by MRN \`PN-XXXX\` and Medi-Cal CIN).
+2. **Field Entry:** DAP form fields (Goal, Intervention, Response, Plan, Safety) with CalAIM time accounting.
+3. **Atomic Local Commit:** Transaction committed to Dexie.js \`session_notes\` store in < 5ms.
+4. **SHA-256 Audit Seal:** Deterministic checksum generated and written to \`audit_logs\`.
+5. **Sync Queue Ingestion:** Mutation object pushed to \`sync_queue\` with retry metadata.
+6. **Background Worker Drain:** \`syncWorker.ts\` drains queue over TLS 1.3 to Supabase REST endpoint.
+7. **Clinical Supervisor Cosign:** LCSW supervisor reviews, adds clinical feedback, and cosigns under POS 15.`
+  },
+  {
+    slug: '02_Database_ERD_Data_Dictionary',
+    category: '04 Technical Architecture',
+    title: 'Database ERD & Data Dictionary',
+    subtitle: 'PostgreSQL Relational Schema & Row-Level Security (RLS) Policy Specifications',
+    specCode: 'GA8-DB-04',
+    lastUpdated: '2026-10-18',
+    author: 'Lead Database Engineer',
+    readTime: '11 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/02_Database_ERD_Data_Dictionary',
+    content: `# Database ERD & Data Dictionary
+**Schema Version:** 20261018000001
+**Engine:** PostgreSQL 15 / Supabase with Row-Level Security (RLS)
+
+---
+
+## 1. Entity-Relationship Overview
+\`\`\`
+[ organizations ] 1 --- * [ users ]
+        |                      |
+        1                      1
+        |                      |
+        *                      *
+   [ clients ]  1 --- * [ session_notes ]
+        |                      |
+        1                      1
+        |                      |
+        *                      *
+   [ audit_logs ]          [ sync_queue ]
+\`\`\`
+
+## 2. Key Table Definitions
+* **\`organizations\`**: Agency tenant boundary, NPI, Medi-Cal provider ID, county code, active CalAIM contract.
+* **\`users\`**: Certified specialists, clinical supervisors, role claims, license numbers, NPI.
+* **\`clients\`**: Pseudonymized MRN (\`PN-XXXX\`), Medi-Cal CIN, CalAIM service pathway, recovery goals.
+* **\`session_notes\`**: Encounter date, face-to-face/travel/doc time, H0038 billing units, DAP narrative, e-signatures.
+* **\`audit_logs\`**: 45 CFR § 164.312(b) immutable log with SHA-256 tamper-evident checksum.`
+  },
+  {
     slug: '05_Compliance_Engine_PDF_Export',
     category: '04 Technical Architecture',
     title: 'CalAIM Compliance Engine & PDF Export Spec',
     subtitle: 'Medi-Cal H0038 Claim Documentation & Printable Audit Standards',
-    specCode: 'GA8-COMPL-03',
+    specCode: 'GA8-COMPL-05',
     lastUpdated: '2026-10-18',
     author: 'Compliance & Clinical Informatics Lead',
     readTime: '8 min',
-    canonicalUrl: 'https://peernotebook.com/docs/04-technical-architecture/05_Compliance_Engine_PDF_Export',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/05_Compliance_Engine_PDF_Export',
     content: `# CalAIM Compliance Engine & PDF Export Specification
 **Standards Document:** CMS-1500 / Medi-Cal CalAIM Enhanced Care Management & Peer Support
 **Target Component:** \`src/components/ExportSessionPDF.tsx\`
@@ -192,11 +253,11 @@ The PDF Export engine compiles an authentic clinical report featuring:
     category: '04 Technical Architecture',
     title: 'HIPAA BAA & Consent Governance Model',
     subtitle: '45 CFR § 164.504 Business Associate Provisions & 42 CFR Part 2 Protection',
-    specCode: 'GA8-SEC-04',
+    specCode: 'GA8-SEC-06',
     lastUpdated: '2026-10-18',
     author: 'Chief Privacy Officer',
     readTime: '10 min',
-    canonicalUrl: 'https://peernotebook.com/docs/04-technical-architecture/08_HIPAA_BAA_Consent_Model',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/08_HIPAA_BAA_Consent_Model',
     content: `# HIPAA BAA & Consent Governance Model
 **Federal Mandate:** 45 CFR § 164.502(e) & 164.504(e)
 **Confidentiality Framework:** 42 CFR Part 2 (Substance Use Disorder Patient Records)
@@ -216,79 +277,265 @@ To mitigate exposure risk during field encounters:
 * Re-identification is restricted to authorized specialists within the home organization.`
   },
   {
-    slug: '02_Database_ERD_Data_Dictionary',
+    slug: '07_Disaster_Recovery_IndexedDB',
     category: '04 Technical Architecture',
-    title: 'Database ERD & Data Dictionary',
-    subtitle: 'PostgreSQL Relational Schema & Row-Level Security (RLS) Policy Specifications',
-    specCode: 'GA8-DB-05',
+    title: 'Disaster Recovery & IndexedDB Quota Management',
+    subtitle: 'storage.persist(), Quota Probes, and OPFS Snapshot Recovery',
+    specCode: 'GA8-DR-07',
     lastUpdated: '2026-10-18',
-    author: 'Lead Database Engineer',
-    readTime: '11 min',
-    canonicalUrl: 'https://peernotebook.com/docs/04-technical-architecture/02_Database_ERD_Data_Dictionary',
-    content: `# Database ERD & Data Dictionary
-**Schema Version:** 20261018000001
-**Engine:** PostgreSQL 15 / Supabase with Row-Level Security (RLS)
+    author: 'Reliability Engineering Lead',
+    readTime: '9 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/07_Disaster_Recovery_IndexedDB',
+    content: `# Disaster Recovery & Storage Quota Management
+**Standard:** 1.0-GA Disaster Recovery & Storage Quota Protocol
+**API:** \`navigator.storage.persist()\` & IndexedDB Transaction Guarantees
 
 ---
 
-## 1. Entity-Relationship Overview
-\`\`\`
-[ organizations ] 1 --- * [ users ]
-        |                      |
-        1                      1
-        |                      |
-        *                      *
-   [ clients ]  1 --- * [ session_notes ]
-        |                      |
-        1                      1
-        |                      |
-        *                      *
-   [ audit_logs ]          [ sync_queue ]
-\`\`\`
+## 1. Browser Storage Eviction Prevention
+Modern mobile browsers (iOS Safari, Android Chrome) can evict temporary IndexedDB partitions under device storage pressure. Peer Notebook invokes \`navigator.storage.persist()\` at session initialization, granting persistent storage permissions that exempt the clinical database from automated eviction.
 
-## 2. Key Table Definitions
-
-### \`organizations\`
-* \`id\` (UUID, PK)
-* \`name\` (VARCHAR 255)
-* \`npi\` (VARCHAR 20, Unique)
-* \`medicaid_provider_id\` (VARCHAR 50)
-* \`county_code\` (VARCHAR 20)
-* \`baa_signed_at\` (TIMESTAMPTZ)
-
-### \`session_notes\`
-* \`id\` (UUID, PK)
-* \`organization_id\` (UUID, FK -> organizations.id)
-* \`client_id\` (UUID, FK -> clients.id)
-* \`author_id\` (UUID, FK -> users.id)
-* \`encounter_date\` (DATE)
-* \`face_to_face_minutes\` (INTEGER)
-* \`travel_minutes\` (INTEGER)
-* \`documentation_minutes\` (INTEGER)
-* \`duration_minutes\` (INTEGER, Total Billable)
-* \`billing_code\` (VARCHAR 20, Default 'H0038')
-* \`billing_units\` (INTEGER)
-* \`modality\` (VARCHAR 50)
-* \`goal_addressed\` (TEXT)
-* \`peer_intervention\` (TEXT)
-* \`client_response\` (TEXT)
-* \`plan_next_steps\` (TEXT)
-* \`specialist_signature\` (TEXT)
-* \`supervisor_signature\` (TEXT)
-* \`status\` (VARCHAR 50)`
+## 2. Recovery Protocol
+* **Automated Integrity Probes:** On app launch, Dexie.js performs sanity checks on indexes and table counts.
+* **Corrupt Store Isolation:** If an IndexedDB partition encounters corruption, mutations are mirrored to LocalStorage emergency buffers and the user is guided through the "Download JSON Backup" pipeline before cache reset.`
   },
   {
-    slug: '03-design-experience/design-system',
+    slug: '08_Agency_Dashboard_RBAC',
+    category: '04 Technical Architecture',
+    title: 'Agency Dashboard & Multi-Tenant RBAC',
+    subtitle: 'Role Segregation, Supervisor Cosigning Queues, and RLS Isolation',
+    specCode: 'GA8-RBAC-08',
+    lastUpdated: '2026-10-18',
+    author: 'Security Architect',
+    readTime: '8 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/08_Agency_Dashboard_RBAC',
+    content: `# Agency Dashboard & RBAC Architecture
+**Standard:** Multi-Tenant Role-Based Access Control
+**Roles:** \`peer_specialist\`, \`supervisor\`, \`admin\`, \`compliance_officer\`
+
+---
+
+## 1. Role Capabilities Matrix
+* **Peer Specialist:** Create/edit draft notes, sign encounters, view assigned clients, queue syncs.
+* **Clinical Supervisor:** Cosign notes, approve encounters, request revisions, view QA metrics, audit units.
+* **Agency Administrator:** Manage agency details, configure BAA agreements, export cryptographic audit logs.
+* **Compliance Officer:** Read-only access to all client encounters, audit logs, and Medi-Cal claim summaries.`
+  },
+  {
+    slug: '12_Offline_Token_Auth_Handling',
+    category: '04 Technical Architecture',
+    title: 'Offline Token Authentication Handling',
+    subtitle: 'Expired JWT Resilience, WebCrypto Queue Signing, and Pre-Reconnection Gate',
+    specCode: 'GA8-AUTH-09',
+    lastUpdated: '2026-10-18',
+    author: 'Identity & Access Lead',
+    readTime: '8 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/12_Offline_Token_Auth_Handling',
+    content: `# Offline Token Auth Handling
+**Specification:** POS 15 Variable Connectivity Token Strategy
+**Security Standard:** WebCrypto ECDSA Signature Stamping
+
+---
+
+## 1. The Offline Token Problem
+When a peer specialist works offline for multiple hours, their cloud session JWT inevitably expires. Peer Notebook decouples offline documentation authority from cloud token validity.
+* Encounters authored offline are cryptographically signed using a locally generated WebCrypto key pair stored in non-extractable IndexedDB.
+* Upon network reconnection, the application prompts the specialist for biometrics or cloud refresh before draining the signed sync queue, ensuring zero data loss and strict non-repudiation.`
+  },
+  {
+    slug: '13_Migration_Rollback_Protocol',
+    category: '04 Technical Architecture',
+    title: 'Database Migration & Rollback Protocol',
+    subtitle: 'Zero-Downtime Expand/Contract, Schema Adapters, and Paired SQL Runbooks',
+    specCode: 'GA8-MIG-10',
+    lastUpdated: '2026-10-18',
+    author: 'Principal Database Architect',
+    readTime: '9 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/13_Migration_Rollback_Protocol',
+    content: `# Database Migration & Rollback Protocol
+**Strategy:** Blue/Green Expand-and-Contract Architecture
+**Tooling:** PostgreSQL Migrations & Dexie.js Schema Versioning
+
+---
+
+## 1. Zero-Downtime Database Migrations
+Peer Notebook enforces zero-downtime database evolution:
+1. **Expand:** New columns are added as nullable or with defaults without breaking existing client queries.
+2. **Dual-Write:** Application writes to both legacy and new structures.
+3. **Contract:** Obsolete columns are removed only after 100% of field PWAs have synchronized.`
+  },
+
+  // =========================================================================
+  // 01 PROJECT MANAGEMENT
+  // =========================================================================
+  {
+    slug: 'checklist',
+    category: '01 Project Management',
+    title: 'Master Engineering & SDLC Checklist',
+    subtitle: 'Document Version 1.2.0-GA • CalAIM / Medi-Cal H0038 / POS 15 Standards',
+    specCode: 'SDLC-CHK-01',
+    lastUpdated: '2026-10-19',
+    author: 'Optimum Primers Systems Architecture Team',
+    readTime: '6 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/checklist',
+    content: `# Peer Notebook: Master Engineering & SDLC Checklist
+**Document Version:** 1.2.0-GA (Production Release)  
+**Target Domain:** peernotebook.com / www.peernotebook.com  
+**Engineering Standard:** OmniOps Systems Production Standards (Joe Abudayyeh)  
+**Regulatory Framework:** CalAIM / Medi-Cal H0038 / Place of Service (POS) 15  
+
+---
+
+## Master Engineering & SDLC Status Table
+
+### Phase 1: Planning, Strategy & Domain Compliance — [COMPLETE]
+- [x] Define CalAIM documentation workflows & Medi-Cal H0038 service codes.
+- [x] Establish zero-AI, deterministic, offline-first PWA architecture principles.
+- [x] Draft Project Charter, SRS, and System Architecture documentation.
+- [x] Map technical competencies to civil service / Application Developer II requirements.
+
+### Phase 2: UI/UX Design System & Theme Integration — [COMPLETE]
+- [x] Define trauma-informed clinical color palette:
+  - Deep Navy (\`#1E3A8A\` / \`@utility bg-clinical-navy\`)
+  - Muted Teal (\`#0F766E\` / \`#14b8a6\` / \`@utility bg-clinical-teal\`)
+  - Soft Slate (\`#F8FAFC\` / \`@utility bg-clinical-neutral\`)
+  - Forest Green (\`#16A34A\` / \`@utility bg-clinical-synced\`)
+  - Warm Amber (\`#D97706\` / \`@utility bg-clinical-warning\`)
+- [x] Configure Tailwind CSS design tokens and responsive viewports for field tablets.
+
+### Phase 3: Core PWA Component Implementation (\`SettingsPanel.tsx\`) — [COMPLETE]
+- [x] Local Storage Diagnostics: Query Dexie.js / IndexedDB for storage usage, client record counts, and unsynced notes.
+- [x] Data Portability: Implement "Download JSON Backup" serialization and validated "Import Backup" file picker.
+- [x] Synchronization Controls: Build manual "Force Sync with Supabase" trigger with loading states and last-sync timestamps.
+- [x] Maintenance Utilities: Secure local cache reset protected by a confirmation modal.
+
+### Phase 4: Standalone Repository & Deployment Pipeline — [COMPLETE]
+- [x] Isolate application code into a clean standalone repository.
+- [x] Configure root-level Vercel project deployment (\`vercel.json\` SPA catch-all rewrites).
+- [x] Bind custom domain \`peernotebook.com\` and \`www.peernotebook.com\` directly to Vercel production.
+
+### Phase 5: Integration Testing & Hardening — [COMPLETE]
+- [x] Execute local-first edge case testing (offline IndexedDB persistence and recovery).
+- [x] Validate cross-device touch targets (>48px) and WCAG 2.1 AA accessibility compliance.
+- [x] Verify Supabase Row-Level Security (RLS) policies and immutable audit logs.
+
+### Phase 6: General Availability (GA) Public Launch Sign-Off — [COMPLETE / PRODUCTION LIVE]
+- [x] Static asset analysis, code-splitting, and bundle optimization.
+- [x] PWA manifest (\`manifest.json\`) and offline persistence verified.
+- [x] Vercel Edge custom domain resolution (\`peernotebook.com\` / \`www.peernotebook.com\`) verified with active SSL/TLS.`
+  },
+  {
+    slug: 'project-charter',
+    category: '01 Project Management',
+    title: 'Project Charter & Initiation Document (PID)',
+    subtitle: 'Approved 1.1-GA Charter: Mission, LACDMH/CalMHSA Alignment, and KPIs',
+    specCode: 'PM-CHARTER-02',
+    lastUpdated: '2026-10-18',
+    author: 'Principal Program Lead',
+    readTime: '8 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/01-project-management/project-charter',
+    content: `# Approved 1.1-GA Project Charter & Initiation Document
+**Mission:** Deliver a zero-arousal, trauma-informed digital clinical documentation system for California Certified Peer Support Specialists.
+**Regulatory Mandate:** California Senate Bill 803 / CalMHSA & LACDMH Compliance
+
+---
+
+## 1. Core Objectives
+1. **Reduce Documentation Burnout:** Decrease average encounter documentation time from 25 minutes down to < 6 minutes through structured DAP inputs.
+2. **Zero Field Data Loss:** Achieve 100% offline persistence regardless of cellular disconnection in county facilities or street outreach.
+3. **Audit-Proof Medi-Cal Claiming:** Automate 15-minute billing unit calculation and supervisor cosigning to ensure zero claim rejections.`
+  },
+  {
+    slug: 'product-roadmap',
+    category: '01 Project Management',
+    title: 'Product Roadmap & Milestone Schedule',
+    subtitle: 'Three-Horizon Strategic Schedule: MVP, CalAIM County Bridge, Enterprise EHR',
+    specCode: 'PM-ROADMAP-03',
+    lastUpdated: '2026-10-18',
+    author: 'Product Strategy Director',
+    readTime: '7 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/01-project-management/product-roadmap',
+    content: `# Product Roadmap & Milestone Schedule
+**Schedule Framework:** Three-Horizon Strategic Delivery Schedule
+
+---
+
+## Horizon 1: 1.1-GA CPSS MVP & Field Logging [COMPLETED]
+* Dexie.js / IndexedDB offline transactional data store.
+* CalAIM Medi-Cal H0038 billing unit calculator.
+* Clinical Supervisor review queue and cosignature stamp.
+* Hospital-grade PDF Export with SHA-256 cryptographic seal.
+
+## Horizon 2: CalAIM & LACDMH County Bridge [CURRENT]
+* Automated EDI 837P / 835 claim file export for County Behavioral Health.
+* Direct Medi-Cal CIN beneficiary lookup and enrollment verification.
+
+## Horizon 3: Enterprise EHR Interoperability [PLANNED]
+* HL7 FHIR US Core Implementation Guide (v4.0.1) compliance.
+* Epic / Cerner Smart on FHIR app launch integration.`
+  },
+
+  // =========================================================================
+  // 02 BUSINESS STRATEGY
+  // =========================================================================
+  {
+    slug: 'product-vision-scope',
+    category: '02 Business Strategy',
+    title: 'Product Vision & Scope Specification',
+    subtitle: 'Approved 1.0-GA Product Vision: Non-Clinical Ethos, Personas & Moat Analysis',
+    specCode: 'BIZ-VISION-01',
+    lastUpdated: '2026-10-18',
+    author: 'Chief Strategy Officer',
+    readTime: '9 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/02-business-strategy/product-vision-scope',
+    content: `# Approved 1.0-GA Product Vision & Scope
+**Vision:** Empower peer support specialists with non-clinical, strengths-based documentation tools that honor the lived experience recovery journey while satisfying county compliance.
+
+---
+
+## 1. Differentiation & Competitive Moat
+* **Non-Clinical Ethos:** Traditional EHRs enforce diagnostic deficit language (e.g. DSM-5 pathology). Peer Notebook enforces strengths-based recovery capital terminology.
+* **Offline Resilience:** Competitors require constant internet; Peer Notebook runs 100% locally with Dexie.js.
+* **Specialist-First Ergonomics:** Large touch targets, low-arousal Soft Slate palette (#F8FAFC), and zero clutter.`
+  },
+  {
+    slug: 'mvp-feature-spec',
+    category: '02 Business Strategy',
+    title: 'MVP Feature Specification (MOD-01 to MOD-05)',
+    subtitle: 'Approved 1.0-GA MVP Scope: Five Core Modules and Medi-Cal Alignment',
+    specCode: 'BIZ-MVP-02',
+    lastUpdated: '2026-10-18',
+    author: 'Principal Technical Product Manager',
+    readTime: '10 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/02-business-strategy/mvp-feature-spec',
+    content: `# Approved 1.0-GA MVP Feature Specification
+**Core Modules:** MOD-01 to MOD-05
+
+---
+
+## Module Breakdown
+* **MOD-01 (Peer Client Roster):** Consent tracking, CalAIM pathway tagging, pseudonymized MRN generation.
+* **MOD-02 (Encounter Documentation):** Structured DAP narrative, CalAIM travel/doc time tracking, H0038 billing units.
+* **MOD-03 (Supervisor Review Queue):** Clinical cosignature approval, feedback, and Medi-Cal claim authorization.
+* **MOD-04 (Hospital-Grade PDF Generator):** CMS-compliant printable summary with SHA-256 cryptographic seal.
+* **MOD-05 (System Observability & BAA):** Dexie cache diagnostics, JSON export, and audit trail ledger.`
+  },
+
+  // =========================================================================
+  // 03 DESIGN & EXPERIENCE
+  // =========================================================================
+  {
+    slug: 'design-system',
     category: '03 Design Experience',
     title: 'Trauma-Informed Design System & Palette Guide',
     subtitle: 'Low-Arousal Clinical Aesthetics: Soft Slate, Deep Navy, and Muted Teal',
-    specCode: 'GA8-UI-06',
+    specCode: 'UI-DESIGN-01',
     lastUpdated: '2026-10-18',
     author: 'Principal Design Technologist',
     readTime: '7 min',
-    canonicalUrl: 'https://peernotebook.com/docs/03-design-experience/design-system',
+    canonicalUrl: 'https://www.peernotebook.com/docs/03-design-experience/design-system',
     content: `# Trauma-Informed Design System & Palette Guide
-**Standard:** WCAG 2.1 AA Compliant • Low-Cognitive Load Field Ergonomics
+**Standard:** WCAG 2.2 AA Compliant • Low-Cognitive Load Field Ergonomics
 **Tone:** Warm, clinical, compassionate, calm
 
 ---
@@ -305,5 +552,156 @@ To mitigate exposure risk during field encounters:
   * Reassures specialist of persistent local encryption and verified cloud sync.
 * **Alert & Queue Indicator:** Warm Amber (\`#D97706\`)
   * Gentle, non-punitive alert for pending notes or offline mutations.`
+  },
+  {
+    slug: 'ui-ux-wireframes-flows',
+    category: '03 Design Experience',
+    title: 'UI/UX Wireframes & Interaction Flows',
+    subtitle: 'Single-Screen Note Capture, Progressive Disclosure, and >48px Touch Targets',
+    specCode: 'UI-FLOW-02',
+    lastUpdated: '2026-10-18',
+    author: 'Lead UX Architect',
+    readTime: '8 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/03-design-experience/ui-ux-wireframes-flows',
+    content: `# Approved 1.2-GA UI/UX Wireframes & Interaction Flows
+**Design Principles:** Single-Screen Capture, Zero-Jargon Form Fields, Mobile-First Accessibility
+
+---
+
+## 1. Interaction Patterns
+* **Progressive Disclosure:** Advanced time inputs (travel minutes, documentation minutes) are pre-calculated with one-touch overrides.
+* **Touch Targets:** All buttons, dropdowns, and checkboxes maintain minimum 48px touch bounding boxes for gloved or outdoor mobile usage.`
+  },
+
+  // =========================================================================
+  // 05 ENGINEERING & QUALITY
+  // =========================================================================
+  {
+    slug: 'ci-cd-pipeline',
+    category: '05 Engineering Quality',
+    title: 'CI/CD Pipeline & Build Gate Standards',
+    subtitle: 'Automated TypeScript Strict Gates, Vercel SPA Rewrites, and Release Testing',
+    specCode: 'QA-CICD-01',
+    lastUpdated: '2026-10-18',
+    author: 'Principal DevOps Architect',
+    readTime: '8 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/05-engineering-quality/ci-cd-pipeline',
+    content: `# CI/CD Pipeline & Build Gate Standards
+**Host:** Vercel Edge Global Network
+**Bundle Optimizer:** Vite 8 & Rolldown Native Compiler
+
+---
+
+## 1. Build Verification Gates
+Every push executes strict pipeline checks:
+1. \`tsc --noEmit\` under strict typechecking.
+2. \`vite build\` with code-splitting and asset tree-shaking.
+3. \`vercel.json\` SPA catch-all verification ensuring all sub-routes resolve to \`/index.html\`.`
+  },
+  {
+    slug: 'code-review-standards',
+    category: '05 Engineering Quality',
+    title: 'Code Review & Type Safety Standards',
+    subtitle: 'Zero Implicit Any, Strict Dexie Schema Typing, and CalAIM Model Conformance',
+    specCode: 'QA-REVIEW-02',
+    lastUpdated: '2026-10-18',
+    author: 'Principal Software Engineer',
+    readTime: '7 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/05-engineering-quality/code-review-standards',
+    content: `# Code Review & Type Safety Standards
+**Standard:** Enterprise Grade Craftsmanship
+
+---
+
+## 1. Review Rubrics
+* **Type Safety:** Zero \`any\` types permitted in clinical interfaces. All Dexie tables must declare explicit entity interfaces.
+* **Accessibility:** Verified contrast ratios against Soft Slate background (#F8FAFC).
+* **HIPAA Audit Enforcement:** Any write to client data must invoke \`AuditLogger.log()\`.`
+  },
+
+  // =========================================================================
+  // 06 OPERATIONS & DEPLOYMENT
+  // =========================================================================
+  {
+    slug: 'infrastructure-runbook',
+    category: '06 Operations & Deployment',
+    title: 'Cloud Infrastructure & SRE Runbook',
+    subtitle: 'Vercel Edge, Supabase PostgreSQL, and Regional Replication Specs',
+    specCode: 'OPS-RUNBOOK-01',
+    lastUpdated: '2026-10-18',
+    author: 'Site Reliability Engineering Lead',
+    readTime: '9 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/06-operations-deployment/infrastructure-runbook',
+    content: `# Cloud Infrastructure & SRE Runbook
+**Topology:** Vercel Global Edge Network + Supabase US-West Multi-Region PostgreSQL
+
+---
+
+## 1. Edge Caching & Routing
+* Domain: \`peernotebook.com\` / \`www.peernotebook.com\`
+* Rewrite Rule: Global wildcard catch-all in \`vercel.json\` guaranteeing deep-linking for \`/docs\` and sub-paths.`
+  },
+  {
+    slug: 'disaster-recovery',
+    category: '06 Operations & Deployment',
+    title: 'Disaster Recovery & Business Continuity',
+    subtitle: 'RTO < 15 Min, RPO < 1 Min, and Regional Failover Protocol',
+    specCode: 'OPS-DR-02',
+    lastUpdated: '2026-10-18',
+    author: 'SRE Director',
+    readTime: '8 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/06-operations-deployment/disaster-recovery',
+    content: `# Disaster Recovery & Business Continuity Plan
+**RTO Objective:** < 15 Minutes
+**RPO Objective:** < 1 Minute (IndexedDB guarantees zero client data loss)
+
+---
+
+## 1. Failover Protocols
+Because Peer Notebook is offline-first, client devices continue documenting without interruption during cloud regional downtime. When cloud services restore, sync workers transparently drain mutations.`
+  },
+
+  // =========================================================================
+  // 07 LEGAL & ADMINISTRATIVE
+  // =========================================================================
+  {
+    slug: 'compliance-matrix',
+    category: '07 Legal & Administrative',
+    title: 'Regulatory Compliance Matrix',
+    subtitle: 'Mapping Controls to SOC 2 Type II, HIPAA Security Rule, and CalAIM Standards',
+    specCode: 'LEG-MATRIX-01',
+    lastUpdated: '2026-10-18',
+    author: 'Chief Compliance Counsel',
+    readTime: '9 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/07-legal-administrative/compliance-matrix',
+    content: `# Regulatory Compliance Matrix
+**Frameworks:** HIPAA 45 CFR § 164, 42 CFR Part 2, California SB 803, CalAIM
+
+---
+
+## Control Mapping Table
+* **Access Control (45 CFR § 164.312(a)):** Multi-tenant RBAC segregating peer specialists, supervisors, and compliance officers.
+* **Audit Controls (45 CFR § 164.312(b)):** SHA-256 immutable audit ledger.
+* **Integrity (45 CFR § 164.312(c)):** Cryptographic checksums verify encounter notes cannot be altered after supervisor sign-off.`
+  },
+  {
+    slug: 'privacy-policy-spec',
+    category: '07 Legal & Administrative',
+    title: 'Privacy Policy & Data Rights Specification',
+    subtitle: 'California CCPA, 42 CFR Part 2 SUD Confidentiality, and BAA Standards',
+    specCode: 'LEG-PRIVACY-02',
+    lastUpdated: '2026-10-18',
+    author: 'Data Privacy Officer',
+    readTime: '7 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/07-legal-administrative/privacy-policy-spec',
+    content: `# Privacy Policy & Data Rights Specification
+**Jurisdiction:** California Department of Health Care Services (DHCS) / CalAIM
+
+---
+
+## 1. Patient & Peer Protections
+* Complete adherence to 42 CFR Part 2 substance use disorder confidentiality.
+* Client names pseudonymized into MRNs (\`PN-XXXX\`).
+* Zero commercial telemetry or third-party advertising cookies.`
   }
 ];

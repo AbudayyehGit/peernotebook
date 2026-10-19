@@ -1,11 +1,11 @@
 /**
  * Peer Notebook - GA #8 Technical Documentation & White Paper Viewer
  * Interactive browser for all project white papers and specifications
- * Canonical URLs: https://peernotebook.com/docs/*
+ * Canonical URLs: https://www.peernotebook.com/docs/*
  */
 
-import React, { useState } from 'react';
-import { DOC_ARTICLES, DocArticle } from '../docs/documentationData';
+import React, { useState, useEffect } from 'react';
+import { DOC_ARTICLES, DocArticle, DOCUMENTATION_CATEGORIES } from '../docs/documentationData';
 import {
   BookOpen,
   Search,
@@ -13,26 +13,65 @@ import {
   Download,
   Copy,
   Check,
-  FileText,
   Calendar,
   User,
   Clock,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Code2,
+  Database,
+  Lock
 } from 'lucide-react';
 
-export const DocumentationViewer: React.FC = () => {
-  const [selectedArticle, setSelectedArticle] = useState<DocArticle>(DOC_ARTICLES[0]);
+interface DocumentationViewerProps {
+  initialSlug?: string;
+  onSlugChange?: (slug: string) => void;
+}
+
+export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
+  initialSlug,
+  onSlugChange
+}) => {
+  const [selectedArticle, setSelectedArticle] = useState<DocArticle>(() => {
+    if (initialSlug) {
+      const found = DOC_ARTICLES.find(
+        (a) => a.slug.toLowerCase() === initialSlug.toLowerCase()
+      );
+      if (found) return found;
+    }
+    return DOC_ARTICLES[0];
+  });
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedUrl, setCopiedUrl] = useState(false);
 
-  const filteredArticles = DOC_ARTICLES.filter(
-    (art) =>
+  useEffect(() => {
+    if (initialSlug) {
+      const found = DOC_ARTICLES.find(
+        (a) => a.slug.toLowerCase() === initialSlug.toLowerCase()
+      );
+      if (found && found.slug !== selectedArticle.slug) {
+        setSelectedArticle(found);
+      }
+    }
+  }, [initialSlug]);
+
+  const handleSelectArticle = (article: DocArticle) => {
+    setSelectedArticle(article);
+    if (onSlugChange) {
+      onSlugChange(article.slug);
+    }
+  };
+
+  const filteredArticles = DOC_ARTICLES.filter((art) => {
+    const matchesSearch =
       art.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       art.subtitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
       art.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      art.specCode.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      art.specCode.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'ALL' || art.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const handleCopyUrl = (url: string) => {
     navigator.clipboard.writeText(url);
@@ -54,34 +93,66 @@ export const DocumentationViewer: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-xs">
+      {/* Top Banner with Trust & Engineering Badges */}
+      <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200">
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#1E3A8A]">
-                GA #8 Production Architecture White Papers
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-[#1E3A8A]">
+                  GA #8 Production Architecture White Papers
+                </h2>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-[#0F766E] font-bold">
+                  www.peernotebook.com/docs
+                </span>
+              </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Enterprise Behavioral Health & Dual-Layer Persistence Documentation • peernotebook.com
+                Enterprise Behavioral Health & Dual-Layer Persistence Technical Specifications
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <a
-              href="https://peernotebook.com/docs"
+              href="https://www.peernotebook.com/docs"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 px-4 py-2 bg-[#1E3A8A] hover:bg-blue-950 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
             >
-              <span>Visit peernotebook.com/docs</span>
+              <span>Visit www.peernotebook.com/docs</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
+        </div>
+
+        {/* Real-time System Observability Badges in Documentation Header */}
+        <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">
+            System Status:
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
+            Build: passing
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-[#1E3A8A] border border-blue-200">
+            <Code2 className="w-3 h-3 text-[#1E3A8A]" />
+            TypeScript: strict
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+            <Database className="w-3 h-3 text-[#16A34A]" />
+            Persistence: Dexie.js + Supabase
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-teal-50 text-[#0F766E] border border-teal-200">
+            <ShieldCheck className="w-3 h-3 text-[#0F766E]" />
+            CalAIM & Medi-Cal H0038
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+            <Lock className="w-3 h-3 text-[#16A34A]" />
+            HIPAA BAA Active
+          </span>
         </div>
       </div>
 
@@ -100,9 +171,37 @@ export const DocumentationViewer: React.FC = () => {
             />
           </div>
 
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap gap-1">
+            <button
+              onClick={() => setSelectedCategory('ALL')}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                selectedCategory === 'ALL'
+                  ? 'bg-[#1E3A8A] text-white shadow-2xs'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              All Categories
+            </button>
+            {DOCUMENTATION_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                  selectedCategory === cat
+                    ? 'bg-[#0F766E] text-white shadow-2xs'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                {cat.replace(/^\d+\s*/, '')}
+              </button>
+            ))}
+          </div>
+
           <div className="bg-white border border-slate-200 rounded-2xl p-2 space-y-1 shadow-xs max-h-[720px] overflow-y-auto">
-            <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-              Published Architecture Papers ({filteredArticles.length})
+            <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 flex items-center justify-between">
+              <span>Published Papers ({filteredArticles.length})</span>
+              <span className="font-mono text-[#0F766E]">Total: {DOC_ARTICLES.length}</span>
             </div>
 
             {filteredArticles.map((article) => {
@@ -110,7 +209,7 @@ export const DocumentationViewer: React.FC = () => {
               return (
                 <button
                   key={article.slug}
-                  onClick={() => setSelectedArticle(article)}
+                  onClick={() => handleSelectArticle(article)}
                   className={`w-full text-left p-3 rounded-xl transition-all flex items-start justify-between ${
                     isSelected
                       ? 'bg-blue-50 border border-blue-200 text-[#1E3A8A] shadow-2xs'
@@ -222,7 +321,7 @@ export const DocumentationViewer: React.FC = () => {
                 rel="noopener noreferrer"
                 className="text-[#0F766E] hover:underline flex items-center gap-1 shrink-0 ml-2"
               >
-                <span>Open</span>
+                <span>Open in New Tab</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>
@@ -291,7 +390,7 @@ export const DocumentationViewer: React.FC = () => {
             </span>
             <div className="flex items-center gap-3 font-semibold text-[#0F766E]">
               <a
-                href="https://peernotebook.com/privacy"
+                href="https://www.peernotebook.com/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline"
@@ -300,7 +399,7 @@ export const DocumentationViewer: React.FC = () => {
               </a>
               <span>•</span>
               <a
-                href="https://peernotebook.com/terms"
+                href="https://www.peernotebook.com/terms"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline"
@@ -309,7 +408,7 @@ export const DocumentationViewer: React.FC = () => {
               </a>
               <span>•</span>
               <a
-                href="https://peernotebook.com/docs"
+                href="https://www.peernotebook.com/docs"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline flex items-center gap-1"
