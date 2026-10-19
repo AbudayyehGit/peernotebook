@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
 @layer base {
+  body {
+    background-color: #F8FAFC;
+    color: #1E293B;
+  }
+
   @media print {
     body {
       background: white !important;

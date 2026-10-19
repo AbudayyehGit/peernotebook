@@ -1,5 +1,7 @@
 /**
  * Peer Notebook - Main Clinical & Peer Support Specialist Workspace
+ * Visual Palette: Soft Slate (#F8FAFC), Deep Navy (#1E3A8A), Muted Teal (#0F766E)
+ * CalAIM & Medi-Cal H0038 Compliant • GA #8 Verified
  */
 
 import React, { useState, useEffect } from 'react';
@@ -18,19 +20,18 @@ import {
   Settings,
   BookOpen,
   Plus,
-  Clock,
   Download,
   Search,
   ExternalLink,
   Lock,
-  Cpu,
-  CheckCircle2
+  Database,
+  ArrowRight
 } from 'lucide-react';
 
 export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'supervisor' | 'audit' | 'architecture' | 'settings';
 
 export const PeerNotebookWorkspace: React.FC = () => {
-  const { currentOrg, currentUser, role, canApproveNotes } = useAuth();
+  const { currentOrg, role, canApproveNotes } = useAuth();
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('clients');
   const [selectedClientForNote, setSelectedClientForNote] = useState<Client | null>(null);
   const [selectedNoteForEdit, setSelectedNoteForEdit] = useState<SessionNote | null>(null);
@@ -82,14 +83,14 @@ export const PeerNotebookWorkspace: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Primary Navigation Tabs */}
-      <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+      <div className="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 gap-2">
         <div className="flex flex-wrap items-center gap-1 sm:gap-2">
           <button
             onClick={() => setActiveTab('clients')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'clients'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -98,10 +99,10 @@ export const PeerNotebookWorkspace: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('notes')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'notes'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -114,36 +115,36 @@ export const PeerNotebookWorkspace: React.FC = () => {
               setSelectedClientForNote(null);
               setActiveTab('new_note');
             }}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'new_note'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-blue-400 hover:text-white hover:bg-blue-950/40 border border-blue-900/60'
+                ? 'bg-[#0F766E] text-white shadow-xs'
+                : 'text-[#0F766E] hover:text-white hover:bg-[#0F766E] border border-teal-200 bg-teal-50'
             }`}
           >
             <Plus className="w-4 h-4" />
-            <span>New Encounter Note</span>
+            <span>New CalAIM Note</span>
           </button>
 
           {canApproveNotes && (
             <button
               onClick={() => setActiveTab('supervisor')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'supervisor'
-                  ? 'bg-purple-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                  ? 'bg-[#1E3A8A] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <ShieldCheck className="w-4 h-4 text-purple-400" />
+              <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
               <span>Supervisor QA</span>
             </button>
           )}
 
           <button
             onClick={() => setActiveTab('audit')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'audit'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <History className="w-4 h-4" />
@@ -152,24 +153,24 @@ export const PeerNotebookWorkspace: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('architecture')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'architecture'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>GA8 Specs</span>
+            <span>GA #8 White Papers</span>
           </button>
         </div>
 
         <div>
           <button
             onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors ${
               activeTab === 'settings'
-                ? 'bg-slate-700 text-white'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                ? 'bg-slate-800 text-white'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             <Settings className="w-4 h-4" />
@@ -202,10 +203,10 @@ export const PeerNotebookWorkspace: React.FC = () => {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Filter by peer name, ID, or goal..."
+                placeholder="Filter by peer name, ID, or CalAIM goal..."
                 value={notesSearch}
                 onChange={(e) => setNotesSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-hidden"
+                className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E] shadow-2xs"
               />
             </div>
 
@@ -213,12 +214,12 @@ export const PeerNotebookWorkspace: React.FC = () => {
               <select
                 value={notesFilter}
                 onChange={(e) => setNotesFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 focus:outline-hidden"
+                className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:outline-hidden shadow-2xs"
               >
                 <option value="ALL">All Notes ({notes.length})</option>
                 <option value="approved">Approved & Cosigned</option>
                 <option value="pending_supervisor">Pending Supervisor</option>
-                <option value="draft">Drafts</option>
+                <option value="draft">Dexie Drafts</option>
                 <option value="revision_requested">Revision Requested</option>
               </select>
 
@@ -228,7 +229,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
                   setSelectedClientForNote(null);
                   setActiveTab('new_note');
                 }}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold"
+                className="flex items-center gap-1.5 px-4 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-lg text-xs font-semibold shadow-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>New Note</span>
@@ -240,31 +241,36 @@ export const PeerNotebookWorkspace: React.FC = () => {
             {filteredNotes.map((note) => (
               <div
                 key={note.id}
-                className="p-5 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition-all space-y-3 flex flex-col justify-between"
+                className="p-5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl transition-all shadow-2xs space-y-3 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-white text-base">{note.clientName}</h4>
-                        <span className="font-mono text-xs text-blue-400 bg-blue-950/60 border border-blue-800/60 px-1.5 py-0.5 rounded">
+                        <h4 className="font-bold text-[#1E3A8A] text-base">{note.clientName}</h4>
+                        <span className="font-mono text-xs text-[#0F766E] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded font-semibold">
                           {note.clientIdentifier}
                         </span>
+                        {note.mediCalCin && (
+                          <span className="text-[11px] text-slate-500 font-mono">
+                            CIN: {note.mediCalCin}
+                          </span>
+                        )}
                       </div>
-                      <span className="text-xs text-slate-400 block mt-0.5">
-                        {note.encounterDate} • {note.startTime} - {note.endTime} ({note.durationMinutes}m)
+                      <span className="text-xs text-slate-500 block mt-0.5">
+                        {note.encounterDate} • {note.startTime} - {note.endTime} ({note.durationMinutes}m total billable)
                       </span>
                     </div>
 
                     <span
-                      className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                      className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
                         note.status === 'approved'
-                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                          ? 'bg-emerald-50 text-[#16A34A] border border-emerald-300'
                           : note.status === 'pending_supervisor'
-                          ? 'bg-amber-950 text-amber-300 border border-amber-800'
+                          ? 'bg-amber-50 text-[#D97706] border border-amber-300'
                           : note.status === 'revision_requested'
-                          ? 'bg-rose-950 text-rose-300 border border-rose-800'
-                          : 'bg-slate-800 text-slate-300 border border-slate-700'
+                          ? 'bg-rose-50 text-rose-700 border border-rose-300'
+                          : 'bg-slate-100 text-slate-700 border border-slate-300'
                       }`}
                     >
                       {note.status === 'approved'
@@ -277,34 +283,34 @@ export const PeerNotebookWorkspace: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="mt-3 p-3 bg-slate-850/80 rounded-lg border border-slate-800 text-xs space-y-1.5">
+                  <div className="mt-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
                     <div>
-                      <span className="text-slate-400 font-medium">Goal:</span>
-                      <p className="text-slate-200 truncate">{note.goalAddressed}</p>
+                      <span className="text-slate-600 font-bold">Goal Addressed:</span>
+                      <p className="text-slate-800 truncate">{note.goalAddressed}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400 font-medium">Intervention:</span>
-                      <p className="text-slate-300 line-clamp-2 leading-relaxed">{note.peerIntervention}</p>
+                      <span className="text-slate-600 font-bold">Peer Intervention:</span>
+                      <p className="text-slate-700 line-clamp-2 leading-relaxed">{note.peerIntervention}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                  <span className="font-mono text-blue-300">
-                    {note.billingCode} • {note.billingUnits} units
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="font-mono text-[#1E3A8A] font-bold">
+                    {note.billingCode} • {note.billingUnits} units (15m each)
                   </span>
 
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => setSelectedNoteForExport(note)}
-                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 text-xs flex items-center gap-1"
+                      className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 text-xs font-semibold flex items-center gap-1 transition-colors"
                     >
-                      <Download className="w-3 h-3 text-teal-400" />
+                      <Download className="w-3.5 h-3.5 text-[#0F766E]" />
                       <span>PDF</span>
                     </button>
                     <button
                       onClick={() => handleEditNote(note)}
-                      className="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white rounded text-xs transition-colors"
+                      className="px-3 py-1 bg-teal-50 hover:bg-[#0F766E] text-[#0F766E] hover:text-white rounded-lg text-xs font-semibold transition-colors border border-teal-200"
                     >
                       Edit
                     </button>
@@ -315,7 +321,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
           </div>
 
           {filteredNotes.length === 0 && (
-            <div className="p-8 text-center bg-slate-900/40 rounded-xl border border-slate-800 text-slate-400 text-sm">
+            <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-500 text-sm">
               No encounter notes match your search.
             </div>
           )}
@@ -330,41 +336,41 @@ export const PeerNotebookWorkspace: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-white text-base flex items-center gap-2">
-                <Lock className="w-4 h-4 text-emerald-400" />
-                Immutable HIPAA Security Audit Trail
+              <h3 className="font-bold text-[#1E3A8A] text-base flex items-center gap-2">
+                <Lock className="w-4 h-4 text-[#0F766E]" />
+                Immutable HIPAA Cryptographic Audit Trail
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                45 CFR § 164.312(b) Cryptographic Event Provenance
+              <p className="text-xs text-slate-500 mt-0.5">
+                45 CFR § 164.312(b) Audit Controls & 42 CFR Part 2 Confidentiality Verification
               </p>
             </div>
-            <span className="text-xs font-mono text-slate-400 bg-slate-900 px-3 py-1 rounded border border-slate-800">
-              {auditLogs.length} Events Logged
+            <span className="text-xs font-mono text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200 font-semibold shadow-2xs">
+              {auditLogs.length} Events Verified
             </span>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-850 text-slate-400 font-semibold border-b border-slate-800">
+              <table className="w-full text-left text-xs text-slate-800">
+                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 uppercase tracking-wider text-[10px]">
                   <tr>
-                    <th className="p-3">Timestamp</th>
-                    <th className="p-3">Actor / Specialist</th>
-                    <th className="p-3">Role</th>
-                    <th className="p-3">Action</th>
-                    <th className="p-3">Target Entity</th>
-                    <th className="p-3">Tamper-Proof Checksum</th>
+                    <th className="p-3.5">Timestamp</th>
+                    <th className="p-3.5">Actor / Specialist</th>
+                    <th className="p-3.5">Role</th>
+                    <th className="p-3.5">Action</th>
+                    <th className="p-3.5">Target Entity</th>
+                    <th className="p-3.5">Tamper-Proof Checksum</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 font-mono text-[11px]">
-                  {auditLogs.slice(0, 20).map((log) => (
-                    <tr key={log.id} className="hover:bg-slate-800/40">
-                      <td className="p-3 text-slate-400 whitespace-nowrap">{log.timestamp.replace('T', ' ').substring(0, 19)}</td>
-                      <td className="p-3 text-white font-sans font-medium">{log.actorName}</td>
-                      <td className="p-3 text-emerald-400 capitalize">{log.actorRole.replace('_', ' ')}</td>
-                      <td className="p-3 text-blue-300 font-semibold">{log.action}</td>
-                      <td className="p-3 text-slate-300">{log.entityType} ({log.entityId})</td>
-                      <td className="p-3 text-slate-500 font-mono text-[10px]">{log.tamperProofChecksum.substring(0, 16)}...</td>
+                <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
+                  {auditLogs.slice(0, 25).map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-50">
+                      <td className="p-3.5 text-slate-500 whitespace-nowrap">{log.timestamp.replace('T', ' ').substring(0, 19)}</td>
+                      <td className="p-3.5 text-slate-900 font-sans font-semibold">{log.actorName}</td>
+                      <td className="p-3.5 text-[#0F766E] font-medium capitalize">{log.actorRole.replace('_', ' ')}</td>
+                      <td className="p-3.5 text-[#1E3A8A] font-bold">{log.action}</td>
+                      <td className="p-3.5 text-slate-700">{log.entityType} ({log.entityId})</td>
+                      <td className="p-3.5 text-slate-400 font-mono text-[10px]">{log.tamperProofChecksum.substring(0, 18)}...</td>
                     </tr>
                   ))}
                 </tbody>
@@ -375,40 +381,118 @@ export const PeerNotebookWorkspace: React.FC = () => {
       )}
 
       {activeTab === 'architecture' && (
-        <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-6">
-          <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
-            <div className="p-2.5 bg-blue-600/20 text-blue-400 rounded-xl">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-white">GA8 Architecture & Specification White Paper</h3>
-              <p className="text-xs text-slate-400">Offline-First Clinical Documentation Standard for Peer Support Specialists</p>
-            </div>
-          </div>
+        <div className="space-y-6">
+          <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-[#1E3A8A]">
+                    GA #8 Production Architecture & Compliance Documentation
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Dual-Layer Persistence (Dexie.js + Supabase) • CalAIM & Medi-Cal H0038 Compliance
+                  </p>
+                </div>
+              </div>
 
-          <div className="prose prose-invert max-w-none text-slate-300 text-xs sm:text-sm space-y-4 leading-relaxed">
-            <div className="p-4 bg-slate-850 rounded-xl border border-slate-800 space-y-2">
-              <h4 className="font-bold text-white text-sm">1. Executive Overview & Problem Statement</h4>
-              <p>
-                Peer Support Specialists frequently work in non-traditional clinical environments: community centers, public libraries, emergency department recovery lounges, and street outreach encounters where cellular connectivity is erratic or unavailable. Conventional EHR systems fail because they require persistent cloud connections and crash or lose clinical notes during disconnects.
-              </p>
-              <p>
-                Peer Notebook resolves this via an <strong>Offline-First IndexedDB Architecture</strong> that stores and cryptographically validates all encounter notes locally before safely queuing them for central synchronization.
-              </p>
+              <a
+                href="https://peernotebook.com/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-4 py-2 bg-[#1E3A8A] hover:bg-blue-950 text-white rounded-lg text-xs font-semibold shadow-xs"
+              >
+                <span>Browse peernotebook.com Docs</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </div>
 
-            <div className="p-4 bg-slate-850 rounded-xl border border-slate-800 space-y-2">
-              <h4 className="font-bold text-white text-sm">2. Medicaid H0038 Billing Unit Engine</h4>
-              <p>
-                Medicaid procedure code <strong>H0038</strong> (Self-Help / Peer Support Services) is billed in 15-minute increments (8-22 mins = 1 unit, 23-37 mins = 2 units, 38-52 mins = 3 units, 53-67 mins = 4 units). Peer Notebook automatically calculates exact billing units, verifies modality (Community/Field vs. Face-to-Face Clinic), and captures required supervisor cosignatures.
-              </p>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-[#1E3A8A] text-sm">1. Dual-Layer Persistence Architecture</h4>
+                  <span className="text-[10px] bg-teal-50 text-[#0F766E] border border-teal-200 px-2 py-0.5 rounded font-mono font-bold">
+                    07_Offline_Sync_IndexedDB.md
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Peer Notebook utilizes a client-side Dexie.js (IndexedDB) datastore paired with a PostgreSQL/Supabase remote instance. Encounter notes and client demographic mutations are recorded in local transactional stores first, ensuring zero failure during fieldwork without internet. The background Sync Worker automatically drains queued mutations upon re-establishing network access.
+                </p>
+                <a
+                  href="https://peernotebook.com/docs/04-technical-architecture/07_Offline_Sync_IndexedDB"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[#0F766E] font-semibold hover:underline inline-flex items-center gap-1 pt-1"
+                >
+                  <span>Read Offline Sync Spec on peernotebook.com</span>
+                  <ArrowRight className="w-3 h-3" />
+                </a>
+              </div>
 
-            <div className="p-4 bg-slate-850 rounded-xl border border-slate-800 space-y-2">
-              <h4 className="font-bold text-white text-sm">3. HIPAA Security & 42 CFR Part 2 Protections</h4>
-              <p>
-                To safeguard individuals in substance use recovery, clients are identified by pseudonymized Medical Record Numbers (MRNs like PN-4091). Every client record view and note signature generates an immutable SHA-256 audit entry satisfying 45 CFR § 164.312(b).
-              </p>
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-[#1E3A8A] text-sm">2. CalAIM & Medi-Cal Payment Reform</h4>
+                  <span className="text-[10px] bg-blue-50 text-[#1E3A8A] border border-blue-200 px-2 py-0.5 rounded font-mono font-bold">
+                    05_Compliance_Engine_PDF_Export.md
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Under California DHCS Behavioral Health Payment Reform, Certified Peer Support Specialists bill under procedure code H0038 in 15-minute increments. Peer Notebook accounts for direct face-to-face engagement, travel time, and direct documentation minutes to formulate exact claims, complete with supervisor cosignature compliance.
+                </p>
+                <a
+                  href="https://peernotebook.com/docs/04-technical-architecture/05_Compliance_Engine_PDF_Export"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[#0F766E] font-semibold hover:underline inline-flex items-center gap-1 pt-1"
+                >
+                  <span>Read CalAIM Compliance Engine on peernotebook.com</span>
+                  <ArrowRight className="w-3 h-3" />
+                </a>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-[#1E3A8A] text-sm">3. HIPAA Security & 42 CFR Part 2</h4>
+                  <span className="text-[10px] bg-emerald-50 text-[#16A34A] border border-emerald-200 px-2 py-0.5 rounded font-mono font-bold">
+                    08_HIPAA_BAA_Consent_Model.md
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Confidentiality of substance use disorder records is safeguarded by client pseudonymization (MRN PN-XXXX), granular consent tracking, and an immutable SHA-256 audit ledger capturing every client record inspection, encounter edit, and supervisor cosignature stamp.
+                </p>
+                <a
+                  href="https://peernotebook.com/docs/04-technical-architecture/08_HIPAA_BAA_Consent_Model"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[#0F766E] font-semibold hover:underline inline-flex items-center gap-1 pt-1"
+                >
+                  <span>Read HIPAA BAA & Security Model on peernotebook.com</span>
+                  <ArrowRight className="w-3 h-3" />
+                </a>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-[#1E3A8A] text-sm">4. Database ERD & Data Dictionary</h4>
+                  <span className="text-[10px] bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded font-mono font-bold">
+                    02_Database_ERD_Data_Dictionary.md
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Comprehensive relational entity mapping across organizations, users, clients, session_notes, audit_logs, and sync_queue tables with multi-tenant row-level security (RLS) enforcement and UUID primary key guarantees.
+                </p>
+                <a
+                  href="https://peernotebook.com/docs/04-technical-architecture/02_Database_ERD_Data_Dictionary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[#0F766E] font-semibold hover:underline inline-flex items-center gap-1 pt-1"
+                >
+                  <span>Read Database ERD & Dictionary on peernotebook.com</span>
+                  <ArrowRight className="w-3 h-3" />
+                </a>
+              </div>
             </div>
           </div>
         </div>

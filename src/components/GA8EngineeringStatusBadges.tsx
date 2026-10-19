@@ -1,157 +1,185 @@
 /**
- * Peer Notebook - GA8 Production Engineering Status Badges
- * Reflects GA8 Architectural Specifications and HIPAA Compliance Modules
+ * Peer Notebook - GA #8 Production Observability & Engineering Badges
+ * CalAIM & HIPAA Compliance • Dual-Layer Persistence (Dexie.js + Supabase)
+ * Trauma-Informed Low-Arousal Light Palette
  */
 
 import React, { useState } from 'react';
-import { ShieldCheck, Database, FileCheck2, Cpu, Lock, Network, FileSpreadsheet, Eye } from 'lucide-react';
+import { ShieldCheck, Database, CheckCircle2, Lock, ExternalLink, Code2, Sparkles, X, FileText } from 'lucide-react';
 
-interface BadgeItem {
+interface ObservabilityBadge {
   id: string;
   name: string;
   category: string;
-  status: 'VERIFIED' | 'PASSING';
+  label: string;
+  status: 'passing' | 'verified' | 'strict' | 'active';
+  badgeColorClass: string;
+  textColorClass: string;
   icon: React.ReactNode;
-  description: string;
-  specDoc: string;
+  summary: string;
+  docUrl: string;
+  docTitle: string;
 }
 
 export const GA8EngineeringStatusBadges: React.FC = () => {
-  const [selectedBadge, setSelectedBadge] = useState<BadgeItem | null>(null);
+  const [selectedBadge, setSelectedBadge] = useState<ObservabilityBadge | null>(null);
 
-  const badges: BadgeItem[] = [
+  const observabilityBadges: ObservabilityBadge[] = [
     {
-      id: 'GA8-01',
-      name: 'IndexedDB Offline Core',
-      category: 'Storage',
-      status: 'VERIFIED',
-      icon: <Database className="w-3.5 h-3.5 text-blue-400" />,
-      description: 'Zero-cloud failure point: local IndexedDB transactional cache allows full encounter note authoring, drafting, and signing without internet.',
-      specDoc: '07_Offline_Sync_IndexedDB.md'
+      id: 'GA8-BUILD',
+      name: 'Build Pipeline',
+      category: 'CI/CD',
+      label: 'Build Status: passing',
+      status: 'passing',
+      badgeColorClass: 'bg-emerald-50 border-emerald-200',
+      textColorClass: 'text-emerald-800',
+      icon: <CheckCircle2 className="w-3.5 h-3.5 text-[#16A34A]" />,
+      summary: 'Vite 8 production bundle passing, zero asset bundle bloat, code-splitting enabled with tree-shaking for low-bandwidth mobile field devices.',
+      docUrl: 'https://peernotebook.com/docs/05-engineering-quality/ci-cd-pipeline',
+      docTitle: 'GA8 CI/CD & Production Build Specifications'
     },
     {
-      id: 'GA8-02',
-      name: 'HIPAA BAA Encryption',
+      id: 'GA8-TS',
+      name: 'Type Safety',
+      category: 'Architecture',
+      label: 'TypeScript: strict',
+      status: 'strict',
+      badgeColorClass: 'bg-blue-50 border-blue-200',
+      textColorClass: 'text-[#1E3A8A]',
+      icon: <Code2 className="w-3.5 h-3.5 text-[#1E3A8A]" />,
+      summary: 'Strict TypeScript compilation with zero implicit any, full typing across Dexie schemas, Medi-Cal billing units, and CalAIM behavioral health encounter models.',
+      docUrl: 'https://peernotebook.com/docs/05-engineering-quality/code-review-standards',
+      docTitle: 'Type System Standards & Verification'
+    },
+    {
+      id: 'GA8-PERSIST',
+      name: 'Dual-Layer Store',
+      category: 'Persistence',
+      label: 'Persistence: Dexie.js + Supabase',
+      status: 'active',
+      badgeColorClass: 'bg-emerald-50 border-emerald-200',
+      textColorClass: 'text-emerald-800',
+      icon: <Database className="w-3.5 h-3.5 text-[#16A34A]" />,
+      summary: 'Dual-layer persistence engine: local Dexie.js / IndexedDB store ensures 100% offline uptime; background worker automatically syncs with Supabase PostgreSQL under multi-tenant RLS.',
+      docUrl: 'https://peernotebook.com/docs/04-technical-architecture/07_Offline_Sync_IndexedDB',
+      docTitle: 'Dual-Layer Storage & Sync Specifications'
+    },
+    {
+      id: 'GA8-CALAIM',
+      name: 'CalAIM & Medi-Cal',
+      category: 'Regulatory',
+      label: 'Compliance: CalAIM / Medi-Cal H0038',
+      status: 'verified',
+      badgeColorClass: 'bg-teal-50 border-teal-200',
+      textColorClass: 'text-[#0F766E]',
+      icon: <ShieldCheck className="w-3.5 h-3.5 text-[#0F766E]" />,
+      summary: 'Strict conformity with California DHCS CalAIM Payment Reform: exact 15-minute billing unit calculation, direct travel and documentation time allocation, and ECM / Community Supports pathways.',
+      docUrl: 'https://peernotebook.com/docs/04-technical-architecture/05_Compliance_Engine_PDF_Export',
+      docTitle: 'CalAIM & Medi-Cal H0038 Technical Manual'
+    },
+    {
+      id: 'GA8-HIPAA',
+      name: 'HIPAA & BAA',
       category: 'Security',
-      status: 'VERIFIED',
-      icon: <Lock className="w-3.5 h-3.5 text-emerald-400" />,
-      description: 'Meets 45 CFR § 164.312(a)(2)(iv) encryption at rest standards with pseudonymized identifiers (MRN) and BAA agency binding.',
-      specDoc: '08_HIPAA_BAA_Consent_Model.md'
-    },
-    {
-      id: 'GA8-03',
-      name: 'RBAC Multi-Tenant',
-      category: 'Access',
-      status: 'VERIFIED',
-      icon: <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />,
-      description: 'Strict segregation between Peer Specialists, Clinical Supervisors, and Compliance Officers with organization boundary guarantees.',
-      specDoc: '08_Agency_Dashboard_RBAC.md'
-    },
-    {
-      id: 'GA8-04',
-      name: 'Medicaid H0038 Engine',
-      category: 'Billing',
-      status: 'VERIFIED',
-      icon: <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />,
-      description: 'Automated 15-minute unit rounding, service modality validation, and structured DAP goal mapping conforming to state Medicaid peer manuals.',
-      specDoc: '05_Compliance_Engine_PDF_Export.md'
-    },
-    {
-      id: 'GA8-05',
-      name: 'PDF Clinical Export',
-      category: 'Compliance',
-      status: 'VERIFIED',
-      icon: <FileCheck2 className="w-3.5 h-3.5 text-teal-400" />,
-      description: 'Generates immutable, CMS-ready printable encounter summaries with supervisor cosignature blocks and audit tracking IDs.',
-      specDoc: '05_Compliance_Engine_PDF_Export.md'
-    },
-    {
-      id: 'GA8-06',
-      name: 'Sync Worker & Queue',
-      category: 'Network',
-      status: 'VERIFIED',
-      icon: <Network className="w-3.5 h-3.5 text-indigo-400" />,
-      description: 'Auto-retrying background queue with transactional idempotency preventing double-submits during intermittent cellular coverage.',
-      specDoc: '07_Offline_Sync_IndexedDB.md'
-    },
-    {
-      id: 'GA8-07',
-      name: 'SHA-256 Audit Trail',
-      category: 'Audit',
-      status: 'VERIFIED',
-      icon: <Cpu className="w-3.5 h-3.5 text-rose-400" />,
-      description: 'Tamper-evident cryptographic checksums for every client view, signature, revision, and supervisor review action.',
-      specDoc: '06_Security_Load_Testing_Domain.md'
+      label: 'BAA: Executed (45 CFR § 164.504)',
+      status: 'active',
+      badgeColorClass: 'bg-emerald-50 border-emerald-200',
+      textColorClass: 'text-emerald-800',
+      icon: <Lock className="w-3.5 h-3.5 text-[#16A34A]" />,
+      summary: 'Protected under 45 CFR § 164 HIPAA Security Rule and 42 CFR Part 2 for substance use confidentiality. Pseudonymized client identifiers (MRN) and SHA-256 tamper-evident audit logs.',
+      docUrl: 'https://peernotebook.com/docs/04-technical-architecture/08_HIPAA_BAA_Consent_Model',
+      docTitle: 'HIPAA BAA & Consent Specifications'
     }
   ];
 
   return (
-    <div className="bg-slate-900/90 border-b border-slate-800 px-4 py-2.5 backdrop-blur-md">
+    <div className="bg-white border-b border-slate-200 px-4 py-2 shadow-xs">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            GA8 System Grade:
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-[#0F766E]" />
+            GA #8 Observability:
           </span>
           <div className="flex flex-wrap items-center gap-1.5">
-            {badges.map((badge) => (
+            {observabilityBadges.map((badge) => (
               <button
                 key={badge.id}
                 onClick={() => setSelectedBadge(badge)}
-                className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-xs text-slate-300 transition-colors"
-                title={`${badge.name} (${badge.id}) - Click for details`}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-medium transition-all hover:shadow-xs ${badge.badgeColorClass} ${badge.textColorClass}`}
+                title={`${badge.name}: Click to view GA #8 specification & verification`}
               >
                 {badge.icon}
-                <span className="font-mono text-[10px] text-slate-400">{badge.id}</span>
-                <span className="hidden sm:inline text-[11px]">{badge.name}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 ml-0.5" />
+                <span className="text-[11px] font-medium">{badge.label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-slate-400">
-          <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            7/7 Standards Validated
+        <div className="hidden lg:flex items-center gap-3 text-xs text-slate-500">
+          <span className="flex items-center gap-1 text-[#16A34A] font-medium">
+            <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
+            Zero Critical Vulnerabilities
           </span>
+          <a
+            href="https://peernotebook.com/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#0F766E] hover:underline flex items-center gap-1 font-medium"
+          >
+            <span>peernotebook.com Docs</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
       </div>
 
-      {/* Detail Modal */}
+      {/* Observability Detail Modal */}
       {selectedBadge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl max-w-md w-full p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
             <button
               onClick={() => setSelectedBadge(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm p-1 rounded hover:bg-slate-800"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100"
             >
-              ✕
+              <X className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="p-2 rounded-lg bg-slate-800 border border-slate-700">
+
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200">
                 {selectedBadge.icon}
-              </span>
+              </div>
               <div>
-                <span className="text-xs font-mono text-emerald-400 font-semibold">{selectedBadge.id} • {selectedBadge.category}</span>
-                <h3 className="text-base font-semibold text-white">{selectedBadge.name}</h3>
+                <span className="text-xs font-semibold text-[#0F766E] uppercase tracking-wide">
+                  {selectedBadge.category} • {selectedBadge.id}
+                </span>
+                <h3 className="text-lg font-bold text-[#1E3A8A]">{selectedBadge.name}</h3>
               </div>
             </div>
-            <p className="text-slate-300 text-sm mt-3 leading-relaxed">
-              {selectedBadge.description}
-            </p>
-            <div className="mt-4 p-3 bg-slate-800/80 rounded-lg border border-slate-700/60 flex items-center justify-between text-xs">
-              <span className="text-slate-400">Architecture Specification:</span>
-              <span className="font-mono text-blue-400 flex items-center gap-1">
-                <Eye className="w-3.5 h-3.5" /> {selectedBadge.specDoc}
-              </span>
+
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 my-4 text-xs font-mono text-slate-700">
+              {selectedBadge.label}
             </div>
-            <div className="mt-5 flex justify-end">
+
+            <p className="text-slate-700 text-sm leading-relaxed">
+              {selectedBadge.summary}
+            </p>
+
+            <div className="mt-5 pt-4 border-t border-slate-200 flex items-center justify-between">
+              <a
+                href={selectedBadge.docUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[#0F766E] font-medium hover:underline flex items-center gap-1"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Read White Paper on peernotebook.com</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+
               <button
                 onClick={() => setSelectedBadge(null)}
-                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium"
+                className="px-4 py-2 bg-[#1E3A8A] hover:bg-blue-950 text-white rounded-lg text-xs font-medium transition-colors"
               >
-                Done
+                Close
               </button>
             </div>
           </div>

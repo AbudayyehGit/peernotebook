@@ -1,13 +1,18 @@
 /**
- * Peer Notebook - Core IndexedDB Database Engine (Offline First)
- * Conforms to GA8 Technical Architecture & HIPAA Encrypted Local Cache Guidelines
+ * Peer Notebook - Core Dual-Layer Persistence Engine (Dexie.js / IndexedDB)
+ * GA #8 Enterprise Grade • CalAIM & Medi-Cal H0038 Compliant
+ * Syncs seamlessly with PostgreSQL / Supabase cloud store
  */
+
+import Dexie, { Table } from 'dexie';
 
 export interface Organization {
   id: string;
   name: string;
   npi: string;
   medicaidProviderId: string;
+  countyCode: string; // California Medi-Cal County Code (e.g. '01-Alameda', '19-Los Angeles', '38-San Francisco')
+  calaimContractActive: boolean;
   baaSignedAt: string;
   baaVersion: string;
 }
@@ -19,8 +24,9 @@ export interface User {
   organizationId: string;
   email: string;
   fullName: string;
-  credentialTitle: string;
+  credentialTitle: string; // e.g. Medi-Cal Certified Peer Support Specialist (CPSS-CA)
   licenseNumber: string;
+  npi?: string;
   role: UserRole;
   isActive: boolean;
 }
@@ -28,12 +34,14 @@ export interface User {
 export interface Client {
   id: string;
   organizationId: string;
-  clientIdentifier: string; // Pseudonymized MRN / Peer Code (e.g. PN-4091)
+  clientIdentifier: string; // MRN Code (e.g. PN-4091)
+  mediCalCin?: string; // Medi-Cal Client Index Number (e.g. 98234120A)
   preferredName: string;
   dateOfBirth?: string;
   assignedSpecialistId: string;
   recoveryGoals: string[];
   currentStatus: 'Active Recovery' | 'Maintenance' | 'Intensive Support' | 'Completed Program';
+  calaimPathway: 'Community Supports' | 'Enhanced Care Management (ECM)' | 'SMHS Peer Support' | 'DMC-ODS Recovery Services';
   consentSigned: boolean;
   consentDate: string;
   phone?: string;
@@ -52,24 +60,33 @@ export interface SessionNote {
   clientId: string;
   clientName: string;
   clientIdentifier: string;
+  mediCalCin?: string;
   authorId: string;
   authorName: string;
   authorCredentials: string;
   encounterDate: string;
   startTime: string;
   endTime: string;
-  durationMinutes: number;
-  billingCode: string; // Default 'H0038' (Self-help / Peer support services)
-  billingUnits: number; // 1 unit per 15 min
+  
+  // CalAIM Time Accounting (Direct Face-to-Face + Travel + Documentation)
+  faceToFaceMinutes: number;
+  travelMinutes: number;
+  documentationMinutes: number;
+  durationMinutes: number; // Sum of total billable time under CalAIM rules
+
+  // Medi-Cal Coding
+  billingCode: string; // 'H0038' (Self-help / Peer support services), 'H0038-HQ' (Group), 'H0038-U8' (ECM)
+  billingUnits: number; // 1 unit per 15 min increments
   modality: ServiceModality;
   locationDetails: string;
+  placeOfServiceCode: string; // '99' (Other Place / Community), '11' (Office), '02' (Telehealth)
   
-  // Structured DAP/Peer support documentation
+  // Structured CalAIM DAP / Peer Support Documentation
   focusDomains: string[];
-  goalAddressed: string;
-  peerIntervention: string;
-  clientResponse: string;
-  planNextSteps: string;
+  goalAddressed: string; // Strengths-based Recovery Goal
+  peerIntervention: string; // Lived experience coaching, system navigation, recovery capital building
+  clientResponse: string; // Client engagement, quotes, mood, measurable response
+  planNextSteps: string; // Action items before next session
   safetyConcerns: boolean;
   safetyNotes?: string;
 
@@ -78,15 +95,16 @@ export interface SessionNote {
   signedAt?: string;
   status: NoteStatus;
 
-  // Supervisor Review
+  // Clinical Supervisor Cosignature
   supervisorId?: string;
   supervisorName?: string;
   supervisorSignature?: string;
   supervisorFeedback?: string;
   approvedAt?: string;
 
-  // Sync state
+  // Dual-Layer Persistence & Cloud Sync
   synced: boolean;
+  syncTimestamp?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -116,232 +134,222 @@ export interface SyncQueueItem {
   status: 'pending' | 'in_progress' | 'failed';
 }
 
-const DB_NAME = 'PeerNotebook_Local_DB_v2';
-const DB_VERSION = 2;
+export interface SystemSetting {
+  key: string;
+  value: unknown;
+}
 
-class PeerNotebookDB {
-  private db: IDBDatabase | null = null;
-  private initPromise: Promise<IDBDatabase> | null = null;
+// Dexie Database Class
+export class PeerNotebookDexieDB extends Dexie {
+  organizations!: Table<Organization, string>;
+  users!: Table<User, string>;
+  clients!: Table<Client, string>;
+  session_notes!: Table<SessionNote, string>;
+  audit_logs!: Table<AuditLogEntry, string>;
+  sync_queue!: Table<SyncQueueItem, string>;
+  settings!: Table<SystemSetting, string>;
 
-  public async getDB(): Promise<IDBDatabase> {
-    if (this.db) return this.db;
-    if (this.initPromise) return this.initPromise;
-
-    this.initPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-
-        if (!db.objectStoreNames.contains('organizations')) {
-          db.createObjectStore('organizations', { keyPath: 'id' });
-        }
-        if (!db.objectStoreNames.contains('users')) {
-          db.createObjectStore('users', { keyPath: 'id' });
-        }
-        if (!db.objectStoreNames.contains('clients')) {
-          const clientStore = db.createObjectStore('clients', { keyPath: 'id' });
-          clientStore.createIndex('organizationId', 'organizationId', { unique: false });
-          clientStore.createIndex('assignedSpecialistId', 'assignedSpecialistId', { unique: false });
-        }
-        if (!db.objectStoreNames.contains('session_notes')) {
-          const noteStore = db.createObjectStore('session_notes', { keyPath: 'id' });
-          noteStore.createIndex('clientId', 'clientId', { unique: false });
-          noteStore.createIndex('authorId', 'authorId', { unique: false });
-          noteStore.createIndex('status', 'status', { unique: false });
-          noteStore.createIndex('encounterDate', 'encounterDate', { unique: false });
-        }
-        if (!db.objectStoreNames.contains('audit_logs')) {
-          const auditStore = db.createObjectStore('audit_logs', { keyPath: 'id' });
-          auditStore.createIndex('actorId', 'actorId', { unique: false });
-          auditStore.createIndex('timestamp', 'timestamp', { unique: false });
-        }
-        if (!db.objectStoreNames.contains('sync_queue')) {
-          const syncStore = db.createObjectStore('sync_queue', { keyPath: 'id' });
-          syncStore.createIndex('status', 'status', { unique: false });
-        }
-        if (!db.objectStoreNames.contains('settings')) {
-          db.createObjectStore('settings', { keyPath: 'key' });
-        }
-      };
-
-      request.onsuccess = async () => {
-        this.db = request.result;
-        await this.seedInitialDataIfEmpty();
-        resolve(this.db);
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
+  constructor() {
+    super('PeerNotebook_GA8_DB');
+    this.version(1).stores({
+      organizations: 'id, name, medicaidProviderId',
+      users: 'id, organizationId, email, role',
+      clients: 'id, organizationId, clientIdentifier, assignedSpecialistId, currentStatus',
+      session_notes: 'id, organizationId, clientId, authorId, status, encounterDate, billingCode, synced',
+      audit_logs: 'id, organizationId, actorId, action, entityId, timestamp',
+      sync_queue: 'id, status, entityType, enqueuedAt',
+      settings: 'key'
     });
+  }
+}
 
-    return this.initPromise;
+export const dexieDB = new PeerNotebookDexieDB();
+
+class PeerNotebookDBManager {
+  private isSeeded = false;
+
+  public async init(): Promise<void> {
+    await dexieDB.open();
+    if (!this.isSeeded) {
+      await this.seedInitialDataIfEmpty();
+      this.isSeeded = true;
+    }
   }
 
-  private async seedInitialDataIfEmpty(): Promise<void> {
-    const clients = await this.getAllClients();
-    if (clients.length > 0) return;
+  public async seedInitialDataIfEmpty(): Promise<void> {
+    const clientCount = await dexieDB.clients.count();
+    if (clientCount > 0) return;
 
-    // Seed Organizations
+    // Seed California Behavioral Health & CalAIM Organizations
     const orgs: Organization[] = [
       {
-        id: 'org-hope-01',
-        name: 'Cascade Recovery Alliance & Peer Services',
-        npi: '1892019482',
-        medicaidProviderId: 'WA-MED-849102',
-        baaSignedAt: '2026-01-15T09:00:00Z',
-        baaVersion: 'v2.4-GA8'
+        id: 'org-calaim-01',
+        name: 'Bay Area Peer Recovery Collaborative (CalAIM)',
+        npi: '1982019482',
+        medicaidProviderId: 'CA-MC-948102',
+        countyCode: '38-San Francisco',
+        calaimContractActive: true,
+        baaSignedAt: '2026-01-10T08:00:00Z',
+        baaVersion: 'v2.4-GA8-CalAIM'
       },
       {
-        id: 'org-hope-02',
-        name: 'Community Wellness Peer Outreach',
+        id: 'org-calaim-02',
+        name: 'Golden State Community Health Network',
         npi: '1092837465',
-        medicaidProviderId: 'WA-MED-294819',
-        baaSignedAt: '2026-03-01T10:00:00Z',
-        baaVersion: 'v2.4-GA8'
+        medicaidProviderId: 'CA-MC-819283',
+        countyCode: '19-Los Angeles',
+        calaimContractActive: true,
+        baaSignedAt: '2026-02-15T09:30:00Z',
+        baaVersion: 'v2.4-GA8-CalAIM'
       }
     ];
 
-    for (const org of orgs) {
-      await this.put('organizations', org);
-    }
+    await dexieDB.organizations.bulkPut(orgs);
 
-    // Seed Users
+    // Seed Certified Specialists & Supervisors
     const users: User[] = [
       {
         id: 'user-cpss-01',
-        organizationId: 'org-hope-01',
-        email: 'alex.rivera@cascaderecovery.org',
-        fullName: 'Alex Rivera, CPSS',
-        credentialTitle: 'Certified Peer Support Specialist',
-        licenseNumber: 'CPSS-WA-2024-819',
+        organizationId: 'org-calaim-01',
+        email: 'alex.rivera@bayareapeer.org',
+        fullName: 'Alex Rivera, CPSS-CA',
+        credentialTitle: 'CalAIM Certified Peer Support Specialist',
+        licenseNumber: 'CA-CPSS-2024-9182',
+        npi: '1487293810',
         role: 'peer_specialist',
         isActive: true
       },
       {
         id: 'user-sup-01',
-        organizationId: 'org-hope-01',
-        email: 'sarah.jenkins@cascaderecovery.org',
-        fullName: 'Dr. Sarah Jenkins, LICSW, MAC',
-        credentialTitle: 'Clinical Supervisor & Behavioral Health Director',
-        licenseNumber: 'LW-60193821',
+        organizationId: 'org-calaim-01',
+        email: 'sarah.jenkins@bayareapeer.org',
+        fullName: 'Dr. Sarah Jenkins, LCSW, MAC',
+        credentialTitle: 'Licensed Clinical Supervisor & CalAIM Director',
+        licenseNumber: 'LCSW-CA-89214',
+        npi: '1928374650',
         role: 'supervisor',
         isActive: true
       },
       {
         id: 'user-admin-01',
-        organizationId: 'org-hope-01',
-        email: 'marcus.admin@cascaderecovery.org',
+        organizationId: 'org-calaim-01',
+        email: 'marcus.vance@bayareapeer.org',
         fullName: 'Marcus Vance',
-        credentialTitle: 'Agency Administrator & Privacy Officer',
-        licenseNumber: 'HIPAA-CPO-991',
+        credentialTitle: 'Chief Compliance Officer & HIPAA Privacy Lead',
+        licenseNumber: 'HCCA-CHC-7819',
         role: 'admin',
         isActive: true
       }
     ];
 
-    for (const user of users) {
-      await this.put('users', user);
-    }
+    await dexieDB.users.bulkPut(users);
 
-    // Seed Sample Clients with Realistic Peer Support Profiles
+    // Seed CalAIM Peer Clients
     const initialClients: Client[] = [
       {
         id: 'cli-001',
-        organizationId: 'org-hope-01',
+        organizationId: 'org-calaim-01',
         clientIdentifier: 'PN-4091',
+        mediCalCin: '98471029B',
         preferredName: 'Jordan Reyes',
         dateOfBirth: '1989-05-14',
         assignedSpecialistId: 'user-cpss-01',
         recoveryGoals: [
-          'Maintain 90-day alcohol abstinence & attend 12-step/SMART recovery weekly',
-          'Secure permanent supportive housing voucher',
-          'Rebuild relationships with supportive family members'
+          'Maintain 90-day alcohol abstinence with weekly SMART Recovery & CPSS mentoring',
+          'CalAIM Housing Navigation: Complete Section 8 Coordinated Entry paperwork',
+          'Strengthen social recovery network with family reconnection'
         ],
         currentStatus: 'Active Recovery',
+        calaimPathway: 'Community Supports',
         consentSigned: true,
         consentDate: '2026-01-18',
-        phone: '(555) 234-8901',
-        emergencyContact: 'Sister (Maria) - (555) 890-1234',
+        phone: '(415) 555-8901',
+        emergencyContact: 'Sister (Maria Reyes) - (415) 555-1234',
         lastEncounterDate: '2026-10-18',
         createdAt: '2026-01-18T10:00:00Z',
         updatedAt: '2026-10-18T15:00:00Z'
       },
       {
         id: 'cli-002',
-        organizationId: 'org-hope-01',
+        organizationId: 'org-calaim-01',
         clientIdentifier: 'PN-5120',
+        mediCalCin: '49281720C',
         preferredName: 'Maya Washington',
         dateOfBirth: '1994-11-22',
         assignedSpecialistId: 'user-cpss-01',
         recoveryGoals: [
-          'Develop non-pharmacological grounding techniques for anxiety symptoms',
-          'Complete job training certification through workforce development',
-          'Establish routine community exercise & self-care regimen'
+          'Apply 5-4-3-2-1 sensory grounding and non-pharmacological anxiety reduction skills',
+          'CalAIM ECM: Complete community college vocational certification enrollment',
+          'Sustain weekly routine peer wellness support groups'
         ],
         currentStatus: 'Maintenance',
+        calaimPathway: 'Enhanced Care Management (ECM)',
         consentSigned: true,
         consentDate: '2026-02-10',
-        phone: '(555) 678-9012',
-        emergencyContact: 'Case Manager Dave - (555) 444-9988',
+        phone: '(415) 555-9012',
+        emergencyContact: 'ECM Lead Case Worker - (415) 555-9988',
         lastEncounterDate: '2026-10-16',
         createdAt: '2026-02-10T14:30:00Z',
         updatedAt: '2026-10-16T11:45:00Z'
       },
       {
         id: 'cli-003',
-        organizationId: 'org-hope-01',
+        organizationId: 'org-calaim-01',
         clientIdentifier: 'PN-6819',
+        mediCalCin: '71829304D',
         preferredName: 'Tyler Brooks',
         dateOfBirth: '2001-03-08',
         assignedSpecialistId: 'user-cpss-01',
         recoveryGoals: [
-          'Harm reduction education and weekly peer check-ins',
-          'Obtain replacement State ID and transit card',
-          'Engage with youth recovery drop-in center'
+          'Harm reduction education and weekly street outreach check-ins',
+          'Obtain California Real ID transit pass replacement',
+          'Engage with Tenderloin youth recovery peer drop-in center'
         ],
         currentStatus: 'Intensive Support',
+        calaimPathway: 'DMC-ODS Recovery Services',
         consentSigned: true,
         consentDate: '2026-09-01',
-        phone: '(555) 345-6789',
-        emergencyContact: 'Outreach Team Lead - (555) 901-2345',
+        phone: '(415) 555-6789',
+        emergencyContact: 'Street Outreach Lead - (415) 555-2345',
         lastEncounterDate: '2026-10-12',
         createdAt: '2026-09-01T09:15:00Z',
         updatedAt: '2026-10-12T16:20:00Z'
       }
     ];
 
-    for (const client of initialClients) {
-      await this.put('clients', client);
-    }
+    await dexieDB.clients.bulkPut(initialClients);
 
-    // Seed Realistic Encounter Notes
+    // Seed CalAIM Medi-Cal Encounter Notes
     const initialNotes: SessionNote[] = [
       {
         id: 'note-001',
-        organizationId: 'org-hope-01',
+        organizationId: 'org-calaim-01',
         clientId: 'cli-001',
         clientName: 'Jordan Reyes',
         clientIdentifier: 'PN-4091',
+        mediCalCin: '98471029B',
         authorId: 'user-cpss-01',
-        authorName: 'Alex Rivera, CPSS',
-        authorCredentials: 'CPSS-WA-2024-819',
+        authorName: 'Alex Rivera, CPSS-CA',
+        authorCredentials: 'CA-CPSS-2024-9182',
         encounterDate: '2026-10-18',
         startTime: '10:00',
         endTime: '10:45',
-        durationMinutes: 45,
+        faceToFaceMinutes: 45,
+        travelMinutes: 15,
+        documentationMinutes: 10,
+        durationMinutes: 70, // Total Medi-Cal billable time
         billingCode: 'H0038',
-        billingUnits: 3,
+        billingUnits: 5, // 70 min = 5 units (15m increments under CalAIM)
         modality: 'community_field',
-        locationDetails: 'Public Library Study Room 4 & Community Center',
-        focusDomains: ['Recovery Goals', 'Housing Stability', 'Relapse Prevention'],
-        goalAddressed: 'Goal 1 & 2: Maintain sobriety milestones and review supportive housing packet submission.',
-        peerIntervention: 'CPSS utilized lived experience to validate peer anxieties regarding upcoming housing interview. Reviewed peer coping strategies (5-4-3-2-1 grounding, calling recovery sponsor before stressful calls). Supported peer in organizing required residency documentation for the Section 8 housing appointment.',
-        clientResponse: 'Peer expressed relief upon completing document organization. Stated: "Having someone who has walked this road sit with me made the housing paperwork manageable." Reported 72 days continuous sobriety with zero cravings over the past weekend.',
-        planNextSteps: 'Peer will attend Tuesday evening All-Recovery meeting. CPSS and peer will meet Friday at 10:30 AM to accompany peer to the housing authority intake.',
+        placeOfServiceCode: '99',
+        locationDetails: 'Main Public Library Community Study Room 4',
+        focusDomains: ['Recovery Goals', 'Housing Stability', 'Relapse Prevention', 'CalAIM Community Supports'],
+        goalAddressed: 'Goal 1 & 2: Sobriety maintenance milestone and CalAIM supportive housing application packet review.',
+        peerIntervention: 'CPSS shared lived recovery experience regarding anxiety management prior to housing interviews. Assisted peer in organizing proof of California residency and income verification documents. Practiced box breathing (4-4-4-4) to de-escalate acute stress.',
+        clientResponse: 'Peer expressed visible relief after organizing paperwork. Stated: "Having a peer specialist who understands the recovery journey makes this process human." Reported 72 continuous days sober with zero cravings over the weekend.',
+        planNextSteps: 'Peer will attend Tuesday evening All-Recovery meeting. CPSS and peer will meet Friday at 10:30 AM to accompany peer to the county housing authority interview.',
         safetyConcerns: false,
-        specialistSignature: 'Alex Rivera, CPSS [Electronic Signature Verified]',
+        specialistSignature: 'Alex Rivera, CPSS-CA [Electronic Signature Verified]',
         signedAt: '2026-10-18T11:00:00Z',
         status: 'pending_supervisor',
         synced: true,
@@ -350,34 +358,39 @@ class PeerNotebookDB {
       },
       {
         id: 'note-002',
-        organizationId: 'org-hope-01',
+        organizationId: 'org-calaim-01',
         clientId: 'cli-002',
         clientName: 'Maya Washington',
         clientIdentifier: 'PN-5120',
+        mediCalCin: '49281720C',
         authorId: 'user-cpss-01',
-        authorName: 'Alex Rivera, CPSS',
-        authorCredentials: 'CPSS-WA-2024-819',
+        authorName: 'Alex Rivera, CPSS-CA',
+        authorCredentials: 'CA-CPSS-2024-9182',
         encounterDate: '2026-10-16',
         startTime: '14:00',
         endTime: '14:45',
-        durationMinutes: 45,
+        faceToFaceMinutes: 45,
+        travelMinutes: 0,
+        documentationMinutes: 15,
+        durationMinutes: 60,
         billingCode: 'H0038',
-        billingUnits: 3,
+        billingUnits: 4,
         modality: 'face_to_face',
-        locationDetails: 'Outpatient Clinic Peer Wellness Lounge',
-        focusDomains: ['Mental Health Wellness', 'Employment/Vocational', 'Coping Skills'],
-        goalAddressed: 'Goal 2: Job interview preparation and managing workplace anxiety symptoms.',
-        peerIntervention: 'Facilitated mock peer interview roleplay. Practiced disclosure boundaries regarding mental health history, focusing on peer strengths and resilience. Explored reasonable accommodations and practiced deep diaphragmatic breathing.',
-        clientResponse: 'Maya demonstrated increased vocal confidence during roleplay. Stated anxiety score decreased from 8/10 at start of session to 3/10 following breathing exercises.',
-        planNextSteps: 'Maya will attend interview on Thursday at 2:00 PM. Will send check-in text/call to CPSS following interview.',
+        placeOfServiceCode: '11',
+        locationDetails: 'Outpatient Peer Wellness Center, Room 102',
+        focusDomains: ['Mental Health Wellness', 'Vocational/Employment', 'Coping Skills', 'CalAIM ECM'],
+        goalAddressed: 'Goal 2: Vocational interview readiness and workplace distress tolerance.',
+        peerIntervention: 'Facilitated trauma-informed mock interview roleplay. Practiced healthy boundaries regarding mental health history disclosure, emphasizing personal resilience and strengths. Reviewed reasonable accommodation requests under ADA.',
+        clientResponse: 'Maya demonstrated noticeable growth in posture and voice tone. Self-reported anxiety dropped from 8/10 to 3/10 following somatic grounding.',
+        planNextSteps: 'Maya will attend job interview on Thursday at 2:00 PM. Follow-up phone check-in scheduled for 4:00 PM.',
         safetyConcerns: false,
-        specialistSignature: 'Alex Rivera, CPSS [Electronic Signature Verified]',
+        specialistSignature: 'Alex Rivera, CPSS-CA [Electronic Signature Verified]',
         signedAt: '2026-10-16T15:00:00Z',
         status: 'approved',
         supervisorId: 'user-sup-01',
-        supervisorName: 'Dr. Sarah Jenkins, LICSW',
-        supervisorSignature: 'Dr. Sarah Jenkins, LICSW [Cosigned]',
-        supervisorFeedback: 'Thorough documentation demonstrating clear peer-delivered interventions and measurable client response. Meets Medicaid H0038 criteria.',
+        supervisorName: 'Dr. Sarah Jenkins, LCSW',
+        supervisorSignature: 'Dr. Sarah Jenkins, LCSW [Cosigned]',
+        supervisorFeedback: 'Outstanding CalAIM documentation. Demonstrates peer-delivered intervention, client response, and clear Medi-Cal medical necessity under Behavioral Health Payment Reform.',
         approvedAt: '2026-10-17T09:30:00Z',
         synced: true,
         createdAt: '2026-10-16T14:45:00Z',
@@ -385,122 +398,88 @@ class PeerNotebookDB {
       }
     ];
 
-    for (const note of initialNotes) {
-      await this.put('session_notes', note);
-    }
+    await dexieDB.session_notes.bulkPut(initialNotes);
   }
 
-  // Generic DB helpers
-  private async getStore(storeName: string, mode: IDBTransactionMode): Promise<IDBObjectStore> {
-    const db = await this.getDB();
-    const tx = db.transaction(storeName, mode);
-    return tx.objectStore(storeName);
-  }
-
-  public async put<T>(storeName: string, item: T): Promise<T> {
-    const store = await this.getStore(storeName, 'readwrite');
-    return new Promise((resolve, reject) => {
-      const req = store.put(item);
-      req.onsuccess = () => resolve(item);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  public async get<T>(storeName: string, key: string): Promise<T | null> {
-    const store = await this.getStore(storeName, 'readonly');
-    return new Promise((resolve, reject) => {
-      const req = store.get(key);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  public async getAll<T>(storeName: string): Promise<T[]> {
-    const store = await this.getStore(storeName, 'readonly');
-    return new Promise((resolve, reject) => {
-      const req = store.getAll();
-      req.onsuccess = () => resolve(req.result || []);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  public async delete(storeName: string, key: string): Promise<void> {
-    const store = await this.getStore(storeName, 'readwrite');
-    return new Promise((resolve, reject) => {
-      const req = store.delete(key);
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  // Domain specific methods
+  // Domain Queries
   public async getAllClients(): Promise<Client[]> {
-    return this.getAll<Client>('clients');
+    await this.init();
+    return dexieDB.clients.toArray();
   }
 
-  public async getClientById(id: string): Promise<Client | null> {
-    return this.get<Client>('clients', id);
+  public async getClientById(id: string): Promise<Client | undefined> {
+    await this.init();
+    return dexieDB.clients.get(id);
   }
 
   public async saveClient(client: Client): Promise<Client> {
-    return this.put<Client>('clients', client);
+    await this.init();
+    await dexieDB.clients.put(client);
+    return client;
   }
 
   public async getAllNotes(): Promise<SessionNote[]> {
-    const notes = await this.getAll<SessionNote>('session_notes');
+    await this.init();
+    const notes = await dexieDB.session_notes.toArray();
     return notes.sort((a, b) => new Date(b.encounterDate).getTime() - new Date(a.encounterDate).getTime());
   }
 
-  public async getNoteById(id: string): Promise<SessionNote | null> {
-    return this.get<SessionNote>('session_notes', id);
+  public async getNoteById(id: string): Promise<SessionNote | undefined> {
+    await this.init();
+    return dexieDB.session_notes.get(id);
   }
 
   public async saveNote(note: SessionNote): Promise<SessionNote> {
-    return this.put<SessionNote>('session_notes', note);
-  }
-
-  public async getNotesByClient(clientId: string): Promise<SessionNote[]> {
-    const notes = await this.getAllNotes();
-    return notes.filter(n => n.clientId === clientId);
+    await this.init();
+    await dexieDB.session_notes.put(note);
+    return note;
   }
 
   public async getAllAuditLogs(): Promise<AuditLogEntry[]> {
-    const logs = await this.getAll<AuditLogEntry>('audit_logs');
+    await this.init();
+    const logs = await dexieDB.audit_logs.toArray();
     return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
 
   public async saveAuditLog(log: AuditLogEntry): Promise<AuditLogEntry> {
-    return this.put<AuditLogEntry>('audit_logs', log);
+    await this.init();
+    await dexieDB.audit_logs.put(log);
+    return log;
   }
 
   public async getSyncQueue(): Promise<SyncQueueItem[]> {
-    return this.getAll<SyncQueueItem>('sync_queue');
+    await this.init();
+    return dexieDB.sync_queue.toArray();
   }
 
   public async addToSyncQueue(item: SyncQueueItem): Promise<SyncQueueItem> {
-    return this.put<SyncQueueItem>('sync_queue', item);
+    await this.init();
+    await dexieDB.sync_queue.put(item);
+    return item;
   }
 
   public async clearSyncQueue(): Promise<void> {
-    const db = await this.getDB();
-    const tx = db.transaction('sync_queue', 'readwrite');
-    tx.objectStore('sync_queue').clear();
+    await this.init();
+    await dexieDB.sync_queue.clear();
   }
 
   public async getAllUsers(): Promise<User[]> {
-    return this.getAll<User>('users');
+    await this.init();
+    return dexieDB.users.toArray();
   }
 
   public async getAllOrganizations(): Promise<Organization[]> {
-    return this.getAll<Organization>('organizations');
+    await this.init();
+    return dexieDB.organizations.toArray();
   }
 
   public async clearAllData(): Promise<void> {
-    const db = await this.getDB();
-    const stores = ['clients', 'session_notes', 'audit_logs', 'sync_queue'];
-    const tx = db.transaction(stores, 'readwrite');
-    stores.forEach(s => tx.objectStore(s).clear());
+    await this.init();
+    await dexieDB.clients.clear();
+    await dexieDB.session_notes.clear();
+    await dexieDB.audit_logs.clear();
+    await dexieDB.sync_queue.clear();
   }
 }
 
-export const peerNotebookDB = new PeerNotebookDB();
+export const peerNotebookDB = new PeerNotebookDBManager();

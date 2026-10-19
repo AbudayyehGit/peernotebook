@@ -1,6 +1,7 @@
 /**
- * Peer Notebook - Clinical & Peer Support Encounter Note Form
- * Conforms to Medicaid H0038 Billing Specifications, DAP Format & GA8 Architecture
+ * Peer Notebook - CalAIM & Medi-Cal H0038 Encounter Note Form
+ * Visuals: Soft Slate (#F8FAFC), Deep Navy (#1E3A8A), Muted Teal (#0F766E)
+ * Low Cognitive Load • Trauma-Informed Language Check • Dual-Layer Persistence
  */
 
 import React, { useState, useEffect } from 'react';
@@ -8,7 +9,7 @@ import { peerNotebookDB, Client, SessionNote, ServiceModality } from '../db/peer
 import { useAuth } from '../context/AuthContext';
 import { AuditLogger } from '../services/auditLogger';
 import { syncWorker } from '../services/syncWorker';
-import { FileText, Save, Send, AlertTriangle, CheckCircle2, Clock, Sparkles } from 'lucide-react';
+import { FileText, Save, Send, AlertTriangle, CheckCircle2, Clock, Sparkles, Navigation, ShieldCheck } from 'lucide-react';
 
 interface SessionNoteFormProps {
   initialClient?: Client | null;
@@ -17,7 +18,7 @@ interface SessionNoteFormProps {
   onCancel?: () => void;
 }
 
-const FOCUS_DOMAIN_OPTIONS = [
+const CALAIM_FOCUS_DOMAINS = [
   'Recovery Goals',
   'Housing Stability',
   'Relapse Prevention',
@@ -25,8 +26,9 @@ const FOCUS_DOMAIN_OPTIONS = [
   'Mental Health Wellness',
   'Vocational/Employment',
   'Harm Reduction',
-  'System Navigation',
-  'Family Reconnection'
+  'CalAIM Community Supports',
+  'Enhanced Care Management (ECM)',
+  'System Navigation'
 ];
 
 export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
@@ -47,16 +49,22 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
   );
   const [startTime, setStartTime] = useState<string>(existingNote?.startTime || '10:00');
   const [endTime, setEndTime] = useState<string>(existingNote?.endTime || '10:45');
-  const [durationMinutes, setDurationMinutes] = useState<number>(existingNote?.durationMinutes || 45);
+  
+  // CalAIM Time Accounting
+  const [faceToFaceMinutes, setFaceToFaceMinutes] = useState<number>(existingNote?.faceToFaceMinutes || 45);
+  const [travelMinutes, setTravelMinutes] = useState<number>(existingNote?.travelMinutes || 15);
+  const [documentationMinutes, setDocumentationMinutes] = useState<number>(existingNote?.documentationMinutes || 10);
+  
   const [billingCode, setBillingCode] = useState<string>(existingNote?.billingCode || 'H0038');
   const [modality, setModality] = useState<ServiceModality>(existingNote?.modality || 'community_field');
+  const [placeOfServiceCode, setPlaceOfServiceCode] = useState<string>(existingNote?.placeOfServiceCode || '99');
   const [locationDetails, setLocationDetails] = useState<string>(
     existingNote?.locationDetails || 'Community Outreach / Field'
   );
 
-  // Note Content (DAP / Peer Documentation)
+  // Note Content (CalAIM DAP Format)
   const [focusDomains, setFocusDomains] = useState<string[]>(
-    existingNote?.focusDomains || ['Recovery Goals', 'Coping Skills']
+    existingNote?.focusDomains || ['Recovery Goals', 'Coping Skills', 'CalAIM Community Supports']
   );
   const [goalAddressed, setGoalAddressed] = useState<string>(existingNote?.goalAddressed || '');
   const [peerIntervention, setPeerIntervention] = useState<string>(existingNote?.peerIntervention || '');
@@ -67,7 +75,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
 
   // Signature
   const [signatureTyped, setSignatureTyped] = useState<string>(
-    existingNote?.specialistSignature || `${currentUser?.fullName || 'Alex Rivera, CPSS'}`
+    existingNote?.specialistSignature || `${currentUser?.fullName || 'Alex Rivera, CPSS-CA'}`
   );
   const [signatureConfirmed, setSignatureConfirmed] = useState<boolean>(Boolean(existingNote?.signedAt));
 
@@ -75,7 +83,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [validationWarning, setValidationWarning] = useState<string | null>(null);
 
-  // Auto-calculate duration & billing units
+  // Auto-calculate Face-to-Face Duration from Start and End Times
   useEffect(() => {
     if (startTime && endTime) {
       const [startH, startM] = startTime.split(':').map(Number);
@@ -83,12 +91,14 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       let diffMinutes = (endH * 60 + endM) - (startH * 60 + startM);
       if (diffMinutes < 0) diffMinutes += 24 * 60;
       if (diffMinutes > 0) {
-        setDurationMinutes(diffMinutes);
+        setFaceToFaceMinutes(diffMinutes);
       }
     }
   }, [startTime, endTime]);
 
-  const billingUnits = Math.ceil(durationMinutes / 15);
+  // Total Medi-Cal billable duration = Face-to-Face + Travel + Documentation
+  const totalBillableMinutes = faceToFaceMinutes + travelMinutes + documentationMinutes;
+  const billingUnits = Math.ceil(totalBillableMinutes / 15);
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -113,25 +123,25 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
     }
   };
 
-  // Quick Template Injector
+  // Quick Template Starters
   const applyTemplate = (type: 'recovery' | 'housing' | 'coping') => {
     if (type === 'recovery') {
-      setGoalAddressed('Goal 1: Maintain abstinence and strengthen personal recovery capital.');
-      setPeerIntervention('CPSS shared relevant lived recovery experience regarding early-recovery triggers. Discussed healthy boundaries and mutual-aid meeting schedules. Practiced identifying high-risk social environments.');
-      setClientResponse('Peer actively engaged in discussion. Identified two past relapse triggers and agreed to attend an evening recovery support group.');
-      setPlanNextSteps('Peer will contact sponsor twice this week. CPSS and peer scheduled follow-up on Friday at 11:00 AM.');
+      setGoalAddressed('Goal 1: Maintain substance use recovery goals and strengthen community recovery capital.');
+      setPeerIntervention('CPSS shared lived recovery experience regarding navigating social triggers. Discussed healthy recovery boundaries, identified high-risk community locations, and reviewed All-Recovery mutual aid meeting schedule.');
+      setClientResponse('Peer actively engaged and stated feeling validated. Shared that hearing the specialist’s lived experience relieved feelings of isolation. Reported 60 days continuous sobriety with strong motivation.');
+      setPlanNextSteps('Peer will attend Wednesday evening community support meeting. Scheduled next 1-on-1 peer session for Friday at 11:00 AM.');
       setFocusDomains(['Recovery Goals', 'Relapse Prevention', 'Coping Skills']);
     } else if (type === 'housing') {
-      setGoalAddressed('Goal 2: Resolve housing vulnerability and secure stable shelter.');
-      setPeerIntervention('Accompanied peer to local housing access center. Assisted peer in filling out coordinated entry paperwork and organized identification documents. Provided emotional de-escalation during wait times.');
-      setClientResponse('Peer maintained composure throughout intake process. Expressed gratitude for peer presence, stating anxiety was substantially lower with support.');
-      setPlanNextSteps('Peer to receive intake confirmation call within 5 business days. CPSS will check in Thursday by phone.');
-      setFocusDomains(['Housing Stability', 'System Navigation']);
+      setGoalAddressed('Goal 2: CalAIM Community Supports Housing Transition and Navigation.');
+      setPeerIntervention('Accompanied peer to local housing access hub. Assisted peer with gathering required documentation for Section 8 verification. Modeled self-advocacy and provided trauma-informed emotional grounding during wait.');
+      setClientResponse('Peer maintained composure throughout intake. Stated: "Having someone who has walked this road sit with me made the paperwork manageable."');
+      setPlanNextSteps('Peer to monitor intake callback within 5 business days. CPSS scheduled check-in call for Thursday.');
+      setFocusDomains(['Housing Stability', 'CalAIM Community Supports', 'System Navigation']);
     } else if (type === 'coping') {
-      setGoalAddressed('Goal 3: Implement non-pharmacological grounding techniques for panic/anxiety.');
-      setPeerIntervention('Introduced box breathing (4-4-4-4) and 5-4-3-2-1 sensory grounding. CPSS guided peer through two repetitions during active distress.');
-      setClientResponse('Peer successfully demonstrated technique. Self-reported anxiety reduction from 9/10 to 4/10.');
-      setPlanNextSteps('Peer committed to using box breathing daily upon waking and before bedtime.');
+      setGoalAddressed('Goal 3: Apply somatic and non-pharmacological grounding techniques during acute stress.');
+      setPeerIntervention('Introduced box breathing (4-4-4-4 count) and 5-4-3-2-1 sensory grounding. CPSS guided peer through two rounds of practice, discussing how to deploy these techniques in community settings.');
+      setClientResponse('Peer demonstrated mastery of the breathing sequence. Self-reported anxiety decreased from 8/10 to 3/10 following somatic grounding.');
+      setPlanNextSteps('Peer will practice box breathing daily upon waking and prior to stressful interactions.');
       setFocusDomains(['Mental Health Wellness', 'Coping Skills']);
     }
   };
@@ -157,20 +167,25 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
 
     const noteToSave: SessionNote = {
       id: existingNote?.id || `note-${Date.now()}`,
-      organizationId: currentOrg?.id || 'org-hope-01',
+      organizationId: currentOrg?.id || 'org-calaim-01',
       clientId: selectedClientId,
       clientName: clientObj?.preferredName || 'Client',
       clientIdentifier: clientObj?.clientIdentifier || 'PN-0000',
+      mediCalCin: clientObj?.mediCalCin,
       authorId: currentUser?.id || 'user-cpss-01',
-      authorName: currentUser?.fullName || 'Alex Rivera, CPSS',
-      authorCredentials: currentUser?.credentialTitle || 'Certified Peer Support Specialist',
+      authorName: currentUser?.fullName || 'Alex Rivera, CPSS-CA',
+      authorCredentials: currentUser?.credentialTitle || 'CalAIM Certified Peer Support Specialist',
       encounterDate,
       startTime,
       endTime,
-      durationMinutes,
+      faceToFaceMinutes,
+      travelMinutes,
+      documentationMinutes,
+      durationMinutes: totalBillableMinutes,
       billingCode,
       billingUnits,
       modality,
+      placeOfServiceCode,
       locationDetails,
       focusDomains,
       goalAddressed,
@@ -187,16 +202,16 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       updatedAt: now
     };
 
-    // Save to IndexedDB
+    // Save to Dexie.js
     await peerNotebookDB.saveNote(noteToSave);
 
-    // Update client last encounter date
+    // Update client encounter date
     if (clientObj) {
       clientObj.lastEncounterDate = encounterDate;
       await peerNotebookDB.saveClient(clientObj);
     }
 
-    // Queue for sync & audit log
+    // Queue for cloud sync & audit log
     await syncWorker.enqueueMutation('CREATE', 'session_note', noteToSave.id, noteToSave);
 
     if (currentUser && currentOrg) {
@@ -211,59 +226,60 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
         details: {
           clientId: noteToSave.clientId,
           billingUnits: noteToSave.billingUnits,
+          totalBillableMinutes: noteToSave.durationMinutes,
           status: noteToSave.status
         }
       });
     }
 
-    setSaveStatus(submitToSupervisor ? 'Submitted to Supervisor Queue!' : 'Draft Saved to Offline IndexedDB!');
+    setSaveStatus(submitToSupervisor ? 'Submitted to Supervisor Queue!' : 'Draft Saved to Dexie.js Local Store!');
     setTimeout(() => {
       setSaveStatus(null);
       if (onSaveSuccess) onSaveSuccess(noteToSave);
-    }, 1200);
+    }, 1000);
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl max-w-4xl mx-auto space-y-6">
+    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-600/20 text-blue-400 rounded-xl">
+          <div className="p-2.5 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-100">
             <FileText className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">
-              {existingNote ? 'Edit Encounter Documentation' : 'Peer Support Encounter Documentation'}
+            <h2 className="text-lg font-bold text-[#1E3A8A]">
+              {existingNote ? 'Edit CalAIM Encounter Documentation' : 'Medi-Cal H0038 Peer Encounter Note'}
             </h2>
-            <p className="text-xs text-slate-400">
-              HIPAA Compliant • Medicaid Code: <span className="font-mono text-emerald-400 font-semibold">{billingCode}</span> • Units: <span className="font-mono text-blue-400 font-semibold">{billingUnits} (15m/unit)</span>
+            <p className="text-xs text-slate-500">
+              CalAIM Payment Reform • Code: <span className="font-mono text-[#0F766E] font-bold">{billingCode}</span> • Units: <span className="font-mono text-[#1E3A8A] font-bold">{billingUnits} (15m increments)</span>
             </p>
           </div>
         </div>
 
         {/* Quick template buttons */}
-        <div className="flex items-center gap-1.5 bg-slate-800/80 p-1.5 rounded-lg border border-slate-700/60">
-          <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1 pl-1">
-            <Sparkles className="w-3 h-3 text-amber-400" /> Templates:
+        <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-lg border border-slate-200">
+          <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1 pl-1">
+            <Sparkles className="w-3.5 h-3.5 text-[#D97706]" /> Templates:
           </span>
           <button
             type="button"
             onClick={() => applyTemplate('recovery')}
-            className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 rounded"
+            className="px-2.5 py-1 text-xs bg-white hover:bg-slate-50 text-slate-800 font-medium rounded border border-slate-200 shadow-2xs"
           >
             Recovery
           </button>
           <button
             type="button"
             onClick={() => applyTemplate('housing')}
-            className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 rounded"
+            className="px-2.5 py-1 text-xs bg-white hover:bg-slate-50 text-slate-800 font-medium rounded border border-slate-200 shadow-2xs"
           >
             Housing
           </button>
           <button
             type="button"
             onClick={() => applyTemplate('coping')}
-            className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 rounded"
+            className="px-2.5 py-1 text-xs bg-white hover:bg-slate-50 text-slate-800 font-medium rounded border border-slate-200 shadow-2xs"
           >
             Grounding
           </button>
@@ -271,15 +287,15 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       </div>
 
       {validationWarning && (
-        <div className="flex items-center gap-2 p-3 bg-amber-950/80 border border-amber-600/60 rounded-xl text-amber-200 text-xs">
-          <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" />
+        <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-300 rounded-xl text-[#D97706] text-xs font-medium">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>{validationWarning}</span>
         </div>
       )}
 
       {saveStatus && (
-        <div className="flex items-center gap-2 p-3 bg-emerald-950/80 border border-emerald-600/60 rounded-xl text-emerald-200 text-xs">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+        <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-[#16A34A] text-xs font-semibold">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{saveStatus}</span>
         </div>
       )}
@@ -287,120 +303,141 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       {/* Peer Client Selection & Encounter Metadata */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">
+          <label className="block text-xs font-bold text-slate-700 mb-1">
             Peer / Client *
           </label>
           <select
             value={selectedClientId}
             onChange={(e) => setSelectedClientId(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-hidden focus:border-blue-500"
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E]"
           >
             <option value="">-- Select Client --</option>
             {clients.map(c => (
               <option key={c.id} value={c.id}>
-                {c.preferredName} ({c.clientIdentifier})
+                {c.preferredName} ({c.clientIdentifier}) {c.mediCalCin ? `• CIN: ${c.mediCalCin}` : ''}
               </option>
             ))}
           </select>
           {currentClient && (
-            <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" /> Consent Verified ({currentClient.currentStatus})
+            <p className="text-[11px] text-[#16A34A] mt-1 flex items-center gap-1 font-medium">
+              <ShieldCheck className="w-3.5 h-3.5" /> Pathway: {currentClient.calaimPathway}
             </p>
           )}
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">
-            Encounter Date *
+          <label className="block text-xs font-bold text-slate-700 mb-1">
+            Date of Service *
           </label>
           <input
             type="date"
             value={encounterDate}
             onChange={(e) => setEncounterDate(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-hidden"
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-hidden"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">
-            Modality & Setting *
+          <label className="block text-xs font-bold text-slate-700 mb-1">
+            Modality & Place of Service *
           </label>
           <select
             value={modality}
-            onChange={(e) => setModality(e.target.value as ServiceModality)}
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-hidden"
+            onChange={(e) => {
+              const val = e.target.value as ServiceModality;
+              setModality(val);
+              setPlaceOfServiceCode(val === 'community_field' ? '99' : val === 'telehealth_video' ? '02' : '11');
+            }}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-hidden"
           >
-            <option value="community_field">Community / Field Outreach</option>
-            <option value="face_to_face">Face-to-Face (Clinic / Office)</option>
-            <option value="telehealth_video">Telehealth Video</option>
-            <option value="phone_outreach">Phone Outreach</option>
+            <option value="community_field">Community / Field Outreach (POS 99)</option>
+            <option value="face_to_face">Office / Clinic Encounter (POS 11)</option>
+            <option value="telehealth_video">Telehealth Video (POS 02)</option>
+            <option value="phone_outreach">Phone Outreach (POS 02)</option>
           </select>
         </div>
       </div>
 
-      {/* Time & Duration Units */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 p-3.5 bg-slate-850/60 rounded-xl border border-slate-800">
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1 flex items-center gap-1">
-            <Clock className="w-3 h-3" /> Start Time
-          </label>
-          <input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            className="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-hidden"
-          />
+      {/* CalAIM Time Accounting (Direct Face-to-Face + Travel + Documentation) */}
+      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-[#0F766E]" />
+            CalAIM Billable Time Breakdown (Medi-Cal Payment Reform)
+          </span>
+          <span className="text-xs font-bold text-[#0F766E]">
+            Total: {totalBillableMinutes} mins = {billingUnits} Unit{billingUnits > 1 ? 's' : ''} (H0038)
+          </span>
         </div>
 
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1 flex items-center gap-1">
-            <Clock className="w-3 h-3" /> End Time
-          </label>
-          <input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            className="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-hidden"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1">
-            Duration
-          </label>
-          <div className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm font-semibold text-white">
-            {durationMinutes} minutes
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+              Face-to-Face Time (mins)
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={faceToFaceMinutes}
+              onChange={(e) => setFaceToFaceMinutes(Number(e.target.value) || 0)}
+              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-hidden font-semibold"
+            />
           </div>
-        </div>
 
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1">
-            Billing Units (H0038)
-          </label>
-          <div className="px-3 py-1.5 bg-blue-950/50 border border-blue-700/60 rounded-lg text-sm font-bold text-blue-300 flex items-center justify-between">
-            <span>{billingUnits} Unit{billingUnits > 1 ? 's' : ''}</span>
-            <span className="text-[10px] text-blue-400 font-mono">15m = 1u</span>
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+              <Navigation className="w-3 h-3 text-slate-400" /> Travel Time (mins)
+            </label>
+            <input
+              type="number"
+              min={0}
+              value={travelMinutes}
+              onChange={(e) => setTravelMinutes(Number(e.target.value) || 0)}
+              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-hidden"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+              Direct Doc Time (mins)
+            </label>
+            <input
+              type="number"
+              min={0}
+              value={documentationMinutes}
+              onChange={(e) => setDocumentationMinutes(Number(e.target.value) || 0)}
+              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-hidden"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+              Billing Formula
+            </label>
+            <div className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono text-[#1E3A8A] font-semibold">
+              Ceil({totalBillableMinutes} / 15) = {billingUnits}u
+            </div>
           </div>
         </div>
       </div>
 
       {/* Focus Domains */}
       <div>
-        <label className="block text-xs font-medium text-slate-300 mb-2">
-          Encounter Focus Domains (Select all applicable)
+        <label className="block text-xs font-bold text-slate-700 mb-2">
+          CalAIM Encounter Focus Domains (Select all applicable)
         </label>
         <div className="flex flex-wrap gap-1.5">
-          {FOCUS_DOMAIN_OPTIONS.map(domain => {
+          {CALAIM_FOCUS_DOMAINS.map(domain => {
             const isSelected = focusDomains.includes(domain);
             return (
               <button
                 key={domain}
                 type="button"
                 onClick={() => toggleDomain(domain)}
-                className={`px-2.5 py-1 rounded-full text-xs transition-colors border ${
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
                   isSelected
-                    ? 'bg-blue-600 text-white border-blue-500 shadow-xs'
-                    : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+                    ? 'bg-[#0F766E] text-white border-[#0F766E] shadow-2xs'
+                    : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'
                 }`}
               >
                 {domain}
@@ -410,63 +447,63 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
         </div>
       </div>
 
-      {/* Core Clinical Documentation (DAP / Peer Format) */}
+      {/* Structured DAP Narrative */}
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">
-            1. Recovery Goal Addressed *
+          <label className="block text-xs font-bold text-slate-700 mb-1">
+            1. CalAIM Strengths-Based Goal Addressed *
           </label>
           <textarea
             rows={2}
             value={goalAddressed}
             onChange={(e) => setGoalAddressed(e.target.value)}
-            placeholder="Specify which individual recovery plan goal or objective was targeted during this session..."
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500"
+            placeholder="Document client-centered recovery plan goal or objective addressed today..."
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E]"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">
-            2. Peer Specialist Intervention (What YOU did) *
+          <label className="block text-xs font-bold text-slate-700 mb-1">
+            2. Certified Peer Specialist Intervention (What YOU did) *
           </label>
           <textarea
             rows={3}
             value={peerIntervention}
             onChange={(e) => setPeerIntervention(e.target.value)}
-            placeholder="Detail peer-delivered interventions: lived experience sharing, recovery coping skills taught, system navigation, emotional validation, community resource coordination..."
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500"
+            placeholder="Detail peer-delivered interventions: shared lived recovery experience, somatic grounding exercises, system navigation, emotional support, self-advocacy coaching..."
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E]"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">
-            3. Peer / Client Response (Client Engagement & Quotes) *
+          <label className="block text-xs font-bold text-slate-700 mb-1">
+            3. Peer / Client Response (Client Quotes & Response to Intervention) *
           </label>
           <textarea
             rows={3}
             value={clientResponse}
             onChange={(e) => setClientResponse(e.target.value)}
-            placeholder="How did the client respond? Direct client feedback, behavioral observations, self-rated scale (e.g. 1-10 craving/anxiety), receptivity to peer mentoring..."
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500"
+            placeholder="Record client quotes, observable behavioral responses, mood, self-reported distress rating (e.g. 1-10 scale), and reception of peer coaching..."
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E]"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">
+          <label className="block text-xs font-bold text-slate-700 mb-1">
             4. Plan & Action Steps for Next Meeting *
           </label>
           <textarea
             rows={2}
             value={planNextSteps}
             onChange={(e) => setPlanNextSteps(e.target.value)}
-            placeholder="Concrete action steps for client prior to next encounter; scheduled date, time, and focal point of upcoming meeting..."
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500"
+            placeholder="Agreed action steps for peer before next session; scheduled date, time, and focus of upcoming encounter..."
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E]"
           />
         </div>
       </div>
 
       {/* Safety & Crisis Flag */}
-      <div className="p-4 bg-slate-850/80 rounded-xl border border-slate-800 space-y-3">
+      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -474,41 +511,41 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             onChange={(e) => setSafetyConcerns(e.target.checked)}
             className="rounded text-rose-600 focus:ring-0"
           />
-          <span className="text-xs font-medium text-slate-200">
-            Check here if any crisis, safety, self-harm, or overdose risk concerns were identified
+          <span className="text-xs font-bold text-slate-800">
+            Check here if any safety, crisis, overdose risk, or self-harm indicators were identified
           </span>
         </label>
 
         {safetyConcerns && (
           <div className="space-y-1">
-            <span className="text-xs text-rose-400 font-medium">
+            <span className="text-xs text-rose-700 font-semibold">
               Crisis De-escalation & Safety Response Documentation:
             </span>
             <textarea
               rows={2}
               value={safetyNotes}
               onChange={(e) => setSafetyNotes(e.target.value)}
-              placeholder="Document safety plan review, emergency contact notification, supervisor contact, or referral to mobile crisis team..."
-              className="w-full px-3 py-2 bg-rose-950/20 border border-rose-700/60 rounded-lg text-sm text-white focus:outline-hidden"
+              placeholder="Document review of safety plan, supervisor contact, emergency services involvement, or mobile crisis referral..."
+              className="w-full px-3 py-2 bg-white border border-rose-300 rounded-lg text-sm text-slate-900 focus:outline-hidden"
             />
           </div>
         )}
       </div>
 
       {/* Electronic Signature Block */}
-      <div className="p-4 bg-slate-800/70 rounded-xl border border-slate-700/80 space-y-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
+      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] block">
           Certified Peer Support Specialist Electronic Signature
         </span>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-[11px] text-slate-400 mb-1">Typed Signature</label>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Typed Signature</label>
             <input
               type="text"
               value={signatureTyped}
               onChange={(e) => setSignatureTyped(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white font-mono"
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 font-mono font-semibold"
             />
           </div>
 
@@ -518,10 +555,10 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
                 type="checkbox"
                 checked={signatureConfirmed}
                 onChange={(e) => setSignatureConfirmed(e.target.checked)}
-                className="mt-0.5 rounded text-emerald-600 focus:ring-0"
+                className="mt-0.5 rounded text-[#0F766E] focus:ring-0"
               />
-              <span className="text-xs text-slate-300">
-                I attest that this note accurately reflects peer support services rendered in accordance with state certification and agency clinical standards.
+              <span className="text-xs text-slate-700 leading-normal">
+                I attest that this note accurately reflects peer support services rendered in accordance with California Medi-Cal CPSS scope of practice and CalAIM guidelines.
               </span>
             </label>
           </div>
@@ -534,7 +571,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="w-full sm:w-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium"
+            className="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
           >
             Cancel
           </button>
@@ -544,19 +581,19 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           <button
             type="button"
             onClick={() => handleSave(false)}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-colors"
+            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-lg text-xs font-semibold transition-colors"
           >
-            <Save className="w-3.5 h-3.5 text-slate-400" />
-            <span>Save Offline Draft</span>
+            <Save className="w-3.5 h-3.5 text-slate-500" />
+            <span>Save to Dexie.js (Offline Draft)</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSave(true)}
-            className="flex items-center justify-center gap-1.5 px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors shadow-md"
+            className="flex items-center justify-center gap-1.5 px-5 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-lg text-xs font-semibold transition-colors shadow-xs"
           >
             <Send className="w-3.5 h-3.5" />
-            <span>Submit to Supervisor</span>
+            <span>Submit for Supervisor Cosign</span>
           </button>
         </div>
       </div>
