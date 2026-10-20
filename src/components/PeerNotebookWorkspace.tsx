@@ -14,7 +14,6 @@ import { SupervisorDashboard } from './SupervisorDashboard';
 import { SettingsPanel } from './SettingsPanel';
 import { ExportSessionPDF } from './ExportSessionPDF';
 import { DocumentationViewer } from './DocumentationViewer';
-import { PeerDashboardShell } from './PeerDashboardShell';
 import {
   Users,
   FileText,
@@ -25,25 +24,19 @@ import {
   Plus,
   Download,
   Search,
-  Lock,
-  Activity
+  Lock
 } from 'lucide-react';
 
-export type WorkspaceTab = 'dashboard' | 'clients' | 'notes' | 'new_note' | 'supervisor' | 'audit' | 'architecture' | 'settings';
+export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'supervisor' | 'audit' | 'architecture' | 'settings';
 
-export interface PeerNotebookWorkspaceProps {
-  onTabChange?: (tab: WorkspaceTab) => void;
-}
-
-export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ onTabChange }) => {
+export const PeerNotebookWorkspace: React.FC = () => {
   const { currentOrg, canApproveNotes } = useAuth();
   
   // Parse route from window.location.pathname
   const parseRoute = (): { tab: WorkspaceTab; slug?: string } => {
-    if (typeof window === 'undefined') return { tab: 'dashboard' };
+    if (typeof window === 'undefined') return { tab: 'clients' };
     const path = window.location.pathname.toLowerCase();
 
-    if (path === '/' || path === '' || path.startsWith('/dashboard')) return { tab: 'dashboard' };
     if (path.startsWith('/docs')) {
       const parts = window.location.pathname.split('/').filter(Boolean);
       const slug = parts.length > 1 ? parts.slice(1).join('/') : undefined;
@@ -56,7 +49,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     if (path.startsWith('/audit')) return { tab: 'audit' };
     if (path.startsWith('/settings')) return { tab: 'settings' };
 
-    return { tab: 'dashboard' };
+    return { tab: 'clients' };
   };
 
   const initialRoute = parseRoute();
@@ -72,11 +65,6 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
   const [notesSearch, setNotesSearch] = useState('');
   const [notesFilter, setNotesFilter] = useState('ALL');
 
-  // Notify parent of tab changes
-  useEffect(() => {
-    onTabChange?.(activeTab);
-  }, [activeTab, onTabChange]);
-
   // Handle browser popstate (back/forward)
   useEffect(() => {
     const handlePopState = () => {
@@ -89,14 +77,12 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const navigateToTab = (tab: WorkspaceTab | string, slug?: string) => {
-    setActiveTab(tab as WorkspaceTab);
+  const navigateToTab = (tab: WorkspaceTab, slug?: string) => {
+    setActiveTab(tab);
     setDocSlug(slug);
 
     let path = '/';
-    if (tab === 'dashboard') {
-      path = '/';
-    } else if (tab === 'architecture') {
+    if (tab === 'architecture') {
       path = slug ? `/docs/${slug}` : '/docs';
     } else if (tab === 'clients') {
       path = '/clients';
@@ -155,136 +141,118 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
   });
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden flex flex-col">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       {/* Primary Navigation Tabs - Smooth Horizontal Touch Scroll on Mobile */}
-      <div className="bg-white border-b border-slate-200 sticky top-14 sm:top-16 z-30 shadow-2xs w-full max-w-full">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-full overscroll-x-contain sm:flex-wrap">
-            <button
-              onClick={() => navigateToTab('dashboard')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
-                activeTab === 'dashboard'
-                  ? 'bg-[#0F766E] text-white shadow-xs'
-                  : 'text-[#0F766E] hover:text-[#0c625c] hover:bg-teal-50 bg-teal-50/60 border border-teal-200'
-              }`}
-            >
-              <Activity className="w-4 h-4" />
-              <span>H0038 Action Dashboard</span>
-            </button>
+      <div className="border-b border-slate-200 pb-2 w-full max-w-full overflow-hidden">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 px-0.5 max-w-full overscroll-x-contain sm:flex-wrap">
+          <button
+            onClick={() => navigateToTab('clients')}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+              activeTab === 'clients'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>Peer Roster</span>
+          </button>
 
+          <button
+            onClick={() => navigateToTab('notes')}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+              activeTab === 'notes'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>Encounter Notes ({notes.length})</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setSelectedNoteForEdit(null);
+              setSelectedClientForNote(null);
+              navigateToTab('new_note');
+            }}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+              activeTab === 'new_note'
+                ? 'bg-[#0F766E] text-white shadow-xs'
+                : 'text-[#0F766E] hover:text-white hover:bg-[#0F766E] border border-teal-200 bg-teal-50'
+            }`}
+          >
+            <Plus className="w-4 h-4" />
+            <span>New CalAIM Note</span>
+          </button>
+
+          {canApproveNotes && (
             <button
-              onClick={() => navigateToTab('clients')}
+              onClick={() => navigateToTab('supervisor')}
               className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
-                activeTab === 'clients'
+                activeTab === 'supervisor'
                   ? 'bg-[#1E3A8A] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <Users className="w-4 h-4" />
-              <span>Peer Roster</span>
+              <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
+              <span>Supervisor QA</span>
             </button>
+          )}
 
-            <button
-              onClick={() => navigateToTab('notes')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
-                activeTab === 'notes'
-                  ? 'bg-[#1E3A8A] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              <span>Encounter Notes ({notes.length})</span>
-            </button>
+          <button
+            onClick={() => navigateToTab('audit')}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+              activeTab === 'audit'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            <History className="w-4 h-4" />
+            <span>HIPAA Audit Trail</span>
+          </button>
 
-            <button
-              onClick={() => {
-                setSelectedNoteForEdit(null);
-                setSelectedClientForNote(null);
-                navigateToTab('new_note');
-              }}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
-                activeTab === 'new_note'
-                  ? 'bg-[#0F766E] text-white shadow-xs'
-                  : 'text-[#0F766E] hover:text-white hover:bg-[#0F766E] border border-teal-200 bg-teal-50'
-              }`}
-            >
-              <Plus className="w-4 h-4" />
-              <span>New CalAIM Note</span>
-            </button>
+          <button
+            onClick={() => navigateToTab('architecture')}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+              activeTab === 'architecture'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>GA #8 White Papers</span>
+          </button>
 
-            {canApproveNotes && (
-              <button
-                onClick={() => navigateToTab('supervisor')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
-                  activeTab === 'supervisor'
-                    ? 'bg-[#1E3A8A] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
-                <span>Supervisor QA</span>
-              </button>
-            )}
-
-            <button
-              onClick={() => navigateToTab('audit')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
-                activeTab === 'audit'
-                  ? 'bg-[#1E3A8A] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <History className="w-4 h-4" />
-              <span>HIPAA Audit Trail</span>
-            </button>
-
-            <button
-              onClick={() => navigateToTab('architecture')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
-                activeTab === 'architecture'
-                  ? 'bg-[#1E3A8A] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" />
-              <span>GA #8 White Papers</span>
-            </button>
-
-            <button
-              onClick={() => navigateToTab('settings')}
-              className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-colors shrink-0 whitespace-nowrap ${
-                activeTab === 'settings'
-                  ? 'bg-[#1E3A8A] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              <Settings className="w-4 h-4" />
-              <span>Settings & BAA</span>
-            </button>
-          </div>
+          <button
+            onClick={() => navigateToTab('settings')}
+            className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-colors shrink-0 whitespace-nowrap ${
+              activeTab === 'settings'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            <span>Settings & BAA</span>
+          </button>
         </div>
       </div>
 
       {/* Main Tab Content */}
-      {activeTab === 'dashboard' ? (
-        <PeerDashboardShell onNavigateTab={navigateToTab} />
-      ) : (
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden w-full">
-          {activeTab === 'clients' && (
-            <ClientManager onSelectClientForNote={handleStartNoteForClient} />
-          )}
+      {activeTab === 'clients' && (
+        <ClientManager onSelectClientForNote={handleStartNoteForClient} />
+      )}
 
-          {activeTab === 'new_note' && (
-            <SessionNoteForm
-              initialClient={selectedClientForNote}
-              existingNote={selectedNoteForEdit}
-              onSaveSuccess={() => {
-                refreshData();
-                navigateToTab('notes');
-              }}
-              onCancel={() => navigateToTab('notes')}
-            />
-          )}
+      {activeTab === 'new_note' && (
+        <SessionNoteForm
+          initialClient={selectedClientForNote}
+          existingNote={selectedNoteForEdit}
+          onSaveSuccess={() => {
+            refreshData();
+            navigateToTab('notes');
+          }}
+          onCancel={() => navigateToTab('notes')}
+        />
+      )}
 
       {activeTab === 'notes' && (
         <div className="space-y-4">
@@ -500,8 +468,6 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
           note={selectedNoteForExport}
           onClose={() => setSelectedNoteForExport(null)}
         />
-      )}
-        </div>
       )}
     </div>
   );

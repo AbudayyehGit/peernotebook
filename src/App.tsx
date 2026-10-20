@@ -5,17 +5,16 @@
  * Mobile-First Responsive Architecture
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { PeerNotebookWorkspace, WorkspaceTab } from './components/PeerNotebookWorkspace';
+import { PeerNotebookWorkspace } from './components/PeerNotebookWorkspace';
 import { SyncStatusBadge } from './components/SyncStatusBadge';
 import { OrgSelect } from './components/OrgSelect';
-import { EnterpriseFooter } from './components/EnterpriseFooter';
-import { HeartHandshake } from 'lucide-react';
+import { GA8EngineeringStatusBadges } from './components/GA8EngineeringStatusBadges';
+import { HeartHandshake, Shield, ExternalLink } from 'lucide-react';
 
 function AppContent() {
   const { currentOrg, currentUser, isLoading } = useAuth();
-  const [currentTab, setCurrentTab] = useState<WorkspaceTab>('dashboard');
 
   if (isLoading) {
     return (
@@ -64,15 +63,40 @@ function AppContent() {
         </div>
       </header>
 
+      {/* GA #8 Observability Status Badges */}
+      <GA8EngineeringStatusBadges />
+
       {/* Main Clinical Workspace */}
       <main className="flex-1 w-full max-w-full overflow-x-hidden">
-        <PeerNotebookWorkspace onTabChange={setCurrentTab} />
+        <PeerNotebookWorkspace />
       </main>
 
-      {/* Professional Enterprise Footer (Rendered for sub-pages; Dashboard includes its Enterprise Footer) */}
-      {currentTab !== 'dashboard' && (
-        <EnterpriseFooter onNavigateTab={(tab) => setCurrentTab(tab as WorkspaceTab)} />
-      )}
+      {/* Regulatory Compliance Footer */}
+      <footer className="bg-white border-t border-slate-200 py-4 px-4 sm:px-6 text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+          <div className="flex items-center gap-2 justify-center sm:justify-start">
+            <Shield className="w-4 h-4 text-[#16A34A] shrink-0" />
+            <span className="font-medium text-slate-700 text-[11px] sm:text-xs">
+              CalAIM & Medi-Cal H0038 Compliant • Dexie.js + Supabase
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-4 text-[11px]">
+            <span>
+              Provider: <strong className="text-slate-700">{currentUser?.fullName}</strong> ({currentOrg?.name})
+            </span>
+            <span className="hidden sm:inline">•</span>
+            <a
+              href="https://peernotebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#0F766E] font-semibold hover:underline flex items-center gap-1"
+            >
+              <span>peernotebook.com</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
