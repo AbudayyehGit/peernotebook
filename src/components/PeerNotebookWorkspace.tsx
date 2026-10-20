@@ -3,6 +3,7 @@
  * Visual Palette: Soft Slate (#F8FAFC), Deep Navy (#1E3A8A), Muted Teal (#0F766E)
  * CalAIM & Medi-Cal H0038 Compliant • GA #8 Verified
  * Dynamic Route Handling for /docs, /clients, /notes, /supervisor, /audit, /settings
+ * Minimum 44px touch targets & Trauma-Informed Clinical Container Cards
  */
 
 import React, { useState, useEffect } from 'react';
@@ -24,14 +25,15 @@ import {
   Plus,
   Download,
   Search,
-  Lock
+  Lock,
+  Edit3
 } from 'lucide-react';
 
 export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'supervisor' | 'audit' | 'architecture' | 'settings';
 
 export const PeerNotebookWorkspace: React.FC = () => {
   const { currentOrg, canApproveNotes } = useAuth();
-  
+
   // Parse route from window.location.pathname
   const parseRoute = (): { tab: WorkspaceTab; slug?: string } => {
     if (typeof window === 'undefined') return { tab: 'clients' };
@@ -141,101 +143,108 @@ export const PeerNotebookWorkspace: React.FC = () => {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
-      {/* Primary Navigation Tabs - Smooth Horizontal Touch Scroll on Mobile */}
-      <div className="border-b border-slate-200 pb-2 w-full max-w-full overflow-hidden">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 px-0.5 max-w-full overscroll-x-contain sm:flex-wrap">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-6 max-w-full overflow-hidden">
+      {/* Primary Navigation Tabs - Minimum 44px–48px Tap Target Height with rounded-full geometry */}
+      <nav aria-label="Main Navigation" className="border-b border-slate-200/90 pb-3 w-full max-w-full overflow-hidden">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-0.5 max-w-full overscroll-x-contain sm:flex-wrap">
           <button
+            type="button"
             onClick={() => navigateToTab('clients')}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+            className={`min-h-[46px] flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
               activeTab === 'clients'
-                ? 'bg-[#1E3A8A] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                ? 'bg-[#1E3A8A] text-white shadow-sm'
+                : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
             }`}
           >
-            <Users className="w-4 h-4" />
+            <Users className="w-4 h-4 shrink-0" />
             <span>Peer Roster</span>
           </button>
 
           <button
+            type="button"
             onClick={() => navigateToTab('notes')}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+            className={`min-h-[46px] flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
               activeTab === 'notes'
-                ? 'bg-[#1E3A8A] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                ? 'bg-[#1E3A8A] text-white shadow-sm'
+                : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
             }`}
           >
-            <FileText className="w-4 h-4" />
+            <FileText className="w-4 h-4 shrink-0" />
             <span>Encounter Notes ({notes.length})</span>
           </button>
 
           <button
+            type="button"
             onClick={() => {
               setSelectedNoteForEdit(null);
               setSelectedClientForNote(null);
               navigateToTab('new_note');
             }}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+            className={`min-h-[46px] flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
               activeTab === 'new_note'
-                ? 'bg-[#0F766E] text-white shadow-xs'
-                : 'text-[#0F766E] hover:text-white hover:bg-[#0F766E] border border-teal-200 bg-teal-50'
+                ? 'bg-[#0F766E] text-white shadow-sm'
+                : 'text-[#0F766E] hover:text-white hover:bg-[#0F766E] border border-teal-200 bg-teal-50/70'
             }`}
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 shrink-0" />
             <span>New CalAIM Note</span>
           </button>
 
           {canApproveNotes && (
             <button
+              type="button"
               onClick={() => navigateToTab('supervisor')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+              className={`min-h-[46px] flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
                 activeTab === 'supervisor'
-                  ? 'bg-[#1E3A8A] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-[#1E3A8A] text-white shadow-sm'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
               }`}
             >
-              <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
+              <ShieldCheck className="w-4 h-4 text-[#0F766E] shrink-0" />
               <span>Supervisor QA</span>
             </button>
           )}
 
           <button
+            type="button"
             onClick={() => navigateToTab('audit')}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+            className={`min-h-[46px] flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
               activeTab === 'audit'
-                ? 'bg-[#1E3A8A] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                ? 'bg-[#1E3A8A] text-white shadow-sm'
+                : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
             }`}
           >
-            <History className="w-4 h-4" />
+            <History className="w-4 h-4 shrink-0" />
             <span>HIPAA Audit Trail</span>
           </button>
 
           <button
+            type="button"
             onClick={() => navigateToTab('architecture')}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+            className={`min-h-[46px] flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
               activeTab === 'architecture'
-                ? 'bg-[#1E3A8A] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                ? 'bg-[#1E3A8A] text-white shadow-sm'
+                : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
             }`}
           >
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="w-4 h-4 shrink-0" />
             <span>GA #8 White Papers</span>
           </button>
 
           <button
+            type="button"
             onClick={() => navigateToTab('settings')}
-            className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-colors shrink-0 whitespace-nowrap ${
+            className={`min-h-[46px] flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
               activeTab === 'settings'
-                ? 'bg-[#1E3A8A] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
+                ? 'bg-[#1E3A8A] text-white shadow-sm'
+                : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
             }`}
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-4 h-4 shrink-0" />
             <span>Settings & BAA</span>
           </button>
         </div>
-      </div>
+      </nav>
 
       {/* Main Tab Content */}
       {activeTab === 'clients' && (
@@ -255,24 +264,25 @@ export const PeerNotebookWorkspace: React.FC = () => {
       )}
 
       {activeTab === 'notes' && (
-        <div className="space-y-4">
+        <div className="space-y-5">
+          {/* Action Toolbar with 44px min-h touch controls */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div className="relative flex-1 max-w-full sm:max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Filter by peer name, ID, or CalAIM goal..."
+                placeholder="Filter by peer name, MRN, or CalAIM goal..."
                 value={notesSearch}
                 onChange={(e) => setNotesSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E] shadow-2xs"
+                className="w-full min-h-[44px] pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E] shadow-[0_2px_6px_rgba(15,23,42,0.03)]"
               />
             </div>
 
-            <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2.5 w-full sm:w-auto">
               <select
                 value={notesFilter}
                 onChange={(e) => setNotesFilter(e.target.value)}
-                className="w-full xs:w-auto flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:outline-hidden shadow-2xs truncate"
+                className="w-full xs:w-auto flex-1 min-h-[44px] px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-hidden shadow-[0_2px_6px_rgba(15,23,42,0.03)] truncate cursor-pointer"
               >
                 <option value="ALL">All Notes ({notes.length})</option>
                 <option value="approved">Approved & Cosigned</option>
@@ -282,12 +292,13 @@ export const PeerNotebookWorkspace: React.FC = () => {
               </select>
 
               <button
+                type="button"
                 onClick={() => {
                   setSelectedNoteForEdit(null);
                   setSelectedClientForNote(null);
                   navigateToTab('new_note');
                 }}
-                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-lg text-xs font-semibold shadow-xs shrink-0"
+                className="min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-xl text-xs font-bold shadow-sm shrink-0 cursor-pointer transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 <span>New Note</span>
@@ -295,82 +306,111 @@ export const PeerNotebookWorkspace: React.FC = () => {
             </div>
           </div>
 
+          {/* Grid of Notes with Container Cards (#FFFFFF + soft ambient drop shadow) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredNotes.map((note) => (
               <div
                 key={note.id}
-                className="p-4 sm:p-5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl transition-all shadow-2xs space-y-3 flex flex-col justify-between"
+                className="p-5 sm:p-6 bg-white border border-slate-200/90 rounded-2xl hover:border-slate-300 transition-all shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-4 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex flex-col xs:flex-row xs:items-start justify-between gap-2">
                     <div>
-                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <h4 className="font-bold text-[#1E3A8A] text-base">{note.clientName}</h4>
-                        <span className="font-mono text-xs text-[#0F766E] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded font-semibold">
+                        <span className="font-mono text-xs text-[#0F766E] font-semibold">
                           {note.clientIdentifier}
                         </span>
                         {note.mediCalCin && (
                           <span className="text-[11px] text-slate-500 font-mono">
-                            CIN: {note.mediCalCin}
+                            · CIN: {note.mediCalCin}
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-slate-500 block mt-0.5">
-                        {note.encounterDate} • {note.startTime} - {note.endTime} ({note.durationMinutes}m total billable)
+                      <div className="text-xs text-slate-500 flex flex-wrap items-center gap-1.5 mt-1">
+                        <span>{note.encounterDate}</span>
+                        <span>·</span>
+                        <span>{note.startTime} - {note.endTime}</span>
+                        <span>·</span>
+                        <span>{note.durationMinutes}m total</span>
+                      </div>
+                    </div>
+
+                    <div className="self-start xs:self-auto">
+                      <span
+                        className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full ${
+                          note.status === 'approved'
+                            ? 'bg-emerald-50 text-[#16A34A] border border-emerald-200'
+                            : note.status === 'pending_supervisor'
+                            ? 'bg-[#FEF3C7] text-[#D97706] border border-amber-300/80'
+                            : note.status === 'revision_requested'
+                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200'
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            note.status === 'approved'
+                              ? 'bg-[#16A34A]'
+                              : note.status === 'pending_supervisor'
+                              ? 'bg-[#D97706]'
+                              : note.status === 'revision_requested'
+                              ? 'bg-rose-600'
+                              : 'bg-slate-500'
+                          }`}
+                        />
+                        <span>
+                          {note.status === 'approved'
+                            ? 'Cosigned'
+                            : note.status === 'pending_supervisor'
+                            ? 'Awaiting Cosign'
+                            : note.status === 'revision_requested'
+                            ? 'Revision Needed'
+                            : 'Dexie Draft'}
+                        </span>
                       </span>
                     </div>
-
-                    <span
-                      className={`text-[10px] xs:text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0 self-start xs:self-auto ${
-                        note.status === 'approved'
-                          ? 'bg-emerald-50 text-[#16A34A] border border-emerald-300'
-                          : note.status === 'pending_supervisor'
-                          ? 'bg-amber-50 text-[#D97706] border border-amber-300'
-                          : note.status === 'revision_requested'
-                          ? 'bg-rose-50 text-rose-700 border border-rose-300'
-                          : 'bg-slate-100 text-slate-700 border border-slate-300'
-                      }`}
-                    >
-                      {note.status === 'approved'
-                        ? 'Cosigned'
-                        : note.status === 'pending_supervisor'
-                        ? 'Awaiting Cosign'
-                        : note.status === 'revision_requested'
-                        ? 'Revision Needed'
-                        : 'Draft'}
-                    </span>
                   </div>
 
-                  <div className="mt-3 p-3 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                  <div className="mt-3.5 p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 text-xs space-y-2">
                     <div>
-                      <span className="text-slate-600 font-bold">Goal Addressed:</span>
-                      <p className="text-slate-800 break-words">{note.goalAddressed}</p>
+                      <span className="text-slate-600 font-bold block mb-0.5">CalAIM Goal:</span>
+                      <p className="text-slate-800 break-words leading-relaxed">{note.goalAddressed}</p>
                     </div>
                     <div>
-                      <span className="text-slate-600 font-bold">Peer Intervention:</span>
+                      <span className="text-slate-600 font-bold block mb-0.5">Peer Intervention:</span>
                       <p className="text-slate-700 line-clamp-2 leading-relaxed break-words">{note.peerIntervention}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 text-xs">
-                  <span className="font-mono text-[#1E3A8A] font-bold text-[11px] sm:text-xs">
-                    {note.billingCode} • {note.billingUnits} units (15m each)
-                  </span>
+                <div className="pt-3 border-t border-slate-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[#1E3A8A] font-bold">
+                      {note.billingCode}
+                    </span>
+                    <span className="text-slate-300">·</span>
+                    <span className="text-slate-600 font-semibold">
+                      {note.billingUnits} Units (15m each)
+                    </span>
+                  </div>
 
-                  <div className="flex items-center gap-1.5 w-full xs:w-auto justify-end">
+                  <div className="flex items-center gap-2 w-full xs:w-auto justify-end">
                     <button
+                      type="button"
                       onClick={() => setSelectedNoteForExport(note)}
-                      className="flex-1 xs:flex-none px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                      className="min-h-[44px] flex-1 xs:flex-none px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
                     >
-                      <Download className="w-3.5 h-3.5 text-[#0F766E]" />
-                      <span>PDF</span>
+                      <Download className="w-4 h-4 text-[#0F766E]" />
+                      <span>PDF Export</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleEditNote(note)}
-                      className="flex-1 xs:flex-none px-3 py-1 bg-teal-50 hover:bg-[#0F766E] text-[#0F766E] hover:text-white rounded-lg text-xs font-semibold transition-colors border border-teal-200 text-center"
+                      className="min-h-[44px] flex-1 xs:flex-none px-4 py-2 bg-teal-50 hover:bg-[#0F766E] text-[#0F766E] hover:text-white rounded-xl text-xs font-bold transition-all border border-teal-200 text-center flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      Edit
+                      <Edit3 className="w-4 h-4" />
+                      <span>Edit Note</span>
                     </button>
                   </div>
                 </div>
@@ -379,8 +419,8 @@ export const PeerNotebookWorkspace: React.FC = () => {
           </div>
 
           {filteredNotes.length === 0 && (
-            <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-500 text-sm">
-              No encounter notes match your search.
+            <div className="p-10 text-center bg-white rounded-2xl border border-slate-200/90 text-slate-500 text-sm shadow-[0_4px_12px_rgba(15,23,42,0.05)]">
+              No encounter notes match your search criteria.
             </div>
           )}
         </div>
@@ -403,42 +443,42 @@ export const PeerNotebookWorkspace: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center gap-2 self-start sm:self-auto">
-              <span className="text-xs font-mono text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200 font-semibold shadow-2xs">
-                {auditLogs.length} Events Verified
+              <span className="text-xs font-mono text-slate-700 bg-white px-3.5 py-1.5 rounded-xl border border-slate-200 font-semibold shadow-[0_2px_6px_rgba(15,23,42,0.03)]">
+                {auditLogs.length} Events Logged
               </span>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs max-w-full">
+          <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(15,23,42,0.04)] max-w-full">
             <div className="overflow-x-auto no-scrollbar sm:overflow-x-auto touch-pan-x">
               <table className="w-full min-w-[620px] text-left text-xs text-slate-800">
                 <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 uppercase tracking-wider text-[10px]">
                   <tr>
-                    <th className="p-3 sm:p-3.5">Timestamp</th>
-                    <th className="p-3 sm:p-3.5">Actor / Specialist</th>
-                    <th className="p-3 sm:p-3.5">Role</th>
-                    <th className="p-3 sm:p-3.5">Action</th>
-                    <th className="p-3 sm:p-3.5">Target Entity</th>
-                    <th className="p-3 sm:p-3.5">Tamper-Proof Checksum</th>
+                    <th className="p-3.5">Timestamp</th>
+                    <th className="p-3.5">Actor / Specialist</th>
+                    <th className="p-3.5">Role</th>
+                    <th className="p-3.5">Action</th>
+                    <th className="p-3.5">Target Entity</th>
+                    <th className="p-3.5">Tamper-Proof Checksum</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
-                  {auditLogs.slice(0, 25).map((log) => (
+                  {auditLogs.slice(0, 30).map((log) => (
                     <tr key={log.id} className="hover:bg-slate-50">
-                      <td className="p-3 sm:p-3.5 text-slate-500 whitespace-nowrap">{log.timestamp.replace('T', ' ').substring(0, 19)}</td>
-                      <td className="p-3 sm:p-3.5 text-slate-900 font-sans font-semibold whitespace-nowrap">{log.actorName}</td>
-                      <td className="p-3 sm:p-3.5 text-[#0F766E] font-medium capitalize whitespace-nowrap">{log.actorRole.replace('_', ' ')}</td>
-                      <td className="p-3 sm:p-3.5 text-[#1E3A8A] font-bold whitespace-nowrap">{log.action}</td>
-                      <td className="p-3 sm:p-3.5 text-slate-700 whitespace-nowrap">{log.entityType} ({log.entityId})</td>
-                      <td className="p-3 sm:p-3.5 text-slate-400 font-mono text-[10px] whitespace-nowrap">{log.tamperProofChecksum.substring(0, 18)}...</td>
+                      <td className="p-3.5 text-slate-500 whitespace-nowrap">{log.timestamp.replace('T', ' ').substring(0, 19)}</td>
+                      <td className="p-3.5 text-slate-900 font-sans font-semibold whitespace-nowrap">{log.actorName}</td>
+                      <td className="p-3.5 text-[#0F766E] font-medium capitalize whitespace-nowrap">{log.actorRole.replace('_', ' ')}</td>
+                      <td className="p-3.5 text-[#1E3A8A] font-bold whitespace-nowrap">{log.action}</td>
+                      <td className="p-3.5 text-slate-700 whitespace-nowrap">{log.entityType} ({log.entityId})</td>
+                      <td className="p-3.5 text-slate-400 font-mono text-[10px] whitespace-nowrap">{log.tamperProofChecksum.substring(0, 18)}...</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div className="px-3 py-2 bg-slate-50 border-t border-slate-100 text-[10px] text-slate-400 sm:hidden flex items-center justify-between">
+            <div className="px-3.5 py-2.5 bg-slate-50 border-t border-slate-100 text-[10px] text-slate-500 sm:hidden flex items-center justify-between">
               <span>← Swipe table horizontally →</span>
-              <span>SHA-256 Tamper Evident</span>
+              <span className="font-semibold text-[#0F766E]">SHA-256 Tamper Evident</span>
             </div>
           </div>
         </div>

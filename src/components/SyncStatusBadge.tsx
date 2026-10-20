@@ -109,9 +109,19 @@ export const SyncStatusBadge: React.FC = () => {
           <p className="text-slate-600 leading-relaxed text-[11px] sm:text-xs">
             Encrypted client-side storage via Dexie.js (IndexedDB) with resilient background synchronization to PostgreSQL/Supabase under multi-tenant Row-Level Security (RLS).
           </p>
-          <div className="mt-3 pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
-            <span>Last Cloud Push:</span>
-            <span className="font-mono text-slate-700 font-semibold">{syncInfo.lastSyncTime || 'Just now'}</span>
+          <div className="mt-3 pt-2 border-t border-slate-100 text-[11px] text-slate-500 space-y-1">
+            <div className="flex justify-between">
+              <span>Target Store:</span>
+              <span className="font-semibold text-slate-800">{syncInfo.cloudTarget}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Sync Success Rate:</span>
+              <span className="font-mono font-bold text-[#16A34A]">{syncInfo.successRate}%</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Last Cloud Push:</span>
+              <span className="font-mono text-slate-700 font-semibold">{syncInfo.lastSyncTime || 'Pending'}</span>
+            </div>
           </div>
         </div>
       )}

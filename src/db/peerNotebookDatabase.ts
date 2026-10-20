@@ -115,12 +115,41 @@ export interface AuditLogEntry {
   actorId: string;
   actorName: string;
   actorRole: UserRole;
-  action: 'VIEW_CLIENT' | 'CREATE_NOTE' | 'EDIT_NOTE' | 'SIGN_NOTE' | 'SUPERVISOR_APPROVAL' | 'REVISE_NOTE' | 'EXPORT_PDF' | 'OFFLINE_SYNC' | 'PURGE_CACHE';
+  action: 'VIEW_CLIENT' | 'CREATE_CLIENT' | 'UPDATE_CLIENT' | 'CREATE_NOTE' | 'EDIT_NOTE' | 'SIGN_NOTE' | 'SUPERVISOR_APPROVAL' | 'REVISE_NOTE' | 'EXPORT_PDF' | 'OFFLINE_SYNC' | 'MANUAL_SYNC' | 'RESTORE_BACKUP' | 'PURGE_CACHE' | 'SYSTEM_ERROR';
   entityType: 'client' | 'session_note' | 'system' | 'auth';
   entityId: string;
   details: Record<string, unknown>;
   tamperProofChecksum: string;
   timestamp: string;
+}
+
+export interface StorageMetrics {
+  usageBytes: number;
+  quotaBytes: number;
+  usageFormatted: string;
+  quotaFormatted: string;
+  percentUsed: number;
+  clientCount: number;
+  noteCount: number;
+  unsyncedNoteCount: number;
+  logCount: number;
+  queueCount: number;
+}
+
+export interface FullBackupPayload {
+  version: string;
+  exportedAt: string;
+  organizationId?: string;
+  metadata: {
+    system: string;
+    baaVersion: string;
+    totalRecords: number;
+  };
+  clients: Client[];
+  sessionNotes: SessionNote[];
+  auditLogs: AuditLogEntry[];
+  organizations: Organization[];
+  users: User[];
 }
 
 export interface SyncQueueItem {
@@ -471,6 +500,169 @@ class PeerNotebookDBManager {
   public async getAllOrganizations(): Promise<Organization[]> {
     await this.init();
     return dexieDB.organizations.toArray();
+  }
+
+  public async getUnsyncedNotesCount(): Promise<number> {
+    await this.init();
+    const notes = await dexieDB.session_notes.toArray();
+    return notes.filter(n => !n.synced).length;
+  }
+
+  public async markAllNotesSynced(): Promise<number> {
+    await this.init();
+    const notes = await dexieDB.session_notes.toArray();
+    let count = 0;
+    const now = new Date().toISOString();
+    for (const note of notes) {
+      if (!note.synced) {
+        note.synced = true;
+        note.syncTimestamp = now;
+        await dexieDB.session_notes.put(note);
+        count++;
+      }
+    }
+    return count;
+  }
+
+  public async getStorageMetrics(): Promise<StorageMetrics> {
+    await this.init();
+    let usageBytes = 0;
+    let quotaBytes = 0;
+
+    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
+      try {
+        const estimate = await navigator.storage.estimate();
+        usageBytes = estimate.usage || 0;
+        quotaBytes = estimate.quota || (50 * 1024 * 1024); // Fallback ~50MB
+      } catch {
+        // Fallback calculation below
+      }
+    }
+
+    const clientCount = await dexieDB.clients.count();
+    const notes = await dexieDB.session_notes.toArray();
+    const noteCount = notes.length;
+    const unsyncedNoteCount = notes.filter(n => !n.synced).length;
+    const logCount = await dexieDB.audit_logs.count();
+    const queueCount = await dexieDB.sync_queue.count();
+
+    // If estimate was 0, calculate estimated size from payload strings
+    if (usageBytes === 0) {
+      const approxStringSize = (clientCount * 1024) + (noteCount * 4096) + (logCount * 512) + (queueCount * 1024);
+      usageBytes = approxStringSize || 45056; // baseline ~44KB
+      quotaBytes = 100 * 1024 * 1024; // 100MB standard quota
+    }
+
+    const formatBytes = (bytes: number): string => {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    };
+
+    const percentUsed = quotaBytes > 0 ? Math.min(100, Math.max(0.1, Number(((usageBytes / quotaBytes) * 100).toFixed(2)))) : 0.1;
+
+    return {
+      usageBytes,
+      quotaBytes,
+      usageFormatted: formatBytes(usageBytes),
+      quotaFormatted: formatBytes(quotaBytes),
+      percentUsed,
+      clientCount,
+      noteCount,
+      unsyncedNoteCount,
+      logCount,
+      queueCount
+    };
+  }
+
+  public async exportFullBackupJSON(organizationId?: string): Promise<string> {
+    await this.init();
+    const clients = await dexieDB.clients.toArray();
+    const sessionNotes = await dexieDB.session_notes.toArray();
+    const auditLogs = await dexieDB.audit_logs.toArray();
+    const organizations = await dexieDB.organizations.toArray();
+    const users = await dexieDB.users.toArray();
+
+    const filteredClients = organizationId ? clients.filter(c => c.organizationId === organizationId) : clients;
+    const filteredNotes = organizationId ? sessionNotes.filter(n => n.organizationId === organizationId) : sessionNotes;
+    const filteredLogs = organizationId ? auditLogs.filter(l => l.organizationId === organizationId) : auditLogs;
+
+    const payload: FullBackupPayload = {
+      version: 'GA #8-v2.4',
+      exportedAt: new Date().toISOString(),
+      organizationId,
+      metadata: {
+        system: 'Peer Notebook (peernotebook.com)',
+        baaVersion: 'v2.4-GA8-CalAIM',
+        totalRecords: filteredClients.length + filteredNotes.length + filteredLogs.length
+      },
+      clients: filteredClients,
+      sessionNotes: filteredNotes,
+      auditLogs: filteredLogs,
+      organizations,
+      users
+    };
+
+    return JSON.stringify(payload, null, 2);
+  }
+
+  public async restoreFullBackupJSON(jsonStr: string): Promise<{
+    success: boolean;
+    importedCounts: { clients: number; notes: number; logs: number };
+    message?: string;
+  }> {
+    await this.init();
+    try {
+      const parsed = JSON.parse(jsonStr) as Partial<FullBackupPayload>;
+      if (!parsed || (!parsed.clients && !parsed.sessionNotes)) {
+        return {
+          success: false,
+          importedCounts: { clients: 0, notes: 0, logs: 0 },
+          message: 'Invalid backup structure: missing clients or session notes.'
+        };
+      }
+
+      let clientCount = 0;
+      let noteCount = 0;
+      let logCount = 0;
+
+      // Safe upsert to prevent primary key collisions
+      if (Array.isArray(parsed.clients) && parsed.clients.length > 0) {
+        await dexieDB.clients.bulkPut(parsed.clients);
+        clientCount = parsed.clients.length;
+      }
+
+      if (Array.isArray(parsed.sessionNotes) && parsed.sessionNotes.length > 0) {
+        await dexieDB.session_notes.bulkPut(parsed.sessionNotes);
+        noteCount = parsed.sessionNotes.length;
+      }
+
+      if (Array.isArray(parsed.auditLogs) && parsed.auditLogs.length > 0) {
+        await dexieDB.audit_logs.bulkPut(parsed.auditLogs);
+        logCount = parsed.auditLogs.length;
+      }
+
+      if (Array.isArray(parsed.organizations) && parsed.organizations.length > 0) {
+        await dexieDB.organizations.bulkPut(parsed.organizations);
+      }
+
+      if (Array.isArray(parsed.users) && parsed.users.length > 0) {
+        await dexieDB.users.bulkPut(parsed.users);
+      }
+
+      return {
+        success: true,
+        importedCounts: { clients: clientCount, notes: noteCount, logs: logCount },
+        message: `Successfully restored ${clientCount} clients, ${noteCount} session notes, and ${logCount} audit entries.`
+      };
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      return {
+        success: false,
+        importedCounts: { clients: 0, notes: 0, logs: 0 },
+        message: `Failed to restore backup: ${errMsg}`
+      };
+    }
   }
 
   public async clearAllData(): Promise<void> {

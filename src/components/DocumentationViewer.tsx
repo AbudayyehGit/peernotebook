@@ -2,6 +2,7 @@
  * Peer Notebook - GA #8 Technical Documentation & White Paper Viewer
  * Interactive browser for all project white papers and specifications
  * Canonical URLs: https://www.peernotebook.com/docs/*
+ * Minimum 44px touch targets & Trauma-Informed Container Cards
  */
 
 import React, { useState, useEffect } from 'react';
@@ -32,14 +33,21 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
   initialSlug,
   onSlugChange
 }) => {
+  const findArticleBySlug = (slugToMatch?: string): DocArticle | undefined => {
+    if (!slugToMatch) return undefined;
+    const clean = slugToMatch.toLowerCase().trim();
+    return DOC_ARTICLES.find(
+      (a) =>
+        a.slug.toLowerCase() === clean ||
+        clean.endsWith(a.slug.toLowerCase()) ||
+        a.canonicalUrl.toLowerCase().endsWith(clean) ||
+        clean.includes(a.slug.toLowerCase()) ||
+        a.slug.toLowerCase().replace(/_/g, '-') === clean.replace(/_/g, '-')
+    );
+  };
+
   const [selectedArticle, setSelectedArticle] = useState<DocArticle>(() => {
-    if (initialSlug) {
-      const found = DOC_ARTICLES.find(
-        (a) => a.slug.toLowerCase() === initialSlug.toLowerCase()
-      );
-      if (found) return found;
-    }
-    return DOC_ARTICLES[0];
+    return findArticleBySlug(initialSlug) || DOC_ARTICLES[0];
   });
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,9 +55,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
 
   useEffect(() => {
     if (initialSlug) {
-      const found = DOC_ARTICLES.find(
-        (a) => a.slug.toLowerCase() === initialSlug.toLowerCase()
-      );
+      const found = findArticleBySlug(initialSlug);
       if (found && found.slug !== selectedArticle.slug) {
         setSelectedArticle(found);
       }
@@ -92,24 +98,24 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+    <div className="space-y-6 max-w-full overflow-hidden">
       {/* Top Banner with Trust & Engineering Badges */}
-      <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4 max-w-full overflow-hidden">
+      <div className="p-5 sm:p-7 bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-4 max-w-full overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 sm:p-3 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200 shrink-0">
-              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="p-3 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200/80 shrink-0">
+              <BookOpen className="w-6 h-6" />
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-lg sm:text-xl font-bold text-[#1E3A8A] leading-tight">
                   GA #8 Production Architecture White Papers
                 </h2>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-[#0F766E] font-bold">
+                <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-[#0F766E] font-bold">
                   www.peernotebook.com/docs
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-1">
                 Enterprise Behavioral Health & Dual-Layer Persistence Technical Specifications
               </p>
             </div>
@@ -120,64 +126,65 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
               href="https://www.peernotebook.com/docs"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full md:w-auto flex items-center justify-center gap-1.5 px-4 py-2 bg-[#1E3A8A] hover:bg-blue-950 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors shrink-0"
+              className="w-full md:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-xl text-xs font-bold shadow-sm transition-colors shrink-0"
             >
-              <span>Visit www.peernotebook.com/docs</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Visit peernotebook.com/docs</span>
+              <ExternalLink className="w-4 h-4" />
             </a>
           </div>
         </div>
 
         {/* Real-time System Observability Badges in Documentation Header */}
-        <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-1.5 sm:gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">
+        <div className="pt-3.5 border-t border-slate-100 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">
             System Status:
           </span>
-          <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+            <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
             Build: passing
           </span>
-          <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold bg-blue-50 text-[#1E3A8A] border border-blue-200">
-            <Code2 className="w-3 h-3 text-[#1E3A8A]" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-[#1E3A8A] border border-blue-200">
+            <Code2 className="w-3.5 h-3.5 text-[#1E3A8A]" />
             TypeScript: strict
           </span>
-          <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
-            <Database className="w-3 h-3 text-[#16A34A]" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+            <Database className="w-3.5 h-3.5 text-[#16A34A]" />
             Persistence: Dexie.js + Supabase
           </span>
-          <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold bg-teal-50 text-[#0F766E] border border-teal-200">
-            <ShieldCheck className="w-3 h-3 text-[#0F766E]" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-teal-50 text-[#0F766E] border border-teal-200">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#0F766E]" />
             CalAIM & Medi-Cal H0038
           </span>
-          <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
-            <Lock className="w-3 h-3 text-[#16A34A]" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+            <Lock className="w-3.5 h-3.5 text-[#16A34A]" />
             HIPAA BAA Active
           </span>
         </div>
       </div>
 
       {/* Main Dual-Pane Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 max-w-full min-w-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 max-w-full min-w-0">
         {/* Left Sidebar: Document List & Search */}
-        <div className="lg:col-span-4 space-y-3 sm:space-y-4 max-w-full min-w-0">
+        <div className="lg:col-span-4 space-y-4 max-w-full min-w-0">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search white papers and specs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] shadow-2xs"
+              className="w-full min-h-[44px] pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] shadow-[0_2px_6px_rgba(15,23,42,0.03)]"
             />
           </div>
 
-          {/* Category Filter Pills */}
-          <div className="flex flex-wrap gap-1">
+          {/* Category Filter Chips with 44px min tap target */}
+          <div className="flex flex-wrap gap-1.5">
             <button
+              type="button"
               onClick={() => setSelectedCategory('ALL')}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+              className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 selectedCategory === 'ALL'
-                  ? 'bg-[#1E3A8A] text-white shadow-2xs'
+                  ? 'bg-[#1E3A8A] text-white shadow-sm'
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
@@ -186,10 +193,11 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
             {DOCUMENTATION_CATEGORIES.map((cat) => (
               <button
                 key={cat}
+                type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   selectedCategory === cat
-                    ? 'bg-[#0F766E] text-white shadow-2xs'
+                    ? 'bg-[#0F766E] text-white shadow-sm'
                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -198,10 +206,10 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
             ))}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-2 space-y-1 shadow-xs max-h-[320px] sm:max-h-[720px] overflow-y-auto">
-            <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 flex items-center justify-between">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-2.5 space-y-1 shadow-[0_4px_12px_rgba(15,23,42,0.05)] max-h-[350px] sm:max-h-[720px] overflow-y-auto">
+            <div className="px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 flex items-center justify-between">
               <span>Published Papers ({filteredArticles.length})</span>
-              <span className="font-mono text-[#0F766E]">Total: {DOC_ARTICLES.length}</span>
+              <span className="font-mono text-[#0F766E] font-bold">Total: {DOC_ARTICLES.length}</span>
             </div>
 
             {filteredArticles.map((article) => {
@@ -209,23 +217,24 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
               return (
                 <button
                   key={article.slug}
+                  type="button"
                   onClick={() => handleSelectArticle(article)}
-                  className={`w-full text-left p-2.5 sm:p-3 rounded-xl transition-all flex items-start justify-between ${
+                  className={`w-full text-left p-3 rounded-xl transition-all flex items-start justify-between min-h-[44px] cursor-pointer ${
                     isSelected
-                      ? 'bg-blue-50 border border-blue-200 text-[#1E3A8A] shadow-2xs'
+                      ? 'bg-blue-50 border border-blue-200 text-[#1E3A8A] shadow-xs'
                       : 'hover:bg-slate-50 text-slate-700'
                   }`}
                 >
-                  <div className="space-y-1 min-w-0 pr-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 border border-slate-200 text-[#0F766E] font-bold">
+                  <div className="space-y-1 min-w-0 pr-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[#0F766E] font-bold">
                         {article.specCode}
                       </span>
                       <span className="text-[10px] text-slate-400 font-medium">
                         {article.category.split(' ')[1]}
                       </span>
                     </div>
-                    <div className="text-xs font-bold leading-tight text-slate-900 break-words">
+                    <div className="text-xs font-bold leading-snug text-slate-900 break-words">
                       {article.title}
                     </div>
                     <div className="text-[11px] text-slate-500 line-clamp-1">
@@ -250,39 +259,41 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
         </div>
 
         {/* Right Pane: Article Reader */}
-        <div className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 lg:p-8 shadow-xs space-y-6 max-w-full min-w-0 overflow-hidden">
+        <div className="lg:col-span-8 bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-7 lg:p-9 shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-6 max-w-full min-w-0 overflow-hidden">
           {/* Header Metadata */}
           <div className="border-b border-slate-200 pb-5 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-mono font-bold text-[#0F766E] bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-md">
-                SPEC: {selectedArticle.specCode} • {selectedArticle.category}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-xs font-mono font-bold text-[#0F766E] bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-lg">
+                SPEC: {selectedArticle.specCode} · {selectedArticle.category}
               </span>
 
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => handleCopyUrl(selectedArticle.canonicalUrl)}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors border border-slate-200"
+                  className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-colors border border-slate-300 shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
                   title="Copy Canonical Production URL"
                 >
                   {copiedUrl ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-[#16A34A]" />
+                      <Check className="w-4 h-4 text-[#16A34A]" />
                       <span className="text-[#16A34A]">URL Copied</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5 text-slate-500" />
+                      <Copy className="w-4 h-4 text-slate-500" />
                       <span>Copy URL</span>
                     </>
                   )}
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => handleDownloadMarkdown(selectedArticle)}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors border border-slate-200"
+                  className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-colors border border-slate-300 shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
                   title="Download Markdown Spec"
                 >
-                  <Download className="w-3.5 h-3.5 text-slate-500" />
+                  <Download className="w-4 h-4 text-slate-500" />
                   <span>Download .md</span>
                 </button>
               </div>
@@ -295,34 +306,34 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
               {selectedArticle.subtitle}
             </p>
 
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[11px] sm:text-xs text-slate-500 pt-1 font-mono">
-              <span className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-slate-500 pt-1 font-mono">
+              <span className="flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {selectedArticle.author}
               </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
+              <span>·</span>
+              <span className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Verified: {selectedArticle.lastUpdated}
               </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
+              <span>·</span>
+              <span className="flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {selectedArticle.readTime} read
               </span>
-              <span>•</span>
-              <span className="flex items-center gap-1 text-[#0F766E]">
+              <span>·</span>
+              <span className="flex items-center gap-1.5 text-[#0F766E] font-semibold">
                 <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> GA #8 Verified
               </span>
             </div>
 
-            <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-[11px] font-mono text-slate-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 break-all">
+            <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200 text-xs font-mono text-slate-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 break-all">
               <span className="truncate max-w-full">Canonical: {selectedArticle.canonicalUrl}</span>
               <a
                 href={selectedArticle.canonicalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#0F766E] hover:underline flex items-center gap-1 shrink-0"
+                className="text-[#0F766E] hover:underline flex items-center gap-1 font-bold shrink-0"
               >
                 <span>Open in New Tab</span>
-                <ExternalLink className="w-3 h-3 shrink-0" />
+                <ExternalLink className="w-3.5 h-3.5 shrink-0" />
               </a>
             </div>
           </div>
@@ -355,7 +366,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
                 const cleanedCode = paragraph.replace(/```[a-z]*\n?/g, '').replace(/```/g, '');
                 return (
                   <div key={index} className="w-full max-w-full overflow-x-auto my-3 rounded-xl">
-                    <pre className="p-3 sm:p-4 bg-slate-900 text-slate-100 rounded-xl text-[11px] sm:text-xs font-mono overflow-x-auto border border-slate-800 leading-normal max-w-full">
+                    <pre className="p-3.5 sm:p-4 bg-slate-50 text-slate-800 rounded-xl text-xs font-mono overflow-x-auto border border-slate-200/90 leading-normal max-w-full">
                       <code>{cleanedCode}</code>
                     </pre>
                   </div>
@@ -364,7 +375,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
               if (paragraph.startsWith('* ') || paragraph.startsWith('- ')) {
                 const items = paragraph.split('\n').filter((l) => l.trim().length > 0);
                 return (
-                  <ul key={index} className="list-disc pl-5 space-y-1 text-slate-700">
+                  <ul key={index} className="list-disc pl-5 space-y-1.5 text-slate-700">
                     {items.map((item, itemIdx) => (
                       <li key={itemIdx}>{item.replace(/^[\*\-]\s+/, '')}</li>
                     ))}
@@ -396,7 +407,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
               >
                 Privacy Policy
               </a>
-              <span>•</span>
+              <span>·</span>
               <a
                 href="https://www.peernotebook.com/terms"
                 target="_blank"
@@ -405,7 +416,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
               >
                 Terms of Service
               </a>
-              <span>•</span>
+              <span>·</span>
               <a
                 href="https://www.peernotebook.com/docs"
                 target="_blank"
@@ -413,7 +424,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
                 className="hover:underline flex items-center gap-1"
               >
                 <span>Docs Root</span>
-                <ExternalLink className="w-3 h-3" />
+                <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
           </div>

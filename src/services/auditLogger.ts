@@ -67,4 +67,10 @@ export class AuditLogger {
     const logs = await this.getLogs();
     return JSON.stringify(logs, null, 2);
   }
+
+  public static async verifyChecksum(entry: AuditLogEntry): Promise<boolean> {
+    const payloadForChecksum = `${entry.organizationId}:${entry.actorId}:${entry.action}:${entry.entityType}:${entry.entityId}:${entry.timestamp}`;
+    const expected = await computeSha256(payloadForChecksum);
+    return entry.tamperProofChecksum === expected;
+  }
 }

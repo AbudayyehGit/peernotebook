@@ -1,16 +1,20 @@
 {
+  "id": "/",
   "short_name": "PeerNotebook",
-  "name": "Peer Notebook - HIPAA Compliant Peer Support Documentation",
+  "name": "Peer Notebook - HIPAA & CalAIM Peer Support Documentation",
+  "description": "Offline-first clinical and peer support specialist documentation notebook with HIPAA compliance, audit trails, supervisor sign-offs, and Medicaid-ready encounter notes.",
   "icons": [
     {
       "src": "/favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/x-icon",
+      "purpose": "any"
     }
   ],
   "start_url": "/",
-  "background_color": "#0f172a",
-  "theme_color": "#2563eb",
+  "background_color": "#F8FAFC",
+  "theme_color": "#1E3A8A",
   "display": "standalone",
+  "orientation": "any",
   "scope": "/"
 }

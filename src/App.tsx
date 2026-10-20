@@ -2,7 +2,7 @@
  * Peer Notebook - Main Application Root
  * GA #8 Enterprise Grade • CalAIM & Medi-Cal H0038 Compliant
  * Visual: Soft Slate (#F8FAFC), Deep Navy (#1E3A8A), Muted Teal (#0F766E)
- * Mobile-First Responsive Architecture
+ * Mobile-First Responsive Architecture • Trauma-Informed Clinical Design
  */
 
 import React from 'react';
@@ -10,8 +10,9 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { PeerNotebookWorkspace } from './components/PeerNotebookWorkspace';
 import { SyncStatusBadge } from './components/SyncStatusBadge';
 import { OrgSelect } from './components/OrgSelect';
-import { GA8EngineeringStatusBadges } from './components/GA8EngineeringStatusBadges';
-import { HeartHandshake, Shield, ExternalLink } from 'lucide-react';
+import { TrustComplianceFooter } from './components/TrustComplianceFooter';
+import { FieldErrorBoundary } from './components/FieldErrorBoundary';
+import { HeartHandshake } from 'lucide-react';
 
 function AppContent() {
   const { currentOrg, currentUser, isLoading } = useAuth();
@@ -20,7 +21,7 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-slate-600 px-4">
         <div className="flex flex-col items-center gap-3 text-center">
-          <div className="w-8 h-8 border-3 border-[#0F766E] border-t-transparent rounded-full animate-spin" />
+          <div className="w-9 h-9 border-3 border-[#0F766E] border-t-transparent rounded-full animate-spin" />
           <p className="text-xs font-mono font-medium text-slate-600">Initializing Dexie.js Persistence Engine...</p>
         </div>
       </div>
@@ -29,82 +30,57 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans selection:bg-[#0F766E] selection:text-white max-w-full overflow-x-hidden">
-      {/* Top Header Navbar - Deep Navy (#1E3A8A) */}
+      {/* Top Header Navbar - Deep Navy (#1E3A8A) with min 44px tap target height */}
       <header className="bg-[#1E3A8A] border-b border-blue-950 sticky top-0 z-40 shadow-sm text-white w-full max-w-full">
-        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 min-h-14 sm:min-h-16 py-1.5 sm:py-0 flex items-center justify-between gap-1.5 sm:gap-4 flex-nowrap w-full overflow-hidden">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-16 py-2 sm:py-0 flex items-center justify-between gap-2 sm:gap-4 flex-nowrap w-full overflow-hidden">
           {/* Logo & Brand Identity */}
-          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 shrink">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#0F766E] flex items-center justify-center text-white shadow-sm ring-1 ring-white/20 shrink-0">
-              <HeartHandshake className="w-4 h-4 sm:w-6 sm:h-6" />
+          <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 shrink">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0F766E] flex items-center justify-center text-white shadow-sm ring-1 ring-white/20 shrink-0">
+              <HeartHandshake className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1 sm:gap-2">
-                <a href="https://peernotebook.com" className="hover:opacity-90 transition-opacity">
-                  <h1 className="text-xs xs:text-sm sm:text-base font-bold text-white tracking-tight leading-none whitespace-nowrap truncate">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <a href="https://peernotebook.com" className="hover:opacity-95 transition-opacity">
+                  <h1 className="text-sm sm:text-base font-bold text-white tracking-tight leading-none whitespace-nowrap truncate">
                     Peer Notebook
                   </h1>
                 </a>
-                <span className="hidden xs:inline-flex text-[9px] sm:text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-800/80 border border-blue-700 text-blue-100 font-semibold shrink-0">
-                  GA #8
+                <span className="hidden xs:inline-flex text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-800/80 border border-blue-700 text-blue-100 font-semibold shrink-0">
+                  CalAIM Ready
                 </span>
               </div>
-              <p className="hidden md:block text-[11px] text-blue-100 leading-tight mt-0.5 truncate">
-                CalAIM & Medi-Cal H0038 Peer Encounter Documentation
+              <p className="hidden md:block text-[11px] text-blue-100/90 leading-tight mt-0.5 truncate">
+                Medi-Cal H0038 Peer Encounter Documentation · Trauma-Informed Clinical System
               </p>
             </div>
           </div>
 
           {/* Right Controls: Org Select & Dual-Layer Sync Status */}
-          <div className="flex items-center gap-1 sm:gap-3 shrink-0 ml-auto">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-auto">
             <SyncStatusBadge />
-            <div className="hidden sm:block h-5 w-[1px] bg-blue-800" />
+            <div className="hidden sm:block h-6 w-[1px] bg-blue-800/80" />
             <OrgSelect />
           </div>
         </div>
       </header>
-
-      {/* GA #8 Observability Status Badges */}
-      <GA8EngineeringStatusBadges />
 
       {/* Main Clinical Workspace */}
       <main className="flex-1 w-full max-w-full overflow-x-hidden">
         <PeerNotebookWorkspace />
       </main>
 
-      {/* Regulatory Compliance Footer */}
-      <footer className="bg-white border-t border-slate-200 py-4 px-4 sm:px-6 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-          <div className="flex items-center gap-2 justify-center sm:justify-start">
-            <Shield className="w-4 h-4 text-[#16A34A] shrink-0" />
-            <span className="font-medium text-slate-700 text-[11px] sm:text-xs">
-              CalAIM & Medi-Cal H0038 Compliant • Dexie.js + Supabase
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-4 text-[11px]">
-            <span>
-              Provider: <strong className="text-slate-700">{currentUser?.fullName}</strong> ({currentOrg?.name})
-            </span>
-            <span className="hidden sm:inline">•</span>
-            <a
-              href="https://peernotebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#0F766E] font-semibold hover:underline flex items-center gap-1"
-            >
-              <span>peernotebook.com</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </div>
-      </footer>
+      {/* Professional Trust & Compliance Footer */}
+      <TrustComplianceFooter />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <FieldErrorBoundary>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </FieldErrorBoundary>
   );
 }
