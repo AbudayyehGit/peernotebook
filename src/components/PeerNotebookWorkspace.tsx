@@ -593,7 +593,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
             {isMoreMenuOpen && (
               <>
                 <div
-                  className="fixed inset-0 z-50 bg-slate-900/20 backdrop-blur-sm"
+                  className="fixed inset-0 z-50 bg-slate-900/25 backdrop-blur-sm"
                   onClick={() => setIsMoreMenuOpen(false)}
                 />
                 <div
@@ -1337,7 +1337,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
         <div
           role="dialog"
           aria-modal="true"
-          className="md:hidden fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/20 backdrop-blur-sm transition-opacity"
+          className="md:hidden fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/25 backdrop-blur-sm transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div

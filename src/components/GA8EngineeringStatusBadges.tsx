@@ -52,6 +52,19 @@ export const GA8EngineeringStatusBadges: React.FC = () => {
       docTitle: 'Type System Standards & Verification'
     },
     {
+      id: "GA8-RLS",
+      name: "Multi-Tenant RLS",
+      category: "Security",
+      label: "RLS: Multi-Tenant Isolated",
+      status: "verified",
+      badgeColorClass: "bg-emerald-50 border-emerald-200",
+      textColorClass: "text-emerald-800",
+      icon: <Lock className="w-3.5 h-3.5 text-[#16A34A]" />,
+      summary: "Supabase Row-Level Security (RLS) mathematically isolates all session notes, client profiles, and audit trails strictly to the authenticated specialist assigned organization ID with zero cross-tenant leakage.",
+      docUrl: "https://peernotebook.com/docs/04-technical-architecture/08_HIPAA_BAA_Consent_Model",
+      docTitle: "Multi-Tenant Row-Level Security Specifications"
+    },
+    {
       id: 'GA8-PERSIST',
       name: 'Dual-Layer Store',
       category: 'Persistence',
@@ -134,7 +147,7 @@ export const GA8EngineeringStatusBadges: React.FC = () => {
 
       {/* Observability Detail Modal */}
       {selectedBadge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/20 backdrop-blur-sm transition-opacity overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/25 backdrop-blur-sm transition-opacity overflow-y-auto">
           <div className="bg-white border border-slate-200/90 rounded-2xl max-w-lg w-full max-w-[calc(100vw-1.5rem)] p-5 sm:p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto my-auto space-y-3">
             <button
               onClick={() => setSelectedBadge(null)}

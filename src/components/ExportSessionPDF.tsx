@@ -60,7 +60,7 @@ export const ExportSessionPDF: React.FC<ExportSessionPDFProps> = ({ note, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-900/20 backdrop-blur-sm transition-opacity overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-900/25 backdrop-blur-sm transition-opacity overflow-y-auto">
       <div className="bg-white border border-slate-200/90 rounded-2xl max-w-3xl w-full max-w-[calc(100vw-1.5rem)] p-4 sm:p-6 shadow-2xl relative max-h-[92vh] flex flex-col my-auto">
         {/* Controls Bar (Hidden during print) */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 sm:pb-4 border-b border-slate-200 print:hidden shrink-0 gap-2.5">
