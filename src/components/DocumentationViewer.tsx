@@ -52,6 +52,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedUrl, setCopiedUrl] = useState(false);
+  const [mobileViewMode, setMobileViewMode] = useState<'index' | 'reader'>('index');
 
   useEffect(() => {
     if (initialSlug) {
@@ -64,6 +65,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
 
   const handleSelectArticle = (article: DocArticle) => {
     setSelectedArticle(article);
+    setMobileViewMode('reader');
     if (onSlugChange) {
       onSlugChange(article.slug);
     }
@@ -162,10 +164,40 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
         </div>
       </div>
 
+      {/* Mobile Mode Switcher (< lg) */}
+      <div className="lg:hidden flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200">
+        <button
+          type="button"
+          onClick={() => setMobileViewMode('index')}
+          className={`flex-1 min-h-[42px] py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            mobileViewMode === 'index'
+              ? 'bg-white text-[#1E3A8A] shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          Papers Index ({filteredArticles.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileViewMode('reader')}
+          className={`flex-1 min-h-[42px] py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            mobileViewMode === 'reader'
+              ? 'bg-[#0F766E] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          Read Specification
+        </button>
+      </div>
+
       {/* Main Dual-Pane Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 max-w-full min-w-0">
         {/* Left Sidebar: Document List & Search */}
-        <div className="lg:col-span-4 space-y-4 max-w-full min-w-0">
+        <div
+          className={`lg:col-span-4 space-y-4 max-w-full min-w-0 ${
+            mobileViewMode === 'reader' ? 'hidden lg:block' : 'block'
+          }`}
+        >
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -259,7 +291,20 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
         </div>
 
         {/* Right Pane: Article Reader */}
-        <div className="lg:col-span-8 bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-7 lg:p-9 shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-6 max-w-full min-w-0 overflow-hidden">
+        <div
+          className={`lg:col-span-8 bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-7 lg:p-9 shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-6 max-w-full min-w-0 overflow-hidden ${
+            mobileViewMode === 'index' ? 'hidden lg:block' : 'block'
+          }`}
+        >
+          {/* Mobile Back Button */}
+          <button
+            type="button"
+            onClick={() => setMobileViewMode('index')}
+            className="lg:hidden inline-flex items-center gap-1.5 text-xs font-bold text-[#0F766E] hover:underline pb-1 cursor-pointer"
+          >
+            <span>← Back to All Specifications ({DOC_ARTICLES.length})</span>
+          </button>
+
           {/* Header Metadata */}
           <div className="border-b border-slate-200 pb-5 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">

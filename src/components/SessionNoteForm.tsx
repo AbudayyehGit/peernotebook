@@ -493,44 +493,54 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           </div>
         </div>
 
-        {/* Quick template buttons (rounded-full pills with warm orange complement) */}
-        <div className="flex flex-wrap items-center gap-2 bg-[#FEF3C7]/60 p-2 rounded-2xl border border-amber-200/80">
-          <span className="text-xs font-bold text-[#D97706] flex items-center gap-1 pl-1">
-            <Sparkles className="w-3.5 h-3.5 text-[#D97706]" /> Starters:
-          </span>
-          <button
-            type="button"
-            onClick={() => applyTemplate('recovery')}
-            className="min-h-[44px] px-3.5 py-2 text-xs bg-white hover:bg-amber-50 text-slate-800 font-semibold rounded-full border border-amber-200 shadow-[0_2px_4px_rgba(15,23,42,0.04)] transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <span className="w-2 h-2 rounded-full bg-[#D97706]" />
-            <span>Recovery</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => applyTemplate('housing')}
-            className="min-h-[44px] px-3.5 py-2 text-xs bg-white hover:bg-amber-50 text-slate-800 font-semibold rounded-full border border-amber-200 shadow-[0_2px_4px_rgba(15,23,42,0.04)] transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <span className="w-2 h-2 rounded-full bg-[#D97706]" />
-            <span>Housing</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => applyTemplate('coping')}
-            className="min-h-[44px] px-3.5 py-2 text-xs bg-white hover:bg-amber-50 text-slate-800 font-semibold rounded-full border border-amber-200 shadow-[0_2px_4px_rgba(15,23,42,0.04)] transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <span className="w-2 h-2 rounded-full bg-[#D97706]" />
-            <span>Somatic</span>
-          </button>
+        {/* Quick template starters and dictation toolbar (Symmetrical 2x2 grid on mobile, streamlined row on desktop) */}
+        <div className="bg-[#FEF3C7]/60 p-2.5 sm:p-2 rounded-2xl border border-amber-200/80 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 w-full md:w-auto">
+          {/* Starter Indicator Label */}
+          <div className="flex items-center justify-between sm:justify-start gap-1.5 px-1 sm:px-0 shrink-0">
+            <span className="text-xs font-bold text-[#D97706] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
+              <span>Starters:</span>
+            </span>
+            <span className="text-[10px] font-semibold text-amber-800/70 sm:hidden">
+              Tap to Pre-fill
+            </span>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => setIsDictationModalOpen(true)}
-            className="min-h-[44px] px-4 py-2 text-xs bg-[#0F766E] hover:bg-teal-800 text-white font-bold rounded-full shadow-sm transition-all cursor-pointer flex items-center gap-1.5 ml-auto sm:ml-0"
-          >
-            <Mic className="w-3.5 h-3.5 text-white" />
-            <span>PeerNote™ Dictate</span>
-          </button>
+          {/* Symmetrical Action Pills Grid on Mobile (2x2 equal-width pills), inline flex on desktop */}
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => applyTemplate('recovery')}
+              className="min-h-[44px] px-3 py-2 text-xs bg-white hover:bg-amber-50 active:scale-[0.98] text-slate-800 font-semibold rounded-full border border-amber-200 shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#D97706] shrink-0" />
+              <span className="truncate">Recovery</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => applyTemplate('housing')}
+              className="min-h-[44px] px-3 py-2 text-xs bg-white hover:bg-amber-50 active:scale-[0.98] text-slate-800 font-semibold rounded-full border border-amber-200 shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#D97706] shrink-0" />
+              <span className="truncate">Housing</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => applyTemplate('coping')}
+              className="min-h-[44px] px-3 py-2 text-xs bg-white hover:bg-amber-50 active:scale-[0.98] text-slate-800 font-semibold rounded-full border border-amber-200 shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#D97706] shrink-0" />
+              <span className="truncate">Somatic</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsDictationModalOpen(true)}
+              className="min-h-[44px] px-3.5 py-2 text-xs bg-[#0F766E] hover:bg-teal-800 active:scale-[0.98] text-white font-bold rounded-full shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
+            >
+              <Mic className="w-3.5 h-3.5 text-white shrink-0" />
+              <span className="truncate">PeerNote™ Dictate</span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -141,7 +141,7 @@ export const TrustComplianceFooter: React.FC = () => {
 
   return (
     <>
-      <footer className="bg-white border-t border-slate-200 mt-auto py-5 sm:py-6 px-3 sm:px-6 lg:px-8 text-xs text-slate-600 transition-colors w-full max-w-full overflow-hidden">
+      <footer className="bg-white border-t border-slate-200 mt-auto pt-5 pb-28 sm:py-6 px-3 sm:px-6 lg:px-8 text-xs text-slate-600 transition-colors w-full max-w-full overflow-hidden">
         <div className="max-w-7xl mx-auto space-y-4">
           
           {/* Section Header: Low Cognitive Load Regulatory Badges Bar */}
