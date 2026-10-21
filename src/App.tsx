@@ -32,33 +32,33 @@ function AppContent() {
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans selection:bg-[#0F766E] selection:text-white max-w-full overflow-x-hidden">
       {/* Top Header Navbar - Deep Navy (#1E3A8A) with min 44px tap target height */}
       <header className="bg-[#1E3A8A] border-b border-blue-950 sticky top-0 z-40 shadow-sm text-white w-full max-w-full">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-16 py-2 sm:py-0 flex items-center justify-between gap-2 sm:gap-4 flex-nowrap w-full overflow-hidden">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 min-h-14 sm:min-h-16 py-1.5 sm:py-0 flex items-center justify-between gap-2 sm:gap-4 w-full">
           {/* Logo & Brand Identity */}
-          <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 shrink">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0F766E] flex items-center justify-center text-white shadow-sm ring-1 ring-white/20 shrink-0">
-              <HeartHandshake className="w-5 h-5 sm:w-6 sm:h-6" />
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#0F766E] flex items-center justify-center text-white shadow-sm ring-1 ring-white/20 shrink-0">
+              <HeartHandshake className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <a href="https://peernotebook.com" className="hover:opacity-95 transition-opacity">
-                  <h1 className="text-sm sm:text-base font-bold text-white tracking-tight leading-none whitespace-nowrap truncate">
+                <a href="https://peernotebook.com" className="hover:opacity-95 transition-opacity block truncate">
+                  <h1 className="text-sm sm:text-base font-bold text-white tracking-tight leading-tight truncate">
                     Peer Notebook
                   </h1>
                 </a>
-                <span className="hidden xs:inline-flex text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-800/80 border border-blue-700 text-blue-100 font-semibold shrink-0">
+                <span className="hidden md:inline-flex text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-800/80 border border-blue-700 text-blue-100 font-semibold shrink-0">
                   CalAIM Ready
                 </span>
               </div>
-              <p className="hidden md:block text-[11px] text-blue-100/90 leading-tight mt-0.5 truncate">
+              <p className="hidden lg:block text-[11px] text-blue-100/90 leading-tight mt-0.5 truncate">
                 Medi-Cal H0038 Peer Encounter Documentation · Trauma-Informed Clinical System
               </p>
             </div>
           </div>
 
           {/* Right Controls: Org Select & Dual-Layer Sync Status */}
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-auto">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <SyncStatusBadge />
-            <div className="hidden sm:block h-6 w-[1px] bg-blue-800/80" />
+            <div className="hidden sm:block h-6 w-[1px] bg-blue-800/80 shrink-0" />
             <OrgSelect />
           </div>
         </div>

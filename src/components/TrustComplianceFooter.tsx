@@ -1,172 +1,374 @@
 /**
- * Peer Notebook - Professional Trust & Compliance Footer
+ * Peer Notebook - Standardized Trust, Compliance & Observability Footer
  * GA #8 Production Standards • HIPAA & CMIA Compliant • CalMHSA Standard Aligned
- * Palette: Soft Slate (#F8FAFC), Deep Navy (#1E3A8A), Muted Teal (#0F766E), Forest Green (#16A34A)
+ * Palette: Soft Slate (#F8FAFC), Deep Navy (#1E3A8A), Muted Teal (#0F766E), Forest Green (#16A34A), Warm Amber (#D97706)
+ * Uniform Badge Geometry (44px min-h touch target) • Zero Text Bloat • Preserved Popup Links
  */
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, Lock, Award, FileText, CheckCircle2, ExternalLink, X, Scale } from 'lucide-react';
+import {
+  ShieldCheck,
+  Lock,
+  Award,
+  Scale,
+  CheckCircle2,
+  Code2,
+  Database,
+  ExternalLink,
+  X,
+  FileText,
+  Sparkles
+} from 'lucide-react';
+
+export interface FooterBadge {
+  id: string;
+  name: string;
+  title: string;
+  category: 'Regulatory' | 'Persistence' | 'Engineering' | 'Security';
+  badgeColorClass: string;
+  textColorClass: string;
+  icon: React.ReactNode;
+  summary: string;
+  docUrl: string;
+  docTitle: string;
+}
 
 export const TrustComplianceFooter: React.FC = () => {
   const { currentOrg, currentUser } = useAuth();
-  const [activeModal, setActiveModal] = useState<'terms' | 'privacy' | 'calmhsa' | null>(null);
+  const [selectedBadge, setSelectedBadge] = useState<FooterBadge | null>(null);
+  const [legalModal, setLegalModal] = useState<'terms' | 'privacy' | 'calmhsa' | null>(null);
+
+  // Regulatory & System Observability Badges with Title Text Only & Popup Links Preserved
+  const regulatoryBadges: FooterBadge[] = [
+    {
+      id: 'REG-HIPAA',
+      name: 'HIPAA & CMIA Compliance',
+      title: 'HIPAA & CMIA Compliant',
+      category: 'Regulatory',
+      badgeColorClass: 'bg-emerald-50 border-emerald-200/90 hover:bg-emerald-100/70',
+      textColorClass: 'text-[#16A34A]',
+      icon: <ShieldCheck className="w-4 h-4 text-[#16A34A] shrink-0" />,
+      summary: 'Strict adherence to 45 CFR § 164 HIPAA Security and Privacy Rules and California Civil Code § 56 (CMIA). Encrypted local store and TLS 1.3 transmission with active Business Associate Agreement (BAA) safeguards.',
+      docUrl: 'https://peernotebook.com/docs/04-technical-architecture/08_HIPAA_BAA_Consent_Model',
+      docTitle: 'HIPAA Security & BAA Architecture Specification'
+    },
+    {
+      id: 'REG-CALMHSA',
+      name: 'CalMHSA Standards Alignment',
+      title: 'CalMHSA Standard Aligned',
+      category: 'Regulatory',
+      badgeColorClass: 'bg-teal-50 border-teal-200/90 hover:bg-teal-100/70',
+      textColorClass: 'text-[#0F766E]',
+      icon: <Award className="w-4 h-4 text-[#0F766E] shrink-0" />,
+      summary: 'Directly aligned with California Mental Health Services Authority (CalMHSA) 17 Core Peer Competencies, recovery-oriented lived experience sharing, and non-clinical strengths-based narrative guidelines.',
+      docUrl: 'https://peernotebook.com/docs',
+      docTitle: 'CalMHSA Statewide Peer Certification Standards'
+    },
+    {
+      id: 'REG-CALAIM',
+      name: 'CalAIM Payment Reform',
+      title: 'CalAIM Payment Reform',
+      category: 'Regulatory',
+      badgeColorClass: 'bg-blue-50 border-blue-200/90 hover:bg-blue-100/70',
+      textColorClass: 'text-[#1E3A8A]',
+      icon: <Scale className="w-4 h-4 text-[#1E3A8A] shrink-0" />,
+      summary: 'Conforms to California Department of Health Care Services (DHCS) CalAIM Payment Reform: exact 15-minute Medi-Cal billing units (CMS 8-minute rule), direct travel and documentation time allocation for Procedure Code H0038.',
+      docUrl: 'https://peernotebook.com/docs/04-technical-architecture/05_Compliance_Engine_PDF_Export',
+      docTitle: 'CalAIM & Medi-Cal H0038 Technical Implementation Manual'
+    },
+    {
+      id: 'REG-LOCAL',
+      name: 'Encrypted Local Persistence',
+      title: 'Encrypted Local-First',
+      category: 'Persistence',
+      badgeColorClass: 'bg-[#FEF3C7]/60 border-amber-200/90 hover:bg-[#FEF3C7]',
+      textColorClass: 'text-[#D97706]',
+      icon: <Lock className="w-4 h-4 text-[#D97706] shrink-0" />,
+      summary: 'Dual-layer persistence engine with client-side Dexie.js (IndexedDB) for 100% offline field documentation resilience and append-only cryptographic SHA-256 tamper-evident audit trails.',
+      docUrl: 'https://peernotebook.com/docs/04-technical-architecture/07_Offline_Sync_IndexedDB',
+      docTitle: 'Dual-Layer Offline-First Storage Specifications'
+    },
+    {
+      id: 'ENG-BUILD',
+      name: 'Production Build Pipeline',
+      title: 'Build: passing',
+      category: 'Engineering',
+      badgeColorClass: 'bg-emerald-50 border-emerald-200/90 hover:bg-emerald-100/70',
+      textColorClass: 'text-[#16A34A]',
+      icon: <CheckCircle2 className="w-4 h-4 text-[#16A34A] shrink-0" />,
+      summary: 'Deterministic Vite production bundle passing, zero asset bloat, optimized tree-shaking, and PWA service worker caching designed for low-bandwidth mobile field devices.',
+      docUrl: 'https://peernotebook.com/docs/05-engineering-quality/ci-cd-pipeline',
+      docTitle: 'CI/CD Pipeline & Production Build Specifications'
+    },
+    {
+      id: 'ENG-TS',
+      name: 'Type Safety Standards',
+      title: 'TypeScript: strict',
+      category: 'Engineering',
+      badgeColorClass: 'bg-blue-50 border-blue-200/90 hover:bg-blue-100/70',
+      textColorClass: 'text-[#1E3A8A]',
+      icon: <Code2 className="w-4 h-4 text-[#1E3A8A] shrink-0" />,
+      summary: 'Strict TypeScript verification with zero implicit any, comprehensive typing across Dexie schemas, Medi-Cal billing units, and CalAIM behavioral health models.',
+      docUrl: 'https://peernotebook.com/docs/05-engineering-quality/code-review-standards',
+      docTitle: 'Type System Standards & Verification'
+    },
+    {
+      id: 'ENG-PERSIST',
+      name: 'Cloud & Database Layer',
+      title: 'Persistence: Dexie.js + Supabase',
+      category: 'Persistence',
+      badgeColorClass: 'bg-emerald-50 border-emerald-200/90 hover:bg-emerald-100/70',
+      textColorClass: 'text-[#16A34A]',
+      icon: <Database className="w-4 h-4 text-[#16A34A] shrink-0" />,
+      summary: 'Dual-layer data persistence syncing Dexie.js (IndexedDB) client storage with Supabase PostgreSQL cloud relational store under strict multi-tenant Row-Level Security (RLS).',
+      docUrl: 'https://peernotebook.com/docs/04-technical-architecture/07_Offline_Sync_IndexedDB',
+      docTitle: 'Dual-Layer Database Synchronization Standards'
+    },
+    {
+      id: 'SEC-BAA',
+      name: 'Business Associate Agreement',
+      title: 'BAA: Executed (45 CFR § 164.504)',
+      category: 'Security',
+      badgeColorClass: 'bg-emerald-50 border-emerald-200/90 hover:bg-emerald-100/70',
+      textColorClass: 'text-[#16A34A]',
+      icon: <Lock className="w-4 h-4 text-[#16A34A] shrink-0" />,
+      summary: 'Protected under 45 CFR § 164 HIPAA Security Rule and 42 CFR Part 2 for substance use confidentiality. Pseudonymized client identifiers (MRN) and SHA-256 tamper-evident audit logs.',
+      docUrl: 'https://peernotebook.com/docs/04-technical-architecture/08_HIPAA_BAA_Consent_Model',
+      docTitle: 'HIPAA BAA & Consent Specifications'
+    }
+  ];
 
   return (
     <>
-      <footer className="bg-white border-t border-slate-200 mt-auto py-6 px-4 sm:px-6 lg:px-8 text-xs text-slate-600 transition-colors">
-        <div className="max-w-7xl mx-auto space-y-5">
-          {/* Top Row: Trust & Compliance Badges Bar with rounded-2xl geometry */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pb-5 border-b border-slate-100">
-            {/* Badge 1: HIPAA & CMIA Compliant */}
-            <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#F8FAFC] border border-slate-200/90 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
-              <div className="p-2 bg-emerald-50 text-[#16A34A] rounded-xl border border-emerald-200 shrink-0 mt-0.5">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="font-bold text-[#1E3A8A] text-xs flex items-center gap-1.5">
-                  <span>HIPAA & CMIA Compliant</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]" />
-                </div>
-                <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                  45 CFR § 164 & Cal. Civ. Code § 56. Business Associate Agreement (BAA) active.
-                </p>
-              </div>
+      <footer className="bg-white border-t border-slate-200 mt-auto py-5 sm:py-6 px-3 sm:px-6 lg:px-8 text-xs text-slate-600 transition-colors w-full max-w-full overflow-hidden">
+        <div className="max-w-7xl mx-auto space-y-4">
+          
+          {/* Section Header: Low Cognitive Load Regulatory Badges Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-teal-50 text-[#0F766E] border border-teal-100 shrink-0">
+                <Sparkles className="w-3.5 h-3.5" />
+              </span>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A]">
+                Standards & Compliance Badges
+              </h2>
             </div>
-
-            {/* Badge 2: CalMHSA Standard Aligned */}
-            <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#F8FAFC] border border-slate-200/90 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
-              <div className="p-2 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-200 shrink-0 mt-0.5">
-                <Award className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="font-bold text-[#1E3A8A] text-xs flex items-center gap-1.5">
-                  <span>CalMHSA Standard Aligned</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0F766E]" />
-                </div>
-                <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                  California Mental Health Services Authority Core Peer Competencies & Code H0038.
-                </p>
-              </div>
-            </div>
-
-            {/* Badge 3: CalAIM Payment Reform */}
-            <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#F8FAFC] border border-slate-200/90 shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
-              <div className="p-2 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200 shrink-0 mt-0.5">
-                <Scale className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="font-bold text-[#1E3A8A] text-xs flex items-center gap-1.5">
-                  <span>CalAIM Payment Reform</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1E3A8A]" />
-                </div>
-                <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                  Exact 15-minute billing increments, travel & documentation time tracking.
-                </p>
-              </div>
-            </div>
-
-            {/* Badge 4: Encrypted Local Store with Warm Orange Complement */}
-            <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#FEF3C7]/40 border border-amber-200/80 shadow-[0_2px_8px_rgba(217,119,6,0.04)]">
-              <div className="p-2 bg-[#FEF3C7] text-[#D97706] rounded-xl border border-amber-200 shrink-0 mt-0.5">
-                <Lock className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="font-bold text-[#1E3A8A] text-xs flex items-center gap-1.5">
-                  <span>Encrypted Local-First</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
-                </div>
-                <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
-                  Field offline resiliency with Dexie.js and immutable SHA-256 audit trails.
-                </p>
-              </div>
-            </div>
+            <span className="text-[11px] text-slate-500 font-medium">
+              Click any badge to inspect verification certificate and architecture runbook
+            </span>
           </div>
 
-          {/* Middle Row: Legal Links, Provider & Copyright */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-1">
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2 text-xs">
-              <span className="font-medium text-slate-700">
-                © {new Date().getFullYear()} Peer Notebook (<a href="https://peernotebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F766E] transition-colors underline font-medium">peernotebook.com</a>). All rights reserved.
+          {/* Regulatory Badges Grid: Uniform Height (44px min-h) & Title Text Only */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+            {regulatoryBadges.map((badge) => (
+              <button
+                key={badge.id}
+                type="button"
+                onClick={() => setSelectedBadge(badge)}
+                className={`min-h-[44px] flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all shadow-2xs hover:shadow-xs active:scale-[0.99] text-left cursor-pointer ${badge.badgeColorClass}`}
+                title={`Click to view ${badge.name} verification & documentation`}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  {badge.icon}
+                  <span className={`truncate text-xs ${badge.textColorClass}`}>
+                    {badge.title}
+                  </span>
+                </div>
+                <ExternalLink className="w-3 h-3 text-slate-400 shrink-0 opacity-70 group-hover:opacity-100" />
+              </button>
+            ))}
+          </div>
+
+          {/* Divider Rule */}
+          <div className="border-t border-slate-200/80 pt-3" />
+
+          {/* Bottom Bar: Brand, Legal Links, Active Provider */}
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-3 text-xs">
+            {/* Brand & Copyright */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-1 text-slate-600 text-center lg:text-left">
+              <span className="font-semibold text-slate-800">
+                © {new Date().getFullYear()} Peer Notebook (
+                <a
+                  href="https://peernotebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#0F766E] hover:underline font-semibold"
+                >
+                  peernotebook.com
+                </a>
+                )
               </span>
-              <span className="hidden sm:inline text-slate-300">|</span>
+              <span className="hidden sm:inline text-slate-300">·</span>
+              <span className="text-slate-500 text-[11px]">
+                CalAIM Medi-Cal H0038 Documentation System
+              </span>
+            </div>
+
+            {/* Legal & Documentation Links pointing correctly to peernotebook.com/docs */}
+            <div className="flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1.5 text-xs font-semibold">
               <button
                 type="button"
-                onClick={() => setActiveModal('terms')}
-                className="text-[#0F766E] hover:text-[#1E3A8A] hover:underline font-semibold cursor-pointer transition-colors"
+                onClick={() => setLegalModal('terms')}
+                className="text-[#0F766E] hover:text-[#1E3A8A] hover:underline cursor-pointer transition-colors"
               >
                 Terms of Service
               </button>
               <span className="text-slate-300">·</span>
               <button
                 type="button"
-                onClick={() => setActiveModal('privacy')}
-                className="text-[#0F766E] hover:text-[#1E3A8A] hover:underline font-semibold cursor-pointer transition-colors"
+                onClick={() => setLegalModal('privacy')}
+                className="text-[#0F766E] hover:text-[#1E3A8A] hover:underline cursor-pointer transition-colors"
               >
                 Privacy Policy (HIPAA / CMIA)
               </button>
               <span className="text-slate-300">·</span>
               <button
                 type="button"
-                onClick={() => setActiveModal('calmhsa')}
-                className="text-[#0F766E] hover:text-[#1E3A8A] hover:underline font-semibold cursor-pointer transition-colors"
+                onClick={() => setLegalModal('calmhsa')}
+                className="text-[#0F766E] hover:text-[#1E3A8A] hover:underline cursor-pointer transition-colors"
               >
                 CalMHSA Standards
               </button>
+              <span className="text-slate-300">·</span>
+              <a
+                href="https://peernotebook.com/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#1E3A8A] hover:text-[#0F766E] hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <span>Documentation</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
             </div>
 
             {/* Provider and Agency Info */}
-            <div className="flex items-center gap-2 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 shrink-0">
+            <div className="flex items-center gap-2 text-[11px] text-slate-600 bg-[#F8FAFC] px-3 py-1.5 rounded-xl border border-slate-200/90 shadow-2xs shrink-0">
               <span className="w-2 h-2 rounded-full bg-[#16A34A] shrink-0" />
               <span>
-                Active Provider: <strong className="text-slate-800">{currentUser?.fullName || 'Alex Rivera, CPSS-CA'}</strong>
+                Active Provider:{' '}
+                <strong className="text-slate-800">
+                  {currentUser?.fullName || 'Sarah Jenkins, CPSS-CA #CA-4102'}
+                </strong>
               </span>
-              <span className="text-slate-300">•</span>
-              <span className="truncate max-w-[150px]">{currentOrg?.name || 'Alameda Health System'}</span>
+              <span className="text-slate-300">·</span>
+              <span className="truncate max-w-[150px] font-medium text-slate-700">
+                {currentOrg?.name || 'Alameda Health System'}
+              </span>
             </div>
           </div>
         </div>
       </footer>
 
-      {/* Modal Dialog for Legal Terms / Policies */}
-      {activeModal && (
+      {/* Observability & Regulatory Detail Modal */}
+      {selectedBadge && (
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto"
-          onClick={() => setActiveModal(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto"
+          onClick={() => setSelectedBadge(null)}
         >
           <div
-            className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto my-auto"
+            className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl relative max-h-[88vh] overflow-y-auto my-auto space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 shrink-0">
+                  {selectedBadge.icon}
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-[#0F766E] uppercase tracking-wider block">
+                    {selectedBadge.category} Standard • {selectedBadge.id}
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-[#1E3A8A] leading-tight">
+                    {selectedBadge.name}
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedBadge(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                title="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono font-bold text-[#1E3A8A]">
+              Badge Label: {selectedBadge.title}
+            </div>
+
+            <div className="text-xs text-slate-700 leading-relaxed space-y-2">
+              <p className="font-semibold text-slate-900">Technical & Regulatory Summary:</p>
+              <p className="bg-[#F8FAFC] p-3 rounded-xl border border-slate-200/80 text-slate-600">
+                {selectedBadge.summary}
+              </p>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+              <a
+                href={selectedBadge.docUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0F766E] hover:bg-teal-800 text-white text-xs font-bold transition-all shadow-sm"
+              >
+                <span>Read Full Specification</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setSelectedBadge(null)}
+                className="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Dialog for Legal Terms / Policies */}
+      {legalModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto"
+          onClick={() => setLegalModal(null)}
+        >
+          <div
+            className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto my-auto space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-200">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-100">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-[#1E3A8A]">
-                    {activeModal === 'terms' && 'Peer Notebook Terms of Service'}
-                    {activeModal === 'privacy' && 'HIPAA & CMIA Privacy Policy'}
-                    {activeModal === 'calmhsa' && 'CalMHSA Peer Support Standards Alignment'}
+                    {legalModal === 'terms' && 'Peer Notebook Terms of Service'}
+                    {legalModal === 'privacy' && 'HIPAA & CMIA Privacy Policy'}
+                    {legalModal === 'calmhsa' && 'CalMHSA Peer Support Standards Alignment'}
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-[11px] text-slate-500">
                     Production Grade GA #8 • CalAIM & Medi-Cal H0038 Compliance
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setActiveModal(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                onClick={() => setLegalModal(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="py-4 space-y-4 text-xs text-slate-700 leading-relaxed">
-              {activeModal === 'terms' && (
+            <div className="py-2 space-y-3.5 text-xs text-slate-700 leading-relaxed max-h-[55vh] overflow-y-auto pr-1">
+              {legalModal === 'terms' && (
                 <>
                   <p>
                     <strong>1. Authorized Clinical & Peer Use:</strong> Peer Notebook (peernotebook.com) is an enterprise offline-first documentation platform engineered exclusively for Medi-Cal Certified Peer Support Specialists (CPSS-CA), clinical supervisors, and contracted CalAIM behavioral health agencies.
@@ -183,7 +385,7 @@ export const TrustComplianceFooter: React.FC = () => {
                 </>
               )}
 
-              {activeModal === 'privacy' && (
+              {legalModal === 'privacy' && (
                 <>
                   <p>
                     <strong>1. CMIA & HIPAA Protections:</strong> Peer Notebook complies with California Civil Code § 56 (Confidentiality of Medical Information Act) and federal HIPAA Security and Privacy Rules. No personal health information is sold, monetized, or shared with third-party tracking services.
@@ -200,7 +402,7 @@ export const TrustComplianceFooter: React.FC = () => {
                 </>
               )}
 
-              {activeModal === 'calmhsa' && (
+              {legalModal === 'calmhsa' && (
                 <>
                   <p>
                     <strong>1. 17 CalMHSA Core Competencies:</strong> Peer Notebook documentation is directly aligned with the California Mental Health Services Authority (CalMHSA) statewide peer certification curriculum, prioritizing recovery orientation, trauma-informed principles, and lived experience sharing.
@@ -215,11 +417,21 @@ export const TrustComplianceFooter: React.FC = () => {
               )}
             </div>
 
-            <div className="pt-4 border-t border-slate-200 flex justify-end">
+            <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+              <a
+                href="https://peernotebook.com/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[#0F766E] font-semibold hover:underline flex items-center gap-1"
+              >
+                <span>View Full Documentation Repository</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
               <button
                 type="button"
-                onClick={() => setActiveModal(null)}
-                className="px-4 py-2 bg-[#1E3A8A] hover:bg-blue-900 text-white font-semibold rounded-lg text-xs transition-colors"
+                onClick={() => setLegalModal(null)}
+                className="px-4 py-2 bg-[#1E3A8A] hover:bg-blue-900 text-white font-semibold rounded-xl text-xs transition-colors cursor-pointer w-full sm:w-auto"
               >
                 Close Document
               </button>

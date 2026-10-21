@@ -26,13 +26,20 @@ import {
   Download,
   Search,
   Lock,
-  Edit3
+  Edit3,
+  Activity,
+  AlertTriangle,
+  Sparkles,
+  Database,
+  CheckCircle2,
+  Mic,
+  Clock
 } from 'lucide-react';
 
 export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'supervisor' | 'audit' | 'architecture' | 'settings';
 
 export const PeerNotebookWorkspace: React.FC = () => {
-  const { currentOrg, canApproveNotes } = useAuth();
+  const { currentOrg, currentUser, canApproveNotes } = useAuth();
 
   // Parse route from window.location.pathname
   const parseRoute = (): { tab: WorkspaceTab; slug?: string } => {
@@ -142,11 +149,57 @@ export const PeerNotebookWorkspace: React.FC = () => {
     return matchSearch && matchFilter;
   });
 
+  // KPI Metrics for Shift Posture Hero
+  const pendingNotesCount = notes.filter(n => n.status === 'pending_supervisor').length;
+  const approvedNotesCount = notes.filter(n => n.status === 'approved').length;
+  const totalShiftMinutes = notes.reduce((acc, n) => acc + (n.durationMinutes || 0), 0);
+  const totalShiftUnits = notes.reduce((acc, n) => acc + (n.billingUnits || 0), 0);
+
+  const handleOpenCrisisTemplate = () => {
+    const crisisDraft: SessionNote = {
+      id: `crisis-${Date.now()}`,
+      organizationId: currentOrg?.id || 'org-calaim-01',
+      clientId: selectedClientForNote?.id || '',
+      clientName: selectedClientForNote?.preferredName || 'Unassigned / Field Crisis Walk-in',
+      clientIdentifier: selectedClientForNote?.clientIdentifier || 'PN-CRISIS',
+      authorId: currentUser?.id || 'cpss-01',
+      authorName: currentUser?.fullName || 'Sarah Jenkins, CPSS-CA',
+      authorCredentials: currentUser?.credentialTitle || 'CalAIM Certified Peer Support Specialist',
+      encounterDate: new Date().toISOString().split('T')[0],
+      startTime: '13:00',
+      endTime: '13:45',
+      faceToFaceMinutes: 45,
+      travelMinutes: 15,
+      documentationMinutes: 15,
+      durationMinutes: 75,
+      billingCode: 'H0038',
+      billingUnits: 5,
+      modality: 'community_field',
+      placeOfServiceCode: '99',
+      locationDetails: 'Community Outreach / Field De-escalation',
+      focusDomains: ['Coping Skills', 'Mental Health Wellness', 'Harm Reduction'],
+      goalAddressed: 'Immediate crisis stabilization, trauma-informed de-escalation, and collaborative wellness safety planning.',
+      peerIntervention: 'CPSS facilitated immediate somatic grounding (5-4-3-2-1 exercise and box breathing). Reviewed existing safety plan, verified immediate physical safety, and contacted supervisor per agency crisis protocol. Supported peer with distress tolerance coaching.',
+      clientResponse: 'Peer responsive to breathing exercises; self-reported acute panic decreased from 9/10 to 4/10. Expressed relief having peer support presence. Confirmed willingness to follow through with safe community contact.',
+      planNextSteps: 'Peer will stay with verified safe community member tonight. CPSS scheduled follow-up welfare check call tomorrow morning at 09:30 AM.',
+      safetyConcerns: true,
+      safetyNotes: 'Crisis de-escalated safely in the field without requiring law enforcement intervention. Supervisor notified and secondary contact person verified.',
+      specialistSignature: currentUser?.fullName || 'Sarah Jenkins, CPSS-CA',
+      signedAt: new Date().toISOString(),
+      status: 'draft',
+      synced: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    setSelectedNoteForEdit(crisisDraft);
+    navigateToTab('new_note');
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-6 max-w-full overflow-hidden">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-1 sm:pt-1.5 pb-8 sm:pb-12 max-w-full overflow-hidden">
       {/* Primary Navigation Tabs - Minimum 44px–48px Tap Target Height with rounded-full geometry */}
-      <nav aria-label="Main Navigation" className="border-b border-slate-200/90 pb-3 w-full max-w-full overflow-hidden">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-0.5 max-w-full overscroll-x-contain sm:flex-wrap">
+      <nav aria-label="Main Navigation" className="border-b border-slate-200/90 pb-1.5 w-full max-w-full overflow-hidden">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 px-0.5 max-w-full overscroll-x-contain sm:flex-wrap">
           <button
             type="button"
             onClick={() => navigateToTab('clients')}
@@ -246,10 +299,133 @@ export const PeerNotebookWorkspace: React.FC = () => {
         </div>
       </nav>
 
-      {/* Main Tab Content */}
-      {activeTab === 'clients' && (
-        <ClientManager onSelectClientForNote={handleStartNoteForClient} />
+      {/* Hero Shift Posture Glance & Smart Quick-Action Card (Space tightly closed to Main Menu) */}
+      {activeTab !== 'new_note' && (
+        <section
+          aria-label="Shift Posture Hero"
+          className="mt-2 sm:mt-2.5 bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 lg:p-6 shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-4 transition-all"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-5">
+            {/* Active Shift Posture Card */}
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mb-1.5">
+                <span className="inline-flex items-center gap-1 font-bold text-[#0F766E] uppercase tracking-wider text-[11px] bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/80">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F766E]" />
+                  Active Shift Posture
+                </span>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span className="font-semibold text-slate-700">
+                  {currentUser?.fullName || 'Sarah Jenkins, CPSS-CA #CA-4102'}
+                </span>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span className="inline-flex items-center gap-1 text-[#16A34A] font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#16A34A]" />
+                  Golden Thread: 98.4%
+                </span>
+              </div>
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#1E3A8A] tracking-tight">
+                {pendingNotesCount} Progress Notes Pending Sign-Off under CalAIM guidelines
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl leading-relaxed">
+                Medi-Cal H0038 billing justification requires explicit golden-thread linkage between client care plan milestones, peer interventions, and measurable recovery responses.
+              </p>
+            </div>
+
+            {/* Quick Metrics Cluster */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 shrink-0 w-full lg:w-auto">
+              <div className="bg-[#F8FAFC] border border-slate-200/90 rounded-xl p-3 shadow-2xs">
+                <span className="text-[11px] text-slate-500 font-medium block">Approved Today</span>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-lg sm:text-xl font-bold text-slate-900">{approvedNotesCount}</span>
+                  <span className="text-[10px] text-slate-500 font-medium">notes</span>
+                </div>
+              </div>
+
+              <div className="bg-[#F8FAFC] border border-slate-200/90 rounded-xl p-3 shadow-2xs">
+                <span className="text-[11px] text-slate-500 font-medium block">Billable Time</span>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-lg sm:text-xl font-bold text-[#0F766E]">{totalShiftMinutes}</span>
+                  <span className="text-[10px] text-slate-500 font-medium">min ({totalShiftUnits || Math.ceil(totalShiftMinutes / 15)}u)</span>
+                </div>
+              </div>
+
+              <div className="bg-[#F8FAFC] border border-slate-200/90 rounded-xl p-3 shadow-2xs col-span-2 sm:col-span-1">
+                <span className="text-[11px] text-slate-500 font-medium block">Persistence Posture</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse shrink-0" />
+                  <span className="text-xs font-bold text-slate-800 truncate">
+                    Dexie.js AES-256
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Smart Quick-Action Bar with 44px–48px touch targets */}
+          <div className="pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedNoteForEdit(null);
+                  setSelectedClientForNote(null);
+                  navigateToTab('new_note');
+                }}
+                className="min-h-[46px] inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0F766E] hover:bg-teal-800 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Log New Interaction (H0038)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedNoteForEdit(null);
+                  setSelectedClientForNote(null);
+                  navigateToTab('new_note');
+                }}
+                className="min-h-[46px] inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+              >
+                <Users className="w-4 h-4 text-[#0F766E]" />
+                <span>Start Group Notes</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenCrisisTemplate}
+                className="min-h-[46px] inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#FEF3C7] border border-amber-300 hover:bg-amber-100 text-[#D97706] text-xs font-bold transition-all shadow-2xs cursor-pointer"
+              >
+                <AlertTriangle className="w-4 h-4 text-[#D97706]" />
+                <span>Open Crisis Template</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedNoteForEdit(null);
+                  setSelectedClientForNote(null);
+                  navigateToTab('new_note');
+                }}
+                className="min-h-[46px] inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-blue-50 border border-blue-200 hover:bg-blue-100 text-[#1E3A8A] text-xs font-bold transition-all shadow-2xs cursor-pointer"
+              >
+                <Mic className="w-4 h-4 text-[#0F766E]" />
+                <span>PeerNote™ Dictate</span>
+              </button>
+            </div>
+
+            <div className="hidden md:flex items-center gap-2 text-xs text-slate-500 font-mono">
+              <Database className="w-3.5 h-3.5 text-[#0F766E]" />
+              <span>Local Dexie ⇄ Supabase RLS</span>
+            </div>
+          </div>
+        </section>
       )}
+
+      {/* Main Tab Content */}
+      <div className={activeTab === 'new_note' ? 'mt-2 sm:mt-2.5' : 'mt-3.5 sm:mt-4'}>
+        {activeTab === 'clients' && (
+          <ClientManager onSelectClientForNote={handleStartNoteForClient} />
+        )}
 
       {activeTab === 'new_note' && (
         <SessionNoteForm
@@ -501,6 +677,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
       {activeTab === 'settings' && (
         <SettingsPanel />
       )}
+      </div>
 
       {/* PDF Export Modal */}
       {selectedNoteForExport && (
