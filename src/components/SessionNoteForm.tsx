@@ -978,7 +978,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold order-last sm:order-first transition-colors cursor-pointer"
+            className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-bold order-last sm:order-first transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -988,7 +988,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           <button
             type="button"
             onClick={() => handleSave(false)}
-            className="w-full xs:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-all shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
+            className="w-full xs:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 rounded-full text-xs font-bold transition-all shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
           >
             <Save className="w-4 h-4 text-slate-500 shrink-0" />
             <span>Save to Dexie.js (Offline Draft)</span>
@@ -997,7 +997,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           <button
             type="button"
             onClick={() => handleSave(true)}
-            className="w-full xs:w-auto min-h-[44px] flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+            className="w-full xs:w-auto min-h-[44px] flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
           >
             <Send className="w-4 h-4 shrink-0" />
             <span>Submit for Supervisor Cosign</span>
@@ -1007,7 +1007,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
 
       {/* PeerNote Voice / Plain-Text Dictation Modal */}
       {isDictationModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/20 backdrop-blur-sm transition-opacity overflow-y-auto">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">

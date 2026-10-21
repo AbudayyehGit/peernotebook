@@ -37,6 +37,8 @@ import {
   Clock,
   Grid,
   ChevronRight,
+  ChevronDown,
+  Check,
   X,
   Menu,
   Cloud,
@@ -50,7 +52,7 @@ export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'supervisor' | 'au
 export const PeerNotebookWorkspace: React.FC = () => {
   const { currentOrg, currentUser, canApproveNotes } = useAuth();
 
-  // Parse route from window.location.pathname
+  // Parse route from window.location.pathname, search query, hash, or localStorage
   const parseRoute = (): { tab: WorkspaceTab; slug?: string } => {
     if (typeof window === 'undefined') return { tab: 'clients' };
     const path = window.location.pathname.toLowerCase();
@@ -66,6 +68,39 @@ export const PeerNotebookWorkspace: React.FC = () => {
     if (path.startsWith('/supervisor')) return { tab: 'supervisor' };
     if (path.startsWith('/audit')) return { tab: 'audit' };
     if (path.startsWith('/settings')) return { tab: 'settings' };
+
+    // Support query param ?tab= (e.g., inside AI Studio preview iframe or direct link)
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get('tab') as WorkspaceTab;
+      if (tabParam && ['clients', 'notes', 'new_note', 'supervisor', 'audit', 'architecture', 'settings'].includes(tabParam)) {
+        return { tab: tabParam };
+      }
+    } catch {
+      // ignore
+    }
+
+    // Support URL hash
+    try {
+      const hash = window.location.hash.replace('#/', '').replace('#', '').toLowerCase();
+      if (hash.startsWith('docs')) return { tab: 'architecture' };
+      if (['clients', 'notes', 'new_note', 'supervisor', 'audit', 'settings'].includes(hash)) {
+        return { tab: hash as WorkspaceTab };
+      }
+      if (hash === 'new-note') return { tab: 'new_note' };
+    } catch {
+      // ignore
+    }
+
+    // Fallback to persisted tab from last active session
+    try {
+      const saved = localStorage.getItem('peernotebook_active_tab') as WorkspaceTab;
+      if (saved && ['clients', 'notes', 'new_note', 'supervisor', 'audit', 'architecture', 'settings'].includes(saved)) {
+        return { tab: saved };
+      }
+    } catch {
+      // ignore
+    }
 
     return { tab: 'clients' };
   };
@@ -85,6 +120,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
 
   // Mobile Bottom Sheet Drawer & Sync States
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isSyncingFromMobile, setIsSyncingFromMobile] = useState(false);
   const [mobileSyncMsg, setMobileSyncMsg] = useState<string | null>(null);
   const [syncInfo, setSyncInfo] = useState<SyncStatusInfo>(syncWorker.getStatus());
@@ -111,6 +147,21 @@ export const PeerNotebookWorkspace: React.FC = () => {
     }
   };
 
+  // Cross-tab synchronization via storage event
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'peernotebook_active_tab' && e.newValue) {
+        const nextTab = e.newValue as WorkspaceTab;
+        if (['clients', 'notes', 'new_note', 'supervisor', 'audit', 'architecture', 'settings'].includes(nextTab)) {
+          setActiveTab(nextTab);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   // Handle browser popstate (back/forward)
   useEffect(() => {
     const handlePopState = () => {
@@ -127,6 +178,12 @@ export const PeerNotebookWorkspace: React.FC = () => {
     setActiveTab(tab);
     setDocSlug(slug);
     setIsMobileMenuOpen(false);
+
+    try {
+      localStorage.setItem('peernotebook_active_tab', tab);
+    } catch {
+      // ignore
+    }
 
     let path = '/';
     if (tab === 'architecture') {
@@ -295,35 +352,19 @@ export const PeerNotebookWorkspace: React.FC = () => {
   const CurrentIcon = currentActiveItem.icon;
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-1 sm:pt-1.5 pb-28 md:pb-12 max-w-full overflow-hidden">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-1 sm:pt-1.5 pb-24 md:pb-12 max-w-full overflow-hidden">
       {/* ========================================================================= */}
-      {/* MOBILE TOP CONTEXT BAR (md:hidden): Replaces horizontal pill scrolling    */}
-      {/* Shows active view identity, quick note shortcut, and All Modules trigger  */}
+      {/* MODERN GOLD STANDARD WORKSPACE NAVIGATION (ZERO HORIZONTAL SCROLLING)     */}
+      {/* Desktop: Symmetrical dual-zone segmented control (100% width, no scroll)   */}
+      {/* Tablet: Core clinical tabs + Symmetrical "More Modules" popover            */}
+      {/* Mobile: Active Module Pill + Direct +Log Note + 4-Column Segmented Rail   */}
+      {/* Touch-First (44px min-h) · Trauma-Informed Deep Navy & Teal Tokens         */}
       {/* ========================================================================= */}
-      <div className="md:hidden flex items-center justify-between gap-2 pb-2 pt-1 border-b border-slate-200/90 w-full">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="p-2 rounded-xl bg-blue-50 text-[#1E3A8A] border border-blue-200/80 shrink-0">
-            <CurrentIcon className="w-4 h-4 text-[#0F766E]" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">
-                Active View
-              </span>
-              {currentActiveItem.badge !== null && currentActiveItem.badge !== undefined && (
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-md bg-teal-100 text-[#0F766E] font-bold">
-                  {currentActiveItem.badge}
-                </span>
-              )}
-            </div>
-            <h2 className="text-sm font-bold text-[#1E3A8A] truncate leading-tight">
-              {currentActiveItem.label}
-            </h2>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0">
-          {activeTab !== 'new_note' && (
+      <nav aria-label="Main Navigation" className="border-b border-slate-200/90 pb-2.5 pt-1 w-full max-w-full">
+        {/* 1. DESKTOP VIEWPORT (lg: 1024px+) - Balanced Dual-Zone Segmented Bar (Zero Scroll) */}
+        <div className="hidden lg:flex items-center justify-between gap-3 w-full">
+          {/* Left Zone: Primary Action + Core Clinical Workflows */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => {
@@ -331,84 +372,441 @@ export const PeerNotebookWorkspace: React.FC = () => {
                 setSelectedClientForNote(null);
                 navigateToTab('new_note');
               }}
-              className="min-h-[42px] px-3.5 py-1.5 rounded-full bg-[#0F766E] hover:bg-teal-800 active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+              className={`min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer shadow-2xs active:scale-95 ${
+                activeTab === 'new_note'
+                  ? 'bg-[#0F766E] text-white shadow-sm ring-2 ring-teal-600/30'
+                  : 'text-[#0F766E] hover:text-white hover:bg-[#0F766E] border border-teal-200 bg-teal-50/70'
+              }`}
+              title="Create new Medi-Cal encounter note"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>+ Note</span>
+              <Plus className="w-4 h-4 shrink-0 stroke-[2.5]" />
+              <span>Log Interaction</span>
             </button>
-          )}
 
-          <button
-            type="button"
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="min-h-[42px] px-3 py-1.5 rounded-full bg-white hover:bg-slate-50 active:scale-95 border border-slate-300 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
-            title="Open all workspace modules"
-          >
-            <Grid className="w-3.5 h-3.5 text-[#0F766E]" />
-            <span>Modules</span>
-          </button>
-        </div>
-      </div>
+            <div className="h-6 w-[1px] bg-slate-200 shrink-0 mx-1" />
 
-      {/* ========================================================================= */}
-      {/* DESKTOP & TABLET PILL NAVIGATION (hidden md:block): High density tabs     */}
-      {/* ========================================================================= */}
-      <nav aria-label="Main Navigation" className="hidden md:block border-b border-slate-200/90 pb-1.5 w-full max-w-full">
-        <div className="flex items-center gap-2 flex-wrap py-0.5 px-0.5">
-          {navItems.map((item) => {
-            const ItemIcon = item.icon;
-            const isActive = activeTab === item.id;
-            const isPrimary = item.isPrimary;
-
-            if (isPrimary) {
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedNoteForEdit(null);
-                    setSelectedClientForNote(null);
-                    navigateToTab('new_note');
-                  }}
-                  className={`min-h-[46px] flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                    isActive
-                      ? 'bg-[#0F766E] text-white shadow-sm ring-2 ring-teal-600/30'
-                      : 'text-[#0F766E] hover:text-white hover:bg-[#0F766E] border border-teal-200 bg-teal-50/70'
-                  }`}
-                >
-                  <Plus className="w-4 h-4 shrink-0" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            }
-
-            return (
+            {/* Core Clinical Segmented Track */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-full border border-slate-200/90">
               <button
-                key={item.id}
                 type="button"
-                onClick={() => navigateToTab(item.id)}
-                className={`min-h-[46px] flex items-center gap-2 px-4.5 py-2.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                  isActive
-                    ? 'bg-[#1E3A8A] text-white shadow-sm ring-2 ring-blue-900/30'
-                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
+                onClick={() => navigateToTab('clients')}
+                className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'clients'
+                    ? 'bg-[#1E3A8A] text-white shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
                 }`}
               >
-                <ItemIcon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
-                <span>{item.label}</span>
-                {item.badge !== null && item.badge !== undefined && !isActive && (
+                <Users className={`w-3.5 h-3.5 ${activeTab === 'clients' ? 'text-white' : 'text-slate-500'}`} />
+                <span>Peer Roster</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigateToTab('notes')}
+                className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'notes'
+                    ? 'bg-[#1E3A8A] text-white shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                }`}
+              >
+                <FileText className={`w-3.5 h-3.5 ${activeTab === 'notes' ? 'text-white' : 'text-slate-500'}`} />
+                <span>Encounter Notes</span>
+                {notes.length > 0 && (
                   <span
-                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold ${
-                      item.badgeAlert
-                        ? 'bg-amber-100 text-[#D97706]'
-                        : 'bg-slate-100 text-slate-600'
+                    className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                      activeTab === 'notes' ? 'bg-blue-800 text-white' : 'bg-slate-200 text-slate-700'
                     }`}
                   >
-                    {item.badge}
+                    {notes.length}
                   </span>
                 )}
               </button>
-            );
-          })}
+
+              {canApproveNotes && (
+                <button
+                  type="button"
+                  onClick={() => navigateToTab('supervisor')}
+                  className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === 'supervisor'
+                      ? 'bg-[#1E3A8A] text-white shadow-sm'
+                      : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                  }`}
+                >
+                  <ShieldCheck className={`w-3.5 h-3.5 ${activeTab === 'supervisor' ? 'text-white' : 'text-slate-500'}`} />
+                  <span>Supervisor QA</span>
+                  {pendingNotesCount > 0 && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold bg-amber-100 text-[#D97706] animate-pulse">
+                      {pendingNotesCount}
+                    </span>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Right Zone: System Governance & Technical Specs Segmented Track */}
+          <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-full border border-slate-200/90">
+            <button
+              type="button"
+              onClick={() => navigateToTab('audit')}
+              className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'audit'
+                  ? 'bg-[#1E3A8A] text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+              }`}
+            >
+              <History className={`w-3.5 h-3.5 ${activeTab === 'audit' ? 'text-white' : 'text-slate-500'}`} />
+              <span>Audit Trail</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigateToTab('architecture')}
+              className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'architecture'
+                  ? 'bg-[#1E3A8A] text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+              }`}
+            >
+              <BookOpen className={`w-3.5 h-3.5 ${activeTab === 'architecture' ? 'text-white' : 'text-slate-500'}`} />
+              <span>GA #8 Specs</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigateToTab('settings')}
+              className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'settings'
+                  ? 'bg-[#1E3A8A] text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+              }`}
+            >
+              <Settings className={`w-3.5 h-3.5 ${activeTab === 'settings' ? 'text-white' : 'text-slate-500'}`} />
+              <span>Settings & BAA</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 2. TABLET & COMPACT DESKTOP VIEWPORT (sm to lg: 640px - 1023px) - Segmented with Popover (Zero Scroll) */}
+        <div className="hidden sm:flex lg:hidden items-center justify-between gap-2.5 w-full">
+          {/* Left: Primary Action + Core Clinical Tabs */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedNoteForEdit(null);
+                setSelectedClientForNote(null);
+                navigateToTab('new_note');
+              }}
+              className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer shadow-2xs active:scale-95 ${
+                activeTab === 'new_note'
+                  ? 'bg-[#0F766E] text-white shadow-sm'
+                  : 'text-[#0F766E] hover:text-white hover:bg-[#0F766E] border border-teal-200 bg-teal-50/70'
+              }`}
+            >
+              <Plus className="w-4 h-4 shrink-0 stroke-[2.5]" />
+              <span>Log Note</span>
+            </button>
+
+            <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-full border border-slate-200/90">
+              <button
+                type="button"
+                onClick={() => navigateToTab('clients')}
+                className={`min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'clients'
+                    ? 'bg-[#1E3A8A] text-white shadow-sm'
+                    : 'text-slate-700 hover:bg-white/60'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Roster</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigateToTab('notes')}
+                className={`min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'notes'
+                    ? 'bg-[#1E3A8A] text-white shadow-sm'
+                    : 'text-slate-700 hover:bg-white/60'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Notes</span>
+                {notes.length > 0 && (
+                  <span
+                    className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                      activeTab === 'notes' ? 'bg-blue-800 text-white' : 'bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {notes.length}
+                  </span>
+                )}
+              </button>
+
+              {canApproveNotes && (
+                <button
+                  type="button"
+                  onClick={() => navigateToTab('supervisor')}
+                  className={`min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === 'supervisor'
+                      ? 'bg-[#1E3A8A] text-white shadow-sm'
+                      : 'text-slate-700 hover:bg-white/60'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>QA</span>
+                  {pendingNotesCount > 0 && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold bg-amber-100 text-[#D97706]">
+                      {pendingNotesCount}
+                    </span>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Symmetrical "More Modules" Dropdown Popover */}
+          <div className="relative inline-flex items-center shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+              className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
+                ['audit', 'architecture', 'settings'].includes(activeTab)
+                  ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-sm'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90'
+              }`}
+            >
+              <Grid className="w-3.5 h-3.5" />
+              <span>
+                {activeTab === 'audit'
+                  ? 'Audit Trail'
+                  : activeTab === 'architecture'
+                  ? 'GA #8 Specs'
+                  : activeTab === 'settings'
+                  ? 'Settings & BAA'
+                  : 'More Modules'}
+              </span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isMoreMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isMoreMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-50 bg-slate-900/20 backdrop-blur-sm"
+                  onClick={() => setIsMoreMenuOpen(false)}
+                />
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  className="absolute right-0 top-full mt-2 w-72 p-2 bg-white rounded-2xl shadow-2xl border border-slate-200/90 z-[60] animate-in fade-in zoom-in-95 duration-100 space-y-1"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigateToTab('audit');
+                      setIsMoreMenuOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between text-xs font-bold transition-colors cursor-pointer ${
+                      activeTab === 'audit' ? 'bg-blue-50 text-[#1E3A8A]' : 'hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <History className="w-4 h-4 text-[#0F766E]" />
+                      <div>
+                        <span>HIPAA Audit Trail</span>
+                        <span className="text-[10px] text-slate-500 font-normal block">Immutable SHA-256 logs</span>
+                      </div>
+                    </div>
+                    {activeTab === 'audit' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigateToTab('architecture');
+                      setIsMoreMenuOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between text-xs font-bold transition-colors cursor-pointer ${
+                      activeTab === 'architecture' ? 'bg-blue-50 text-[#1E3A8A]' : 'hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-[#0F766E]" />
+                      <div>
+                        <span>GA #8 Architecture & Specs</span>
+                        <span className="text-[10px] text-slate-500 font-normal block">White papers & standards</span>
+                      </div>
+                    </div>
+                    {activeTab === 'architecture' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigateToTab('settings');
+                      setIsMoreMenuOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between text-xs font-bold transition-colors cursor-pointer ${
+                      activeTab === 'settings' ? 'bg-blue-50 text-[#1E3A8A]' : 'hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Settings className="w-4 h-4 text-[#0F766E]" />
+                      <div>
+                        <span>Settings & BAA</span>
+                        <span className="text-[10px] text-slate-500 font-normal block">Storage, Supabase & keys</span>
+                      </div>
+                    </div>
+                    {activeTab === 'settings' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* 3. MOBILE FIELD VIEWPORT (< sm: under 640px) - Zero-Scroll Dual-Level Navigation */}
+        <div className="sm:hidden flex flex-col gap-2 w-full">
+          {/* Row 1: Active Module Pill & Log Interaction Primary Action */}
+          <div className="flex items-center justify-between gap-2 w-full">
+            {/* Active Module Indicator & Quick-Switcher Pill (min-h-[44px]) */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="min-h-[44px] flex-1 min-w-0 flex items-center justify-between gap-2 px-3 py-2 bg-white hover:bg-slate-50 active:scale-98 border border-slate-200/90 rounded-2xl shadow-2xs text-left cursor-pointer transition-all"
+              title="Tap to view all workspace modules"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-xl bg-blue-50 text-[#1E3A8A] flex items-center justify-center shrink-0 border border-blue-100">
+                  <CurrentIcon className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider leading-none">
+                    Active View
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-xs font-bold text-[#1E3A8A] truncate">
+                      {currentActiveItem.label}
+                    </span>
+                    {currentActiveItem.badge !== null && currentActiveItem.badge !== undefined && (
+                      <span
+                        className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                          currentActiveItem.badgeAlert ? 'bg-amber-100 text-[#D97706]' : 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {currentActiveItem.badge}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+            </button>
+
+            {/* Primary Action Button: + Log Note */}
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedNoteForEdit(null);
+                setSelectedClientForNote(null);
+                navigateToTab('new_note');
+              }}
+              className={`min-h-[44px] px-3.5 py-2 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs shrink-0 cursor-pointer active:scale-95 ${
+                activeTab === 'new_note'
+                  ? 'bg-[#0F766E] text-white shadow-sm ring-2 ring-teal-600/30'
+                  : 'bg-[#0F766E] hover:bg-teal-800 text-white'
+              }`}
+              title="Create new Medi-Cal encounter note"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span className="whitespace-nowrap">Log Note</span>
+            </button>
+          </div>
+
+          {/* Row 2: Symmetrical 4-Column Segmented Quick-Switch Rail (100% Width, Zero Scroll) */}
+          <div className="grid grid-cols-4 gap-1.5 w-full">
+            <button
+              type="button"
+              onClick={() => navigateToTab('clients')}
+              className={`min-h-[44px] flex flex-col items-center justify-center p-1.5 rounded-xl border text-center transition-all cursor-pointer ${
+                activeTab === 'clients'
+                  ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-2xs font-bold'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90 font-medium'
+              }`}
+            >
+              <Users className={`w-4 h-4 mb-0.5 ${activeTab === 'clients' ? 'text-white' : 'text-slate-500'}`} />
+              <span className="text-[10px] leading-tight truncate">Roster</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigateToTab('notes')}
+              className={`min-h-[44px] flex flex-col items-center justify-center p-1.5 rounded-xl border text-center transition-all relative cursor-pointer ${
+                activeTab === 'notes'
+                  ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-2xs font-bold'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90 font-medium'
+              }`}
+            >
+              <div className="relative flex items-center justify-center">
+                <FileText className={`w-4 h-4 mb-0.5 ${activeTab === 'notes' ? 'text-white' : 'text-slate-500'}`} />
+                {notes.length > 0 && (
+                  <span className="absolute -top-1 -right-2 text-[8px] font-mono px-1 rounded-full bg-[#0F766E] text-white font-bold">
+                    {notes.length}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] leading-tight truncate">Notes</span>
+            </button>
+
+            {canApproveNotes ? (
+              <button
+                type="button"
+                onClick={() => navigateToTab('supervisor')}
+                className={`min-h-[44px] flex flex-col items-center justify-center p-1.5 rounded-xl border text-center transition-all relative cursor-pointer ${
+                  activeTab === 'supervisor'
+                    ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-2xs font-bold'
+                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90 font-medium'
+                }`}
+              >
+                <div className="relative flex items-center justify-center">
+                  <ShieldCheck className={`w-4 h-4 mb-0.5 ${activeTab === 'supervisor' ? 'text-white' : 'text-slate-500'}`} />
+                  {pendingNotesCount > 0 && (
+                    <span className="absolute -top-1 -right-2 text-[8px] font-mono px-1 rounded-full bg-[#D97706] text-white font-bold animate-pulse">
+                      {pendingNotesCount}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] leading-tight truncate">QA</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigateToTab('audit')}
+                className={`min-h-[44px] flex flex-col items-center justify-center p-1.5 rounded-xl border text-center transition-all cursor-pointer ${
+                  activeTab === 'audit'
+                    ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-2xs font-bold'
+                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90 font-medium'
+                }`}
+              >
+                <History className={`w-4 h-4 mb-0.5 ${activeTab === 'audit' ? 'text-white' : 'text-slate-500'}`} />
+                <span className="text-[10px] leading-tight truncate">Audit</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className={`min-h-[44px] flex flex-col items-center justify-center p-1.5 rounded-xl border text-center transition-all cursor-pointer ${
+                ['audit', 'architecture', 'settings'].includes(activeTab)
+                  ? 'bg-[#0F766E] text-white border-teal-700 shadow-2xs font-bold'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90 font-medium'
+              }`}
+            >
+              <Grid className={`w-4 h-4 mb-0.5 ${['audit', 'architecture', 'settings'].includes(activeTab) ? 'text-white' : 'text-slate-500'}`} />
+              <span className="text-[10px] leading-tight truncate">More</span>
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -587,7 +985,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
                   setSelectedClientForNote(null);
                   navigateToTab('new_note');
                 }}
-                className="min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-xl text-xs font-bold shadow-sm shrink-0 cursor-pointer transition-colors"
+                className="min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-full text-xs font-bold shadow-sm shrink-0 cursor-pointer transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 <span>New Note</span>
@@ -688,7 +1086,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedNoteForExport(note)}
-                      className="min-h-[44px] flex-1 xs:flex-none px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
+                      className="min-h-[44px] flex-1 xs:flex-none px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-full border border-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
                     >
                       <Download className="w-4 h-4 text-[#0F766E]" />
                       <span>PDF Export</span>
@@ -696,7 +1094,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleEditNote(note)}
-                      className="min-h-[44px] flex-1 xs:flex-none px-4 py-2 bg-teal-50 hover:bg-[#0F766E] text-[#0F766E] hover:text-white rounded-xl text-xs font-bold transition-all border border-teal-200 text-center flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="min-h-[44px] flex-1 xs:flex-none px-4 py-2 bg-teal-50 hover:bg-[#0F766E] text-[#0F766E] hover:text-white rounded-full text-xs font-bold transition-all border border-teal-200 text-center flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Edit3 className="w-4 h-4" />
                       <span>Edit Note</span>
@@ -939,7 +1337,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
         <div
           role="dialog"
           aria-modal="true"
-          className="md:hidden fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/50 backdrop-blur-xs transition-opacity"
+          className="md:hidden fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/20 backdrop-blur-sm transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div

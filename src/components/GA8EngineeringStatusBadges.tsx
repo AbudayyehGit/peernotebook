@@ -134,7 +134,7 @@ export const GA8EngineeringStatusBadges: React.FC = () => {
 
       {/* Observability Detail Modal */}
       {selectedBadge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/20 backdrop-blur-sm transition-opacity overflow-y-auto">
           <div className="bg-white border border-slate-200/90 rounded-2xl max-w-lg w-full max-w-[calc(100vw-1.5rem)] p-5 sm:p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto my-auto space-y-3">
             <button
               onClick={() => setSelectedBadge(null)}
@@ -177,7 +177,7 @@ export const GA8EngineeringStatusBadges: React.FC = () => {
 
               <button
                 onClick={() => setSelectedBadge(null)}
-                className="min-h-[44px] px-5 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                className="min-h-[44px] px-6 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs font-bold transition-colors cursor-pointer shadow-sm"
               >
                 Close
               </button>

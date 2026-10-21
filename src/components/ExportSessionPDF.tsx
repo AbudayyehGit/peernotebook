@@ -60,8 +60,8 @@ export const ExportSessionPDF: React.FC<ExportSessionPDFProps> = ({ note, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full max-w-[calc(100vw-1.5rem)] p-4 sm:p-6 shadow-2xl relative max-h-[92vh] flex flex-col my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-900/20 backdrop-blur-sm transition-opacity overflow-y-auto">
+      <div className="bg-white border border-slate-200/90 rounded-2xl max-w-3xl w-full max-w-[calc(100vw-1.5rem)] p-4 sm:p-6 shadow-2xl relative max-h-[92vh] flex flex-col my-auto">
         {/* Controls Bar (Hidden during print) */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 sm:pb-4 border-b border-slate-200 print:hidden shrink-0 gap-2.5">
           <div className="flex items-center gap-2">
@@ -72,21 +72,21 @@ export const ExportSessionPDF: React.FC<ExportSessionPDFProps> = ({ note, onClos
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
             <button
               onClick={handleDownloadJSON}
-              className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-300 transition-colors cursor-pointer"
+              className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-bold border border-slate-300 transition-colors cursor-pointer"
             >
               <Download className="w-4 h-4 text-[#D97706]" />
               <span>Export JSON</span>
             </button>
             <button
               onClick={handlePrint}
-              className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-5 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-5 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-full text-xs font-bold shadow-xs transition-colors cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>Print / Save PDF</span>
             </button>
             <button
               onClick={onClose}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>

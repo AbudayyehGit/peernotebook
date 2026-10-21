@@ -128,7 +128,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
               href="https://www.peernotebook.com/docs"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full md:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-xl text-xs font-bold shadow-sm transition-colors shrink-0"
+              className="w-full md:w-auto min-h-[44px] flex items-center justify-center gap-2 px-6 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs font-bold shadow-sm transition-colors shrink-0"
             >
               <span>Visit peernotebook.com/docs</span>
               <ExternalLink className="w-4 h-4" />
@@ -141,23 +141,23 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">
             System Status:
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
             <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
             Build: passing
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-[#1E3A8A] border border-blue-200">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-[#1E3A8A] border border-blue-200">
             <Code2 className="w-3.5 h-3.5 text-[#1E3A8A]" />
             TypeScript: strict
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
             <Database className="w-3.5 h-3.5 text-[#16A34A]" />
             Persistence: Dexie.js + Supabase
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-teal-50 text-[#0F766E] border border-teal-200">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-50 text-[#0F766E] border border-teal-200">
             <ShieldCheck className="w-3.5 h-3.5 text-[#0F766E]" />
             CalAIM & Medi-Cal H0038
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-[#16A34A] border border-emerald-200">
             <Lock className="w-3.5 h-3.5 text-[#16A34A]" />
             HIPAA BAA Active
           </span>
@@ -165,11 +165,11 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
       </div>
 
       {/* Mobile Mode Switcher (< lg) */}
-      <div className="lg:hidden flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200">
+      <div className="lg:hidden flex items-center p-1 bg-slate-100 rounded-2xl border border-slate-200">
         <button
           type="button"
           onClick={() => setMobileViewMode('index')}
-          className={`flex-1 min-h-[42px] py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+          className={`flex-1 min-h-[44px] py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             mobileViewMode === 'index'
               ? 'bg-white text-[#1E3A8A] shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
@@ -180,7 +180,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
         <button
           type="button"
           onClick={() => setMobileViewMode('reader')}
-          className={`flex-1 min-h-[42px] py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+          className={`flex-1 min-h-[44px] py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             mobileViewMode === 'reader'
               ? 'bg-[#0F766E] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
@@ -316,7 +316,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
                 <button
                   type="button"
                   onClick={() => handleCopyUrl(selectedArticle.canonicalUrl)}
-                  className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-colors border border-slate-300 shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
+                  className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-full text-xs font-bold transition-colors border border-slate-300 shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
                   title="Copy Canonical Production URL"
                 >
                   {copiedUrl ? (
@@ -335,7 +335,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
                 <button
                   type="button"
                   onClick={() => handleDownloadMarkdown(selectedArticle)}
-                  className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-colors border border-slate-300 shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
+                  className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-full text-xs font-bold transition-colors border border-slate-300 shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
                   title="Download Markdown Spec"
                 >
                   <Download className="w-4 h-4 text-slate-500" />

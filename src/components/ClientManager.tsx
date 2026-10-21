@@ -269,7 +269,7 @@ export const ClientManager: React.FC<ClientManagerProps> = ({ onSelectClientForN
 
       {/* Intake Modal with 44px tap targets */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/20 backdrop-blur-sm transition-opacity overflow-y-auto">
           <div className="bg-white border border-slate-200/90 rounded-2xl max-w-lg w-full max-w-[calc(100vw-1.5rem)] p-5 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto my-auto">
             <button
               type="button"
@@ -442,14 +442,14 @@ export const ClientManager: React.FC<ClientManagerProps> = ({ onSelectClientForN
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="w-full xs:w-auto min-h-[44px] px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                  className="w-full xs:w-auto min-h-[44px] px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-bold transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!consentConfirmed}
-                  className="w-full xs:w-auto min-h-[44px] px-5 py-2.5 bg-[#0F766E] hover:bg-teal-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                  className="w-full xs:w-auto min-h-[44px] px-5 py-2.5 bg-[#0F766E] hover:bg-teal-800 disabled:opacity-50 text-white rounded-full text-xs font-bold shadow-sm transition-colors cursor-pointer"
                 >
                   Create CalAIM Intake
                 </button>

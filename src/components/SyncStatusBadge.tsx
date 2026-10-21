@@ -1,12 +1,13 @@
 /**
  * Peer Notebook - Real-time Offline & Dual-Layer Sync Status Indicator
  * GA #8 Production Standards • Mobile-Responsive Tap Targets (44px min-h)
- * Explicit High Z-Index (z-50) Stack with Backdrop Overlay (bg-slate-900/20 backdrop-blur-sm)
+ * Explicit High Z-Index (z-50+) Stack with Backdrop Overlay (bg-slate-900/20 backdrop-blur-sm)
+ * Structured Flexbox & Responsive Typography to Prevent Header & Brand Title Overlap
  */
 
 import React, { useState, useEffect } from 'react';
 import { syncWorker, SyncStatusInfo } from '../services/syncWorker';
-import { Cloud, CloudOff, RefreshCw, Database, X } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw, Database, X, CheckCircle2 } from 'lucide-react';
 
 export const SyncStatusBadge: React.FC = () => {
   const [syncInfo, setSyncInfo] = useState<SyncStatusInfo>(syncWorker.getStatus());
@@ -29,19 +30,22 @@ export const SyncStatusBadge: React.FC = () => {
 
   return (
     <div className="relative inline-flex items-center shrink-0">
-      <div
+      {/* Symmetrical Sync Status Pill (Min 44px height for touch-first ergonomics) */}
+      <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`min-h-[44px] flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs font-semibold border transition-all shadow-2xs cursor-pointer shrink-0 ${
+        className={`min-h-[44px] flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs font-semibold border transition-all shadow-2xs cursor-pointer shrink-0 active:scale-95 ${
           isOnline
             ? syncInfo.pendingCount > 0
-              ? 'bg-amber-50 border-amber-300 text-[#D97706]'
-              : 'bg-emerald-50 border-emerald-300 text-[#16A34A]'
-            : 'bg-rose-50 border-rose-300 text-rose-700'
+              ? 'bg-amber-50 border-amber-300 text-[#D97706] hover:bg-amber-100/80'
+              : 'bg-emerald-50 border-emerald-300 text-[#16A34A] hover:bg-emerald-100/80'
+            : 'bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100/80'
         }`}
-        title="Dual-layer Dexie.js + Supabase persistence status"
+        title="Dual-layer Dexie.js + Supabase persistence status (click for details)"
       >
         {isOnline ? (
           <>
+            {/* Live status pulse dot */}
             <span className="relative flex h-2.5 w-2.5 shrink-0">
               <span
                 className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
@@ -54,38 +58,41 @@ export const SyncStatusBadge: React.FC = () => {
                 }`}
               />
             </span>
+
+            {/* Cloud Icon */}
             <Cloud className="w-4 h-4 shrink-0" />
-            
-            {/* Desktop label */}
-            <span className="hidden md:inline whitespace-nowrap">
-              {isSyncing
-                ? 'Syncing to Supabase...'
-                : syncInfo.pendingCount > 0
-                ? `${syncInfo.pendingCount} Queued in Dexie`
-                : 'Dexie.js + Supabase Synced'}
-            </span>
 
-            {/* Tablet label */}
-            <span className="hidden sm:inline md:hidden whitespace-nowrap font-medium">
-              {isSyncing
-                ? 'Syncing'
-                : syncInfo.pendingCount > 0
-                ? `${syncInfo.pendingCount} Queued`
-                : 'Synced'}
+            {/* Standardized Responsive Label: compact on mobile (<sm) to prevent any title overlap */}
+            <span className="text-xs font-semibold whitespace-nowrap">
+              {isSyncing ? (
+                <>
+                  <span className="xs:hidden">Syncing</span>
+                  <span className="hidden xs:inline sm:hidden">Syncing...</span>
+                  <span className="hidden sm:inline">Syncing to Supabase...</span>
+                </>
+              ) : syncInfo.pendingCount > 0 ? (
+                <>
+                  <span className="xs:hidden">{syncInfo.pendingCount}Q</span>
+                  <span className="hidden xs:inline sm:hidden">{syncInfo.pendingCount} Queued</span>
+                  <span className="hidden sm:inline">{syncInfo.pendingCount} Queued in Dexie</span>
+                </>
+              ) : (
+                <>
+                  <span className="hidden xs:inline sm:hidden">Synced</span>
+                  <span className="hidden sm:inline md:hidden">Dexie + Cloud</span>
+                  <span className="hidden md:inline">Dexie.js + Supabase Synced</span>
+                </>
+              )}
             </span>
-
-            {/* Mobile queue badge */}
-            {syncInfo.pendingCount > 0 && (
-              <span className="sm:hidden font-mono font-bold text-[10px] bg-amber-100 text-[#D97706] px-1.5 py-0.5 rounded-md">
-                {syncInfo.pendingCount}
-              </span>
-            )}
           </>
         ) : (
           <>
             <CloudOff className="w-4 h-4 text-rose-600 shrink-0" />
-            <span className="hidden sm:inline whitespace-nowrap">Offline (Dexie.js)</span>
-            <span className="sm:hidden text-[10px] font-bold">Offline</span>
+            <span className="text-xs font-semibold whitespace-nowrap">
+              <span className="xs:hidden">Off</span>
+              <span className="hidden xs:inline sm:hidden">Offline</span>
+              <span className="hidden sm:inline">Offline (Dexie.js)</span>
+            </span>
             {syncInfo.pendingCount > 0 && (
               <span className="bg-amber-100 text-[#D97706] px-1.5 py-0.5 rounded-md text-[10px] font-bold border border-amber-200">
                 {syncInfo.pendingCount}
@@ -94,31 +101,41 @@ export const SyncStatusBadge: React.FC = () => {
           </>
         )}
 
-        <button
-          type="button"
+        {/* Dedicated Quick Refresh Icon Button on sm+ screens */}
+        <span
+          role="button"
+          tabIndex={0}
           onClick={handleManualSync}
-          disabled={isSyncing}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleManualSync(e as unknown as React.MouseEvent);
+            }
+          }}
           title="Force Sync with Cloud Store"
-          className="min-h-[40px] min-w-[40px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center p-1.5 hover:bg-black/5 rounded-full transition-transform active:scale-90 disabled:opacity-50 cursor-pointer"
+          className="hidden sm:flex min-h-[32px] min-w-[32px] items-center justify-center p-1 hover:bg-black/10 rounded-full transition-transform active:scale-90 cursor-pointer"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-        </button>
-      </div>
+        </span>
+      </button>
 
-      {/* Sync Details Popover with Explicit High Z-Index & Backdrop Overlay */}
+      {/* Sync Details Popover with Explicit High Z-Index Stack & Crisp Backdrop Overlay */}
       {isOpen && (
         <>
+          {/* Crisp Backdrop Overlay (z-50) */}
           <div
-            className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 z-50 bg-slate-900/20 backdrop-blur-sm transition-opacity"
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);
             }}
           />
+
+          {/* Popover Modal Container (z-[60]): Safely below top header on mobile (top-20) to prevent overlap */}
           <div
             role="dialog"
             aria-modal="true"
-            className="fixed inset-x-3 top-16 sm:inset-auto sm:absolute sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-80 max-w-[calc(100vw-1.5rem)] p-4 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200/90 text-xs z-50 animate-in fade-in zoom-in-95 duration-100"
+            className="fixed inset-x-3 top-20 sm:top-auto sm:inset-auto sm:absolute sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-80 max-w-[calc(100vw-1.5rem)] p-4 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200/90 text-xs z-[60] animate-in fade-in zoom-in-95 duration-100"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
@@ -138,9 +155,11 @@ export const SyncStatusBadge: React.FC = () => {
                 <X className="w-4 h-4" />
               </button>
             </div>
+
             <p className="text-slate-600 leading-relaxed text-[11px] sm:text-xs">
               Encrypted client-side storage via Dexie.js (IndexedDB) with resilient background synchronization to PostgreSQL/Supabase under multi-tenant Row-Level Security (RLS).
             </p>
+
             <div className="mt-3 pt-2.5 border-t border-slate-100 text-[11px] text-slate-600 space-y-1.5">
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Target Store:</span>
@@ -148,7 +167,10 @@ export const SyncStatusBadge: React.FC = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Sync Success Rate:</span>
-                <span className="font-mono font-bold text-[#16A34A]">{syncInfo.successRate}%</span>
+                <span className="font-mono font-bold text-[#16A34A] flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-[#16A34A]" />
+                  {syncInfo.successRate}%
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Last Cloud Push:</span>
@@ -159,15 +181,16 @@ export const SyncStatusBadge: React.FC = () => {
                 <span className="font-mono font-bold text-[#D97706]">{syncInfo.pendingCount} records</span>
               </div>
             </div>
+
             <div className="mt-3 pt-2 border-t border-slate-100 flex justify-end">
               <button
                 type="button"
                 onClick={handleManualSync}
                 disabled={isSyncing}
-                className="w-full py-2 bg-[#0F766E] hover:bg-teal-800 text-white font-bold rounded-xl text-xs transition-colors shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="w-full min-h-[44px] py-2 bg-[#0F766E] hover:bg-teal-800 text-white font-bold rounded-xl text-xs transition-colors shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span>{isSyncing ? 'Syncing...' : 'Force Sync Now'}</span>
+                <span>{isSyncing ? 'Syncing to Supabase...' : 'Force Sync with Supabase'}</span>
               </button>
             </div>
           </div>

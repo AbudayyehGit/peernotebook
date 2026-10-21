@@ -112,7 +112,7 @@ export class FieldErrorBoundary extends Component<Props, State> {
               <button
                 type="button"
                 onClick={this.handleReload}
-                className="flex-1 min-h-[46px] px-5 py-2.5 bg-[#0F766E] hover:bg-teal-800 active:bg-teal-900 text-white rounded-xl text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="flex-1 min-h-[46px] px-5 py-2.5 bg-[#0F766E] hover:bg-teal-800 active:bg-teal-900 text-white rounded-full text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
               >
                 <RefreshCw className="w-4 h-4" />
                 <span>Reload Application</span>
@@ -122,7 +122,7 @@ export class FieldErrorBoundary extends Component<Props, State> {
                 type="button"
                 onClick={this.handleEmergencyExport}
                 disabled={this.state.downloadingBackup}
-                className="min-h-[46px] px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="min-h-[46px] px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-full text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
               >
                 <Download className="w-4 h-4 text-[#D97706]" />
                 <span>{this.state.downloadingBackup ? 'Exporting...' : 'Emergency Backup'}</span>

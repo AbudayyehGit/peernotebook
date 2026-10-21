@@ -330,7 +330,7 @@ export const SupervisorDashboard: React.FC = () => {
 
       {/* Supervisor Review Modal with 44px tap targets */}
       {selectedNote && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/20 backdrop-blur-sm transition-opacity overflow-y-auto">
           <div className="bg-white border border-slate-200/90 rounded-2xl max-w-xl w-full max-w-[calc(100vw-1.5rem)] p-5 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-4 my-auto">
             <button
               type="button"
@@ -400,14 +400,14 @@ export const SupervisorDashboard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleRequestRevision(selectedNote)}
-                className="w-full xs:w-auto min-h-[44px] px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold border border-rose-300 text-center transition-colors cursor-pointer"
+                className="w-full xs:w-auto min-h-[44px] px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-full text-xs font-bold border border-rose-300 text-center transition-colors cursor-pointer"
               >
                 Request Revision
               </button>
               <button
                 type="button"
                 onClick={() => handleApprove(selectedNote)}
-                className="w-full xs:w-auto min-h-[44px] px-6 py-2.5 bg-[#16A34A] hover:bg-green-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                className="w-full xs:w-auto min-h-[44px] px-6 py-2.5 bg-[#16A34A] hover:bg-green-700 text-white rounded-full text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>Cosign & Approve for Claiming</span>
