@@ -105,7 +105,7 @@ export const GA8EngineeringStatusBadges: React.FC = () => {
               <button
                 key={badge.id}
                 onClick={() => setSelectedBadge(badge)}
-                className={`flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md border text-[10px] sm:text-xs font-medium transition-all hover:shadow-xs shrink-0 whitespace-nowrap ${badge.badgeColorClass} ${badge.textColorClass}`}
+                className={`min-h-[36px] sm:min-h-[44px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold transition-all hover:shadow-xs shrink-0 whitespace-nowrap cursor-pointer ${badge.badgeColorClass} ${badge.textColorClass}`}
                 title={`${badge.name}: Click to view GA #8 specification & verification`}
               >
                 {badge.icon}
@@ -135,19 +135,19 @@ export const GA8EngineeringStatusBadges: React.FC = () => {
       {/* Observability Detail Modal */}
       {selectedBadge && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full max-w-[calc(100vw-1.5rem)] p-4 sm:p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto my-auto">
+          <div className="bg-white border border-slate-200/90 rounded-2xl max-w-lg w-full max-w-[calc(100vw-1.5rem)] p-5 sm:p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto my-auto space-y-3">
             <button
               onClick={() => setSelectedBadge(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 border border-slate-200 shrink-0">
+            <div className="flex items-center gap-3 mb-3 pr-8">
+              <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 shrink-0">
                 {selectedBadge.icon}
               </div>
-              <div className="min-w-0 pr-6">
+              <div className="min-w-0">
                 <span className="text-xs font-semibold text-[#0F766E] uppercase tracking-wide truncate block">
                   {selectedBadge.category} • {selectedBadge.id}
                 </span>
@@ -155,7 +155,7 @@ export const GA8EngineeringStatusBadges: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-2.5 sm:p-3 bg-slate-50 rounded-xl border border-slate-200 my-3 sm:my-4 text-xs font-mono text-slate-700 break-all">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono text-slate-700 break-all font-semibold">
               {selectedBadge.label}
             </div>
 
@@ -163,21 +163,21 @@ export const GA8EngineeringStatusBadges: React.FC = () => {
               {selectedBadge.summary}
             </p>
 
-            <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+            <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <a
                 href={selectedBadge.docUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-[#0F766E] font-medium hover:underline flex items-center gap-1 justify-center sm:justify-start"
+                className="min-h-[44px] text-xs text-[#0F766E] font-semibold hover:underline flex items-center gap-1.5 justify-center sm:justify-start"
               >
-                <FileText className="w-3.5 h-3.5" />
+                <FileText className="w-4 h-4" />
                 <span>Read White Paper on peernotebook.com</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
 
               <button
                 onClick={() => setSelectedBadge(null)}
-                className="px-4 py-2 bg-[#1E3A8A] hover:bg-blue-950 text-white rounded-lg text-xs font-medium transition-colors"
+                className="min-h-[44px] px-5 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
                 Close
               </button>

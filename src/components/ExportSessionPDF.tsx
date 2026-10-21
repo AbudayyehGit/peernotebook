@@ -69,24 +69,24 @@ export const ExportSessionPDF: React.FC<ExportSessionPDFProps> = ({ note, onClos
             <h3 className="font-bold text-[#1E3A8A] text-sm sm:text-base">Medi-Cal / CalAIM Encounter Record</h3>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-end">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
             <button
               onClick={handleDownloadJSON}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold border border-slate-300 transition-colors"
+              className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-300 transition-colors cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-4 h-4 text-[#D97706]" />
               <span>Export JSON</span>
             </button>
             <button
               onClick={handlePrint}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-1.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+              className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-5 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer className="w-4 h-4" />
               <span>Print / Save PDF</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 ml-1"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
