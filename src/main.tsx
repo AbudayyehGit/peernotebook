@@ -10,7 +10,7 @@ createRoot(document.getElementById('root')!).render(
 );
 
 // Register Progressive Web App (PWA) Service Worker for offline field resilience
-if ('serviceWorker' in navigator && (import.meta.env.PROD || window.location.hostname === 'peernotebook.com')) {
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js')

@@ -15,6 +15,7 @@ import { SupervisorDashboard } from './SupervisorDashboard';
 import { SettingsPanel } from './SettingsPanel';
 import { ExportSessionPDF } from './ExportSessionPDF';
 import { DocumentationViewer } from './DocumentationViewer';
+import { GoalPathTracker } from './GoalPathTracker';
 import { syncWorker, SyncStatusInfo } from '../services/syncWorker';
 import {
   Users,
@@ -44,10 +45,11 @@ import {
   Cloud,
   RefreshCw,
   SlidersHorizontal,
-  FolderOpen
+  FolderOpen,
+  Target
 } from 'lucide-react';
 
-export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'supervisor' | 'audit' | 'architecture' | 'settings';
+export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'supervisor' | 'audit' | 'architecture' | 'settings';
 
 export const PeerNotebookWorkspace: React.FC = () => {
   const { currentOrg, currentUser, canApproveNotes } = useAuth();
@@ -64,6 +66,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
     }
     if (path.startsWith('/clients')) return { tab: 'clients' };
     if (path.startsWith('/notes')) return { tab: 'notes' };
+    if (path.startsWith('/goalpath')) return { tab: 'goalpath' };
     if (path.startsWith('/new-note') || path.startsWith('/new_note')) return { tab: 'new_note' };
     if (path.startsWith('/supervisor')) return { tab: 'supervisor' };
     if (path.startsWith('/audit')) return { tab: 'audit' };
@@ -73,7 +76,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
     try {
       const searchParams = new URLSearchParams(window.location.search);
       const tabParam = searchParams.get('tab') as WorkspaceTab;
-      if (tabParam && ['clients', 'notes', 'new_note', 'supervisor', 'audit', 'architecture', 'settings'].includes(tabParam)) {
+      if (tabParam && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings'].includes(tabParam)) {
         return { tab: tabParam };
       }
     } catch {
@@ -84,10 +87,11 @@ export const PeerNotebookWorkspace: React.FC = () => {
     try {
       const hash = window.location.hash.replace('#/', '').replace('#', '').toLowerCase();
       if (hash.startsWith('docs')) return { tab: 'architecture' };
-      if (['clients', 'notes', 'new_note', 'supervisor', 'audit', 'settings'].includes(hash)) {
+      if (['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'settings'].includes(hash)) {
         return { tab: hash as WorkspaceTab };
       }
       if (hash === 'new-note') return { tab: 'new_note' };
+      if (hash === 'goal-path' || hash === 'wellness') return { tab: 'goalpath' };
     } catch {
       // ignore
     }
@@ -95,7 +99,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
     // Fallback to persisted tab from last active session
     try {
       const saved = localStorage.getItem('peernotebook_active_tab') as WorkspaceTab;
-      if (saved && ['clients', 'notes', 'new_note', 'supervisor', 'audit', 'architecture', 'settings'].includes(saved)) {
+      if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings'].includes(saved)) {
         return { tab: saved };
       }
     } catch {
@@ -117,6 +121,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [notesSearch, setNotesSearch] = useState('');
   const [notesFilter, setNotesFilter] = useState('ALL');
+  const [selectedDomainFilter, setSelectedDomainFilter] = useState<string | null>(null);
 
   // Mobile Bottom Sheet Drawer & Sync States
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -192,6 +197,8 @@ export const PeerNotebookWorkspace: React.FC = () => {
       path = '/clients';
     } else if (tab === 'notes') {
       path = '/notes';
+    } else if (tab === 'goalpath') {
+      path = '/goalpath';
     } else if (tab === 'new_note') {
       path = '/new-note';
     } else if (tab === 'supervisor') {
@@ -236,12 +243,41 @@ export const PeerNotebookWorkspace: React.FC = () => {
   };
 
   const filteredNotes = notes.filter(n => {
+    const text = (
+      (n.clientName || '') + ' ' +
+      (n.clientIdentifier || '') + ' ' +
+      (n.goalAddressed || '') + ' ' +
+      (n.peerIntervention || '') + ' ' +
+      (n.focusDomains || []).join(' ')
+    ).toLowerCase();
+
     const matchSearch =
       n.clientName.toLowerCase().includes(notesSearch.toLowerCase()) ||
       n.clientIdentifier.toLowerCase().includes(notesSearch.toLowerCase()) ||
-      n.goalAddressed.toLowerCase().includes(notesSearch.toLowerCase());
+      n.goalAddressed.toLowerCase().includes(notesSearch.toLowerCase()) ||
+      text.includes(notesSearch.toLowerCase());
+
     const matchFilter = notesFilter === 'ALL' || n.status === notesFilter;
-    return matchSearch && matchFilter;
+
+    let matchDomain = true;
+    if (selectedDomainFilter) {
+      const df = selectedDomainFilter.toLowerCase();
+      if (df.includes('housing')) {
+        matchDomain = text.includes('housing') || text.includes('shelter') || text.includes('rent') || text.includes('tenancy');
+      } else if (df.includes('social')) {
+        matchDomain = text.includes('social') || text.includes('connection') || text.includes('isolation') || text.includes('mutual aid') || text.includes('community');
+      } else if (df.includes('advocacy')) {
+        matchDomain = text.includes('advocacy') || text.includes('rights') || text.includes('appointment') || text.includes('doctor');
+      } else if (df.includes('employ') || df.includes('educat')) {
+        matchDomain = text.includes('employment') || text.includes('job') || text.includes('education') || text.includes('vocational') || text.includes('resume');
+      } else if (df.includes('routine')) {
+        matchDomain = text.includes('routine') || text.includes('sleep') || text.includes('grounding') || text.includes('somatic') || text.includes('daily');
+      } else {
+        matchDomain = text.includes(df);
+      }
+    }
+
+    return matchSearch && matchFilter && matchDomain;
   });
 
   // KPI Metrics for Shift Posture Hero
@@ -304,6 +340,13 @@ export const PeerNotebookWorkspace: React.FC = () => {
       shortLabel: 'Notes',
       icon: FileText,
       badge: notes.length > 0 ? notes.length : null
+    },
+    {
+      id: 'goalpath' as WorkspaceTab,
+      label: 'GoalPath™ Domains',
+      shortLabel: 'GoalPath',
+      icon: Target,
+      badge: null
     },
     {
       id: 'new_note' as WorkspaceTab,
@@ -420,6 +463,20 @@ export const PeerNotebookWorkspace: React.FC = () => {
                     {notes.length}
                   </span>
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigateToTab('goalpath')}
+                className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'goalpath'
+                    ? 'bg-[#1E3A8A] text-white shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                }`}
+                title="GoalPath Non-Clinical Wellness Domains"
+              >
+                <Target className={`w-3.5 h-3.5 ${activeTab === 'goalpath' ? 'text-white' : 'text-slate-500'}`} />
+                <span>GoalPath™</span>
               </button>
 
               {canApproveNotes && (
@@ -572,14 +629,16 @@ export const PeerNotebookWorkspace: React.FC = () => {
               type="button"
               onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
               className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                ['audit', 'architecture', 'settings'].includes(activeTab)
+                ['goalpath', 'audit', 'architecture', 'settings'].includes(activeTab)
                   ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-sm'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90'
               }`}
             >
               <Grid className="w-3.5 h-3.5" />
               <span>
-                {activeTab === 'audit'
+                {activeTab === 'goalpath'
+                  ? 'GoalPath™'
+                  : activeTab === 'audit'
                   ? 'Audit Trail'
                   : activeTab === 'architecture'
                   ? 'GA #8 Specs'
@@ -601,6 +660,25 @@ export const PeerNotebookWorkspace: React.FC = () => {
                   aria-modal="true"
                   className="absolute right-0 top-full mt-2 w-72 p-2 bg-white rounded-2xl shadow-2xl border border-slate-200/90 z-[60] animate-in fade-in zoom-in-95 duration-100 space-y-1"
                 >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigateToTab('goalpath');
+                      setIsMoreMenuOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between text-xs font-bold transition-colors cursor-pointer ${
+                      activeTab === 'goalpath' ? 'bg-blue-50 text-[#1E3A8A]' : 'hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-[#0F766E]" />
+                      <div>
+                        <span>GoalPath™ Domains</span>
+                        <span className="text-[10px] text-slate-500 font-normal block">Non-clinical wellness metrics</span>
+                      </div>
+                    </div>
+                    {activeTab === 'goalpath' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
@@ -993,6 +1071,57 @@ export const PeerNotebookWorkspace: React.FC = () => {
             </div>
           </div>
 
+          {/* GoalPath Wellness Domain Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
+            <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] shrink-0 mr-1 flex items-center gap-1">
+              <Target className="w-3.5 h-3.5 text-[#0F766E]" /> GoalPath:
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedDomainFilter(null)}
+              className={`min-h-[32px] px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                !selectedDomainFilter
+                  ? 'bg-[#1E3A8A] text-white shadow-2xs'
+                  : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
+              }`}
+            >
+              All Domains
+            </button>
+            {['Housing', 'Social Connection', 'Self-Advocacy', 'Employment / Education', 'Daily Routines'].map((domain) => (
+              <button
+                key={domain}
+                type="button"
+                onClick={() => setSelectedDomainFilter(selectedDomainFilter === domain ? null : domain)}
+                className={`min-h-[32px] px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  selectedDomainFilter === domain
+                    ? 'bg-[#0F766E] text-white shadow-2xs'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                }`}
+              >
+                <span>{domain}</span>
+                {selectedDomainFilter === domain && <Check className="w-3 h-3 text-white" />}
+              </button>
+            ))}
+          </div>
+
+          {selectedDomainFilter && (
+            <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-[#0F766E] font-semibold flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4 text-[#0F766E]" />
+                <span>
+                  Filtering by GoalPath Domain: <strong>{selectedDomainFilter}</strong> ({filteredNotes.length} matching encounter{filteredNotes.length === 1 ? '' : 's'})
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedDomainFilter(null)}
+                className="text-xs text-teal-800 hover:underline font-bold cursor-pointer"
+              >
+                Reset Filter
+              </button>
+            </div>
+          )}
+
           {/* Grid of Notes with Container Cards (#FFFFFF + soft ambient drop shadow) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredNotes.map((note) => (
@@ -1111,6 +1240,22 @@ export const PeerNotebookWorkspace: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {activeTab === 'goalpath' && (
+        <GoalPathTracker
+          notes={notes}
+          selectedDomainFilter={selectedDomainFilter}
+          onSelectDomainFilter={(domain) => {
+            setSelectedDomainFilter(domain);
+            navigateToTab('notes');
+          }}
+          onApplyPromptSnippet={(_snippet) => {
+            setSelectedNoteForEdit(null);
+            setSelectedClientForNote(null);
+            navigateToTab('new_note');
+          }}
+        />
       )}
 
       {activeTab === 'supervisor' && (
@@ -1418,6 +1563,27 @@ export const PeerNotebookWorkspace: React.FC = () => {
                         </span>
                       </div>
                       <span className="text-[11px] text-slate-500">Review, filter, edit, and export Medi-Cal PDFs</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigateToTab('goalpath')}
+                  className={`w-full p-3 rounded-xl border text-left flex items-center justify-between min-h-[48px] transition-all cursor-pointer ${
+                    activeTab === 'goalpath'
+                      ? 'bg-blue-50/80 border-blue-200 text-[#1E3A8A]'
+                      : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-teal-50 text-[#0F766E] border border-teal-200">
+                      <Target className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-xs block">GoalPath™ Recovery Domains</span>
+                      <span className="text-[11px] text-slate-500">Housing, Social Connection, Self-Advocacy & Routines</span>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />

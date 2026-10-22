@@ -167,3 +167,40 @@ In compliance with **Optimum Primers Grade Craftsmanship**:
 1. **Single Source of Truth**: Every architectural decision must be logged in its respective `.md` artifact prior to implementation pull requests.
 2. **Review Cadence**: All documents must undergo quarterly audits by the respective area leads identified in the Stakeholder Matrix.
 3. **Change Control**: Document revisions require semantic version incrementation and timestamped entries in the revision history block of each document.
+
+---
+
+## 08. Standalone Extraction & Direct Vercel Deployment
+
+### Quick Deploy to Vercel (peernotebook.com)
+
+1. **GitHub Repository Sync**:
+   ```bash
+   git init -b master
+   git remote add origin https://github.com/[handle]/peernotebook.git
+   git add .
+   git commit -m "feat: Peer Notebook GA #8 complete repository hardening & deployment bundle"
+   git push -u origin master
+   ```
+
+2. **Vercel Direct Import**:
+   - Go to [Vercel Dashboard](https://vercel.com/new).
+   - Select the `peernotebook` GitHub repository.
+   - Framework Preset: **Vite**.
+   - Build Command: `tsc && vite build` (configured automatically via `package.json`).
+   - Output Directory: `dist`.
+   - Install Command: `npm install --legacy-peer-deps` (configured automatically via `vercel.json`).
+
+3. **Custom Domain Binding**:
+   - In your Vercel Project Settings → **Domains**:
+   - Add `peernotebook.com` (and `www.peernotebook.com`).
+   - Configure DNS records with your registrar:
+     - `A` record: `@` → `76.76.21.21`
+     - `CNAME` record: `www` → `cname.vercel-dns.com`
+   - SSL certificate automatically provisions via Vercel Let's Encrypt.
+
+4. **Environment Variables (Optional Cloud Layer)**:
+   - `VITE_SUPABASE_URL`: Your agency Supabase project URL.
+   - `VITE_SUPABASE_ANON_KEY`: Your agency Supabase public anonymous key.
+   *(Note: Peer Notebook operates 100% offline-first via Dexie.js IndexedDB even without remote environment variables configured).*
+

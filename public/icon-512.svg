@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#1E3A8A"/>
+  <!-- Calming Teal Notebook Cover -->
+  <rect x="112" y="86" width="288" height="340" rx="36" fill="#0F766E"/>
+  <rect x="112" y="86" width="40" height="340" rx="10" fill="#0D5E57"/>
+  <!-- White Notebook Pages Strip -->
+  <line x1="176" y1="150" x2="350" y2="150" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+  <line x1="176" y1="198" x2="350" y2="198" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+  <line x1="176" y1="246" x2="300" y2="246" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+  <!-- Forest Green Trust Seal -->
+  <circle cx="316" cy="320" r="58" fill="#16A34A" stroke="#FFFFFF" stroke-width="8"/>
+  <path d="M292 320 L308 336 L342 302" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

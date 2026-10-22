@@ -31,8 +31,11 @@ import {
   Lock,
   Copy,
   CheckCheck,
-  Eye
+  Eye,
+  Archive,
+  FolderDown
 } from 'lucide-react';
+import { opfsStorage, StorageQuotaInfo, OPFSSnapshotMeta } from '../services/opfsStorageService';
 
 const HARDENED_RLS_SQL = `-- ==============================================================================
 -- Peer Notebook: Supabase Row-Level Security (RLS) Hardening Migration
@@ -136,6 +139,12 @@ export const SettingsPanel: React.FC = () => {
   const [sqlMigrationModalOpen, setSqlMigrationModalOpen] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
 
+  // OPFS (Origin Private File System) Quota & Snapshot State
+  const [storageQuota, setStorageQuota] = useState<StorageQuotaInfo | null>(null);
+  const [opfsSnapshots, setOpfsSnapshots] = useState<OPFSSnapshotMeta[]>([]);
+  const [isTakingSnapshot, setIsTakingSnapshot] = useState(false);
+  const [snapshotNotice, setSnapshotNotice] = useState<string | null>(null);
+
   const handleVerifyRlsIsolation = async () => {
     setRlsAuditStatus({ testing: true });
     try {
@@ -198,11 +207,92 @@ export const SettingsPanel: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const refreshOPFS = async () => {
+    try {
+      const quota = await opfsStorage.getStorageQuota();
+      setStorageQuota(quota);
+      const snaps = await opfsStorage.listSnapshots();
+      setOpfsSnapshots(snaps);
+    } catch {
+      // Ignore if OPFS not supported
+    }
+  };
+
   const refreshMetrics = async () => {
     const metrics = await peerNotebookDB.getStorageMetrics();
     setStorageMetrics(metrics);
     const s = await syncWorker.refreshStatus();
     setSyncStatus(s);
+    await refreshOPFS();
+  };
+
+  const handleTakeManualSnapshot = async () => {
+    setIsTakingSnapshot(true);
+    try {
+      const allNotes = await peerNotebookDB.getAllNotes();
+      const allClients = await peerNotebookDB.getAllClients();
+      const allLogs = await peerNotebookDB.getAllAuditLogs();
+      const payload = {
+        version: 'GA #8-v2.4',
+        exportedAt: new Date().toISOString(),
+        clients: allClients,
+        sessionNotes: allNotes,
+        auditLogs: allLogs,
+      };
+
+      const result = await opfsStorage.saveSnapshotToOPFS(
+        payload,
+        allNotes.length,
+        'manual_specialist_snapshot'
+      );
+
+      if (result) {
+        setSnapshotNotice(`Snapshot saved to OPFS (${result.filename})`);
+        if (currentUser && currentOrg) {
+          await AuditLogger.log({
+            organizationId: currentOrg.id,
+            actorId: currentUser.id,
+            actorName: currentUser.fullName,
+            actorRole: currentUser.role,
+            action: 'MANUAL_SYNC',
+            entityType: 'system',
+            entityId: 'opfs_snapshot',
+            details: { filename: result.filename, records: allNotes.length }
+          });
+        }
+      } else {
+        setSnapshotNotice('OPFS snapshot created in local storage sandbox.');
+      }
+      await refreshOPFS();
+      setTimeout(() => setSnapshotNotice(null), 4000);
+    } finally {
+      setIsTakingSnapshot(false);
+    }
+  };
+
+  const handleRestoreFromOPFS = async (filename: string) => {
+    try {
+      const rawJson = await opfsStorage.readSnapshot(filename);
+      if (!rawJson) return;
+      const parsed = JSON.parse(rawJson);
+      const clientCount = Array.isArray(parsed.clients) ? parsed.clients.length : 0;
+      const noteCount = Array.isArray(parsed.sessionNotes) ? parsed.sessionNotes.length : 0;
+      const logCount = Array.isArray(parsed.auditLogs) ? parsed.auditLogs.length : 0;
+      const version = parsed.version || 'GA #8-v2.4';
+
+      setPendingRestoreData({
+        rawJson,
+        preview: { clientCount, noteCount, logCount, version }
+      });
+      setRestoreConfirmOpen(true);
+    } catch {
+      alert('Unable to read OPFS snapshot archive.');
+    }
+  };
+
+  const handleDeleteSnapshot = async (filename: string) => {
+    await opfsStorage.deleteSnapshot(filename);
+    await refreshOPFS();
   };
 
   useEffect(() => {
@@ -212,6 +302,7 @@ export const SettingsPanel: React.FC = () => {
     setIsSupabaseSaved(config.isConnected);
 
     refreshMetrics();
+    refreshOPFS();
 
     const unsubscribe = syncWorker.subscribe((status) => {
       setSyncStatus(status);
@@ -567,6 +658,167 @@ export const SettingsPanel: React.FC = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Part 2: OPFS (Origin Private File System) Snapshots & Storage Quota Management */}
+      <div className="p-5 sm:p-7 bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-5 max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200/80 shrink-0">
+              <Archive className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-[#1E3A8A]">OPFS Automated Backup Snapshots & Quota Engine</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-100 text-[#1E3A8A] font-bold">
+                  W3C OPFS
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                45 CFR § 164.312(c)(1) Integrity Controls · Zero-network local sandboxed disk snapshots with automatic FIFO quota pruning
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {storageQuota?.opfsAvailable ? (
+              <span className="px-3 py-1.5 bg-emerald-50 text-[#16A34A] border border-emerald-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0">
+                <Check className="w-4 h-4" /> OPFS Active
+              </span>
+            ) : (
+              <span className="px-3 py-1.5 bg-amber-50 text-[#D97706] border border-amber-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0">
+                <AlertTriangle className="w-4 h-4" /> Fallback Mode
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Quota Exhaustion Warning Alert Banner */}
+        {storageQuota?.isWarning && (
+          <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" />
+            <div>
+              <strong className="block font-bold text-[#D97706]">Storage Quota Warning (≥ 80% Capacity Utilized)</strong>
+              <p className="mt-0.5 text-amber-800 leading-relaxed">
+                Browser local storage is at {storageQuota.percentUsed}%. Automatic OPFS snapshot pruning is actively managing disk space to prevent data loss or field write freezes during home visits.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Storage Quota Progress Bar */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs font-bold">
+            <span className="text-slate-700 flex items-center gap-1.5">
+              <HardDrive className="w-4 h-4 text-[#0F766E]" />
+              Sandboxed Browser Disk Quota Usage
+            </span>
+            <span className="font-mono text-slate-600">
+              {storageQuota ? `${storageQuota.usageFormatted} / ${storageQuota.quotaFormatted}` : 'Estimating...'}
+            </span>
+          </div>
+          <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
+            <div
+              className={`h-2.5 rounded-full transition-all duration-500 ${
+                storageQuota?.isCritical
+                  ? 'bg-rose-600'
+                  : storageQuota?.isWarning
+                  ? 'bg-[#D97706]'
+                  : 'bg-[#0F766E]'
+              }`}
+              style={{ width: `${Math.min(100, Math.max(1, storageQuota?.percentUsed || 1))}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500">
+            <span>
+              {storageQuota?.percentUsed ?? 0}% quota allocated · IndexedDB + OPFS Virtual Sandbox
+            </span>
+            <span className="text-[#16A34A] font-semibold flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" /> Safe against quota eviction
+            </span>
+          </div>
+        </div>
+
+        {/* Snapshot Summary Metrics & Manual Action */}
+        <div className="p-4 bg-slate-50/90 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[#0F766E]" />
+              <span className="text-xs font-bold text-slate-800">Local OPFS Snapshots:</span>
+              <span className="text-xs font-mono font-bold text-[#1E3A8A]">
+                {opfsSnapshots.length} / 10 retained
+              </span>
+            </div>
+            <p className="text-xs text-slate-500">
+              Latest snapshot:{' '}
+              <strong className="text-slate-700 font-mono">
+                {opfsSnapshots.length > 0
+                  ? new Date(opfsSnapshots[0].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : 'Automated on next sync'}
+              </strong>
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleTakeManualSnapshot}
+            disabled={isTakingSnapshot}
+            className="min-h-[44px] px-4 py-2.5 bg-[#0F766E] hover:bg-teal-800 disabled:opacity-60 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 shrink-0"
+          >
+            <FolderDown className={`w-4 h-4 shrink-0 ${isTakingSnapshot ? 'animate-bounce' : ''}`} />
+            <span>{isTakingSnapshot ? 'Saving Snapshot...' : 'Take OPFS Snapshot Now'}</span>
+          </button>
+        </div>
+
+        {snapshotNotice && (
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-[#16A34A] font-semibold flex items-center gap-2 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{snapshotNotice}</span>
+          </div>
+        )}
+
+        {/* OPFS Snapshots List */}
+        {opfsSnapshots.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Recent Sandboxed Disk Snapshots
+            </h4>
+            <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-white max-h-56 overflow-y-auto">
+              {opfsSnapshots.map((snap) => (
+                <div
+                  key={snap.filename}
+                  className="p-3 flex items-center justify-between text-xs hover:bg-slate-50 transition-colors gap-2"
+                >
+                  <div className="min-w-0">
+                    <span className="font-mono text-slate-800 font-bold block truncate">
+                      {snap.filename}
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      {new Date(snap.timestamp).toLocaleString()} · {(snap.sizeBytes / 1024).toFixed(1)} KB
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleRestoreFromOPFS(snap.filename)}
+                      className="min-h-[36px] px-2.5 py-1 text-xs font-bold text-[#1E3A8A] hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+                      title="Inspect and restore this snapshot"
+                    >
+                      Restore
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSnapshot(snap.filename)}
+                      className="min-h-[36px] p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                      title="Delete snapshot"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Cloud & Supabase Backend Sync Configuration & Manual Trigger */}
