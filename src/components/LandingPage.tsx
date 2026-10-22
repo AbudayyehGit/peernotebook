@@ -31,10 +31,10 @@ import { BetaOnboardingModal } from './BetaOnboardingModal';
 import { OutreachTemplatesModal } from './OutreachTemplatesModal';
 import { TrustComplianceFooter } from './TrustComplianceFooter';
 
-// Local visual assets generated for Peer Notebook
-const HERO_IMAGE_URL = '/src/assets/images/hero_peer_support_workspace_1792688362293.jpg';
-const CHECKLIST_IMAGE_URL = '/src/assets/images/lead_magnet_checklist_preview_1792688362450.jpg';
-const FIELD_TABLET_URL = '/src/assets/images/field_offline_tablet_1792688362697.jpg';
+// Static photo assets served from /public/images/ with absolute root paths for reliable Vercel production deployment
+const HERO_IMAGE_URL = '/images/hero-peer-support-workspace.jpg';
+const CHECKLIST_IMAGE_URL = '/images/lead-magnet-checklist-preview.jpg';
+const FIELD_TABLET_URL = '/images/field-offline-tablet.jpg';
 
 interface LandingPageProps {
   onLaunchApp: () => void;
@@ -49,6 +49,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
   const [wantsBetaCohort, setWantsBetaCohort] = useState(true);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Image Loading & Fallback States
+  const [heroImageFailed, setHeroImageFailed] = useState(false);
+  const [fieldTabletFailed, setFieldTabletFailed] = useState(false);
+  const [checklistFailed, setChecklistFailed] = useState(false);
 
   // Modals
   const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
@@ -424,29 +429,52 @@ Built with trauma-informed care at peernotebook.com`;
 
             {/* Right Column: Hero Visual Asset (Col Span 5) */}
             <div className="lg:col-span-5 space-y-4">
-              <div className="relative rounded-2xl overflow-hidden border border-slate-200/90 shadow-xl bg-slate-100 group">
-                <img
-                  src={HERO_IMAGE_URL}
-                  alt="Certified Peer Support Specialist collaborating with client in a warm community setting"
-                  className="w-full h-[360px] sm:h-[440px] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    // Fallback to stylized SVG card if image fails
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
+              <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-slate-900 group">
+                {!heroImageFailed ? (
+                  <img
+                    src={HERO_IMAGE_URL}
+                    alt="Certified Peer Support Specialist collaborating with client in a warm community setting"
+                    className="w-full max-w-full h-[360px] sm:h-[440px] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                    loading="eager"
+                    onError={() => setHeroImageFailed(true)}
+                  />
+                ) : (
+                  <div className="w-full h-[360px] sm:h-[440px] bg-gradient-to-br from-[#1E3A8A] via-slate-900 to-[#0F766E] p-8 flex flex-col justify-between text-white">
+                    <div className="space-y-2">
+                      <div className="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
+                        <HeartHandshake className="w-6 h-6" />
+                      </div>
+                      <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">
+                        California Peer Practice
+                      </span>
+                      <h3 className="text-xl font-bold text-white">
+                        Peer-Centered Documentation
+                      </h3>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm text-slate-200 italic leading-relaxed">
+                        "Documentation should never pull you away from authentic human connection."
+                      </p>
+                      <span className="text-xs text-teal-200 block">
+                        CalAIM Behavioral Health Payment Reform & Medi-Cal H0038
+                      </span>
+                    </div>
+                  </div>
+                )}
                 {/* Measured Scrim & Caption */}
-                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent text-white">
-                  <span className="text-[11px] font-bold text-teal-300 uppercase tracking-wider block">
-                    Trauma-Informed Peer Practice
-                  </span>
-                  <p className="text-xs sm:text-sm font-medium text-slate-100 leading-snug mt-1">
-                    "Documentation should never pull you away from authentic human connection."
-                  </p>
-                  <span className="text-[11px] text-slate-300 block mt-1">
-                    CalAIM Behavioral Health Payment Reform Compliant
-                  </span>
-                </div>
+                {!heroImageFailed && (
+                  <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 bg-gradient-to-t from-slate-950/95 via-slate-950/70 to-transparent text-white">
+                    <span className="text-[11px] font-bold text-teal-300 uppercase tracking-wider block">
+                      Trauma-Informed Peer Practice
+                    </span>
+                    <p className="text-xs sm:text-sm font-medium text-slate-100 leading-snug mt-1">
+                      "Documentation should never pull you away from authentic human connection."
+                    </p>
+                    <span className="text-[11px] text-slate-300 block mt-1">
+                      CalAIM Behavioral Health Payment Reform Compliant
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Quick Action Badges Strip */}
@@ -509,13 +537,28 @@ Built with trauma-informed care at peernotebook.com`;
                 </p>
               </div>
 
-              <div className="rounded-xl overflow-hidden border border-slate-200 bg-white">
-                <img
-                  src={FIELD_TABLET_URL}
-                  alt="Peer specialist using mobile tablet in field community outreach setting"
-                  className="w-full h-48 sm:h-56 object-cover"
-                  referrerPolicy="no-referrer"
-                />
+              <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-white">
+                {!fieldTabletFailed ? (
+                  <img
+                    src={FIELD_TABLET_URL}
+                    alt="Peer specialist using mobile tablet in field community outreach setting with offline sync"
+                    className="w-full max-w-full h-48 sm:h-56 object-cover"
+                    loading="lazy"
+                    onError={() => setFieldTabletFailed(true)}
+                  />
+                ) : (
+                  <div className="w-full h-48 sm:h-56 bg-gradient-to-r from-teal-50 to-blue-50 p-6 flex flex-col justify-center items-center text-center space-y-2">
+                    <div className="w-10 h-10 rounded-xl bg-teal-100 text-[#0F766E] flex items-center justify-center">
+                      <WifiOff className="w-5 h-5" />
+                    </div>
+                    <strong className="text-sm font-bold text-[#1E3A8A]">
+                      Offline-First Field Resilience
+                    </strong>
+                    <span className="text-xs text-slate-600 max-w-sm">
+                      Zero data loss in basements, parks, or rural areas with Dexie.js local persistence.
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -677,13 +720,28 @@ Built with trauma-informed care at peernotebook.com`;
                 </p>
               </div>
 
-              <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-white">
-                <img
-                  src={CHECKLIST_IMAGE_URL}
-                  alt="Printed CalAIM 10-Minute Documentation Guide on clipboard"
-                  className="w-full h-64 sm:h-72 object-cover"
-                  referrerPolicy="no-referrer"
-                />
+              <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-white">
+                {!checklistFailed ? (
+                  <img
+                    src={CHECKLIST_IMAGE_URL}
+                    alt="Printed CalAIM 10-Minute Documentation Guide and Medi-Cal H0038 checklist on clipboard"
+                    className="w-full max-w-full h-64 sm:h-72 object-cover"
+                    loading="lazy"
+                    onError={() => setChecklistFailed(true)}
+                  />
+                ) : (
+                  <div className="w-full h-64 sm:h-72 bg-gradient-to-r from-emerald-50 to-teal-50 p-6 flex flex-col justify-center items-center text-center space-y-2">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-[#16A34A] flex items-center justify-center">
+                      <FileCheck className="w-5 h-5" />
+                    </div>
+                    <strong className="text-sm font-bold text-[#1E3A8A]">
+                      The 10-Minute Medi-Cal H0038 Note Checklist
+                    </strong>
+                    <span className="text-xs text-slate-600 max-w-sm">
+                      7-point California CalAIM compliance audit standards printable guide.
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons: Copy Text & Print PDF */}
