@@ -26,44 +26,58 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+export const DEFAULT_FALLBACK_ORG: Organization = {
+  id: 'org-calaim-01',
+  name: 'Bay Area Peer Recovery Collaborative (CalAIM)',
+  npi: '1982019482',
+  medicaidProviderId: 'CA-MC-948102',
+  countyCode: '38-San Francisco',
+  calaimContractActive: true,
+  baaSignedAt: '2026-01-10T08:00:00Z',
+  baaVersion: 'v2.4-GA8-CalAIM'
+};
+
+export const DEFAULT_FALLBACK_USER: User = {
+  id: 'user-cpss-01',
+  organizationId: 'org-calaim-01',
+  email: 'alex.rivera@alamedapeer.org',
+  fullName: 'Alex Rivera, CPSS-CA',
+  credentialTitle: 'Certified Peer Support Specialist (CalMHSA / CalAIM)',
+  licenseNumber: 'CA-CPSS-2024-9182',
+  npi: '1829102938',
+  role: 'peer_specialist',
+  isActive: true
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [allOrgs, setAllOrgs] = useState<Organization[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(DEFAULT_FALLBACK_USER);
+  const [currentOrg, setCurrentOrg] = useState<Organization | null>(DEFAULT_FALLBACK_ORG);
+  const [allUsers, setAllUsers] = useState<User[]>([DEFAULT_FALLBACK_USER]);
+  const [allOrgs, setAllOrgs] = useState<Organization[]>([DEFAULT_FALLBACK_ORG]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    const timeout = setTimeout(() => {
-      if (mounted) {
-        setIsLoading(false);
-      }
-    }, 1200);
 
     const initializeAuth = async () => {
       try {
         const users = await peerNotebookDB.getAllUsers();
         const orgs = await peerNotebookDB.getAllOrganizations();
         if (!mounted) return;
-        setAllUsers(users);
-        setAllOrgs(orgs);
+        if (users && users.length > 0) {
+          setAllUsers(users);
+          const savedUserId = safeStorage.getItem('peernotebook_active_user_id');
+          const matchedUser = users.find(u => u.id === savedUserId) || users[0];
+          setCurrentUser(matchedUser);
 
-        const savedUserId = safeStorage.getItem('peernotebook_active_user_id');
-        const defaultUser = users.find(u => u.id === savedUserId) || users[0] || null;
-        setCurrentUser(defaultUser);
-
-        if (defaultUser) {
-          const org = orgs.find(o => o.id === defaultUser.organizationId) || orgs[0] || null;
-          setCurrentOrg(org);
+          if (orgs && orgs.length > 0) {
+            setAllOrgs(orgs);
+            const matchedOrg = orgs.find(o => o.id === matchedUser.organizationId) || orgs[0];
+            setCurrentOrg(matchedOrg);
+          }
         }
       } catch (err) {
-        console.error('Failed to init auth context:', err);
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-          clearTimeout(timeout);
-        }
+        console.warn('[AuthContext] IndexedDB initial check:', err);
       }
     };
 
@@ -71,7 +85,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
-      clearTimeout(timeout);
     };
   }, []);
 
@@ -150,7 +163,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    return {
+      currentUser: DEFAULT_FALLBACK_USER,
+      currentOrg: DEFAULT_FALLBACK_ORG,
+      allUsers: [DEFAULT_FALLBACK_USER],
+      allOrgs: [DEFAULT_FALLBACK_ORG],
+      role: 'peer_specialist',
+      switchUser: async () => {},
+      switchOrg: async () => {},
+      canSignNotes: true,
+      canApproveNotes: false,
+      canViewAuditLogs: false,
+      canManageAgency: false,
+      logout: () => {},
+      isLoading: false
+    };
   }
   return context;
 };

@@ -16,6 +16,7 @@ import { LandingPage } from './components/LandingPage';
 import { DocumentationViewer } from './components/DocumentationViewer';
 import { BetaOnboardingModal } from './components/BetaOnboardingModal';
 import { OutreachTemplatesModal } from './components/OutreachTemplatesModal';
+import { ZeroAiBadge } from './components/ZeroAiBadge';
 import { HeartHandshake, Sparkles, Globe, Mail, BookOpen } from 'lucide-react';
 import { safeStorage } from './utils/safeStorage';
 
@@ -95,17 +96,6 @@ function AppContent() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-slate-600 px-4">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="w-9 h-9 border-3 border-[#0F766E] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-mono font-medium text-slate-600">Initializing Dexie.js Persistence Engine...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (currentView === 'docs') {
     return (
       <DocumentationViewer
@@ -122,6 +112,17 @@ function AppContent() {
         onLaunchApp={() => switchView('workspace')}
         onOpenDocs={(slug) => switchView('docs', slug)}
       />
+    );
+  }
+
+  if (isLoading && !currentUser) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-slate-600 px-4">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="w-9 h-9 border-3 border-[#0F766E] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-mono font-medium text-slate-600">Initializing Dexie.js Persistence Engine...</p>
+        </div>
+      </div>
     );
   }
 
@@ -206,6 +207,9 @@ function AppContent() {
             >
               Landing
             </button>
+            <div className="hidden md:flex items-center">
+              <ZeroAiBadge variant="header" />
+            </div>
             <SyncStatusBadge />
             <div className="hidden sm:block h-6 w-[1px] bg-blue-800/80 shrink-0" />
             <OrgSelect />

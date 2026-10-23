@@ -21,8 +21,10 @@ import {
   Sparkles,
   Mail,
   Copy,
-  Check
+  Check,
+  Cpu
 } from 'lucide-react';
+import { ZeroAiBadge } from './ZeroAiBadge';
 
 export interface FooterBadge {
   id: string;
@@ -152,6 +154,18 @@ export const TrustComplianceFooter: React.FC = () => {
       summary: 'Protected under 45 CFR § 164 HIPAA Security Rule and 42 CFR Part 2 for substance use confidentiality. Pseudonymized client identifiers (MRN) and SHA-256 tamper-evident audit logs.',
       docUrl: 'https://peernotebook.com/docs/04-technical-architecture/08_HIPAA_BAA_Consent_Model',
       docTitle: 'HIPAA BAA & Consent Specifications'
+    },
+    {
+      id: 'ENG-ZERO-AI',
+      name: 'Zero-AI Deterministic Runtime',
+      title: 'runtime: Zero-AI (Deterministic)',
+      category: 'Engineering',
+      badgeColorClass: 'bg-emerald-50 border-emerald-200/90 hover:bg-emerald-100/70',
+      textColorClass: 'text-[#16A34A]',
+      icon: <Cpu className="w-4 h-4 text-[#16A34A] shrink-0" />,
+      summary: '100% Deterministic Code Engine: zero artificial intelligence or generative LLM models executed in production runtime. Auditable client TypeScript rules for CalMHSA 4-part notes and Medi-Cal H0038 billing units.',
+      docUrl: 'https://peernotebook.com/docs/05-engineering-quality/zero-ai-deterministic-runtime',
+      docTitle: 'Zero-AI Deterministic Runtime & Verification Standards'
     }
   ];
 
@@ -216,6 +230,7 @@ export const TrustComplianceFooter: React.FC = () => {
                 <Award className="w-3 h-3" />
                 <span>CalMHSA Standard Compliant (H0038)</span>
               </span>
+              <ZeroAiBadge variant="compact" />
             </div>
 
             {/* Right: Official Business Email & BAA Inquiry Contact */}

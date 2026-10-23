@@ -11,46 +11,46 @@ const OFFLINE_URLS = [
   '/manifest.json'
 ];
 
-// Check if running on localhost, run.app dev server, or Vite dev environment
-const isDevEnvironment =
-  self.location.hostname === 'localhost' ||
-  self.location.hostname === '127.0.0.1' ||
-  self.location.hostname.includes('.run.app') ||
-  self.location.port === '3000';
+const isProductionDomain =
+  self.location.hostname === 'peernotebook.com' ||
+  self.location.hostname === 'www.peernotebook.com';
 
 self.addEventListener('install', (event) => {
-  if (isDevEnvironment) {
-    self.skipWaiting();
-    return;
-  }
+  self.skipWaiting();
+  if (!isProductionDomain) return;
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(OFFLINE_URLS);
     })
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
+  if (!isProductionDomain) {
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(cacheNames.map((name) => caches.delete(name)));
+      }).then(() => {
+        return self.registration.unregister();
+      })
+    );
+    return;
+  }
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => isDevEnvironment || name !== CACHE_NAME)
+          .filter((name) => name !== CACHE_NAME)
           .map((name) => caches.delete(name))
       );
-    }).then(() => {
-      if (isDevEnvironment) {
-        return self.registration.unregister();
-      }
     })
   );
   self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  // Never intercept requests in dev environments or cloud preview iframes
-  if (isDevEnvironment) {
+  // Never intercept requests on preview, dev, or non-production domains
+  if (!isProductionDomain) {
     return;
   }
 

@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react';
-import { ShieldCheck, Database, CheckCircle2, Lock, ExternalLink, Code2, Sparkles, X, FileText } from 'lucide-react';
+import { ShieldCheck, Database, CheckCircle2, Lock, ExternalLink, Code2, Sparkles, X, FileText, Cpu } from 'lucide-react';
 
 interface ObservabilityBadge {
   id: string;
@@ -102,6 +102,19 @@ export const GA8EngineeringStatusBadges: React.FC = () => {
       summary: 'Protected under 45 CFR § 164 HIPAA Security Rule and 42 CFR Part 2 for substance use confidentiality. Pseudonymized client identifiers (MRN) and SHA-256 tamper-evident audit logs.',
       docUrl: 'https://peernotebook.com/docs/04-technical-architecture/08_HIPAA_BAA_Consent_Model',
       docTitle: 'HIPAA BAA & Consent Specifications'
+    },
+    {
+      id: 'GA8-ZERO-AI',
+      name: 'Zero-AI Deterministic Runtime',
+      category: 'Runtime Integrity',
+      label: 'runtime: Zero-AI (Deterministic)',
+      status: 'verified',
+      badgeColorClass: 'bg-emerald-50 border-emerald-200',
+      textColorClass: 'text-emerald-800',
+      icon: <Cpu className="w-3.5 h-3.5 text-[#16A34A]" />,
+      summary: '100% Deterministic Code Engine: zero artificial intelligence or generative LLM models executed in production client runtime. Pure auditable TypeScript logic eliminating hallucination risk under Medi-Cal CalAIM audit standards.',
+      docUrl: 'https://peernotebook.com/docs/05-engineering-quality/zero-ai-deterministic-runtime',
+      docTitle: 'Zero-AI Deterministic Runtime & Verification Standards'
     }
   ];
 

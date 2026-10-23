@@ -158,6 +158,57 @@ export const SettingsPanel: React.FC = () => {
     }
   };
 
+  // Daily Lead & Traffic Digest Automation State (support@peernotebook.com)
+  const [digestLoading, setDigestLoading] = useState(false);
+  const [digestResult, setDigestResult] = useState<DigestResponse | null>(null);
+  const [digestModalOpen, setDigestModalOpen] = useState(false);
+  const [digestHtmlCopied, setDigestHtmlCopied] = useState(false);
+  const [digestNotice, setDigestNotice] = useState<string | null>(null);
+
+  const handleTriggerDailyDigest = async () => {
+    setDigestLoading(true);
+    setDigestNotice(null);
+    try {
+      const result = await leadDigestService.triggerDailySummaryNow();
+      setDigestResult(result);
+      setDigestModalOpen(true);
+      setDigestNotice(`Daily digest successfully generated and dispatched to ${result.recipient}`);
+
+      if (currentUser && currentOrg) {
+        await AuditLogger.log({
+          organizationId: currentOrg.id,
+          actorId: currentUser.id,
+          actorName: currentUser.fullName,
+          actorRole: currentUser.role,
+          action: 'MANUAL_SYNC',
+          entityType: 'system',
+          entityId: 'daily_lead_digest',
+          details: {
+            recipient: result.recipient,
+            newLeads: result.newLeadsCount,
+            totalLeads: result.totalLeadsCount,
+            provider: result.provider
+          }
+        });
+      }
+    } catch {
+      setDigestNotice('Failed to generate daily digest.');
+    } finally {
+      setDigestLoading(false);
+    }
+  };
+
+  const handleCopyDigestHtml = async () => {
+    if (!digestResult?.htmlReport) return;
+    try {
+      await navigator.clipboard.writeText(digestResult.htmlReport);
+      setDigestHtmlCopied(true);
+      setTimeout(() => setDigestHtmlCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
   // OPFS (Origin Private File System) Quota & Snapshot State
   const [storageQuota, setStorageQuota] = useState<StorageQuotaInfo | null>(null);
   const [opfsSnapshots, setOpfsSnapshots] = useState<OPFSSnapshotMeta[]>([]);
@@ -1121,6 +1172,100 @@ export const SettingsPanel: React.FC = () => {
         </div>
       </div>
 
+      {/* Part 5: Daily Lead & Traffic Digest Automation (support@peernotebook.com) */}
+      <div className="p-5 sm:p-7 bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-5 max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-200/80 shrink-0">
+              <Mail className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-[#1E3A8A]">Daily Lead & Traffic Digest Automation</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-100 text-[#0F766E] font-bold">
+                  24h Cron
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">Automated telemetry & beta cohort lead digest delivered to support@peernotebook.com</p>
+            </div>
+          </div>
+          <span className="self-start sm:self-auto text-xs font-mono text-[#0F766E] bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl font-bold shrink-0">
+            Recipient: support@peernotebook.com
+          </span>
+        </div>
+
+        {/* Operational Overview & Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center">
+          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
+            <span className="text-xs text-slate-500 block mb-1 font-semibold">Schedule</span>
+            <span className="text-sm font-mono font-bold text-[#1E3A8A]">00:00 UTC Daily</span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">Vercel Cron + pg_cron</span>
+          </div>
+          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
+            <span className="text-xs text-slate-500 block mb-1 font-semibold">Delivery Target</span>
+            <span className="text-xs font-mono font-bold text-[#0F766E] truncate block">support@peernotebook.com</span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">Resend / SMTP</span>
+          </div>
+          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
+            <span className="text-xs text-slate-500 block mb-1 font-semibold">Lead Retention</span>
+            <span className="text-sm font-bold text-[#16A34A]">Active & Safe</span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">SafeStorage + Supabase</span>
+          </div>
+          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
+            <span className="text-xs text-slate-500 block mb-1 font-semibold">Latest Dispatch</span>
+            <span className="text-xs font-mono font-bold text-slate-700">
+              {digestResult?.dispatchStatus ? digestResult.dispatchStatus.toUpperCase() : 'Ready'}
+            </span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">Automated 24h cycle</span>
+          </div>
+        </div>
+
+        {/* Action Row */}
+        <div className="p-4 bg-slate-50/90 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-[#0F766E]" />
+              <span className="text-xs font-bold text-slate-800">Operational Automation Pipeline</span>
+            </div>
+            <p className="text-xs text-slate-600">
+              Captures new beta pilot signups, checklist downloads, and aggregate route telemetry. Dispatches complete transactional HTML executive report to founding staff.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {digestResult && (
+              <button
+                type="button"
+                onClick={() => setDigestModalOpen(true)}
+                className="min-h-[44px] px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                title="View latest generated HTML digest"
+              >
+                <Eye className="w-4 h-4 text-slate-500" />
+                <span>View Latest Report</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleTriggerDailyDigest}
+              disabled={digestLoading}
+              className="min-h-[44px] px-5 py-2.5 bg-[#0F766E] hover:bg-teal-800 disabled:opacity-60 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 shrink-0"
+              title="Manually generate and dispatch 24h summary email to support@peernotebook.com"
+            >
+              <Send className={`w-4 h-4 shrink-0 ${digestLoading ? 'animate-bounce' : ''}`} />
+              <span>{digestLoading ? 'Generating & Dispatching...' : 'Trigger Daily Summary Email Now'}</span>
+            </button>
+          </div>
+        </div>
+
+        {digestNotice && (
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-[#16A34A] font-semibold flex items-center gap-2 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{digestNotice}</span>
+          </div>
+        )}
+      </div>
+
       {/* Restore Confirmation Modal */}
       {restoreConfirmOpen && pendingRestoreData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/25 backdrop-blur-sm transition-opacity">
@@ -1244,6 +1389,107 @@ export const SettingsPanel: React.FC = () => {
                 className="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold transition-colors cursor-pointer"
               >
                 Confirm Purge
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Daily Digest Preview Modal */}
+      {digestModalOpen && digestResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/25 backdrop-blur-sm transition-opacity overflow-y-auto">
+          <div className="bg-white border border-slate-200/90 rounded-2xl max-w-3xl w-full p-5 sm:p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto my-auto space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-200">
+                  <Mail className="w-5 h-5 text-[#0F766E]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#1E3A8A]">Daily Lead & Traffic Digest Preview</h3>
+                  <p className="text-xs text-slate-500">
+                    Dispatched to <span className="font-semibold text-slate-800 font-mono">{digestResult.recipient}</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDigestModalOpen(false)}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Digest Summary Badges */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs">
+              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                <span className="text-slate-500 block text-[11px]">New Leads (24h)</span>
+                <span className="text-lg font-bold text-[#0F766E]">{digestResult.newLeadsCount}</span>
+              </div>
+              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                <span className="text-slate-500 block text-[11px]">Total Cohort Roster</span>
+                <span className="text-lg font-bold text-[#1E3A8A]">{digestResult.totalLeadsCount}</span>
+              </div>
+              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                <span className="text-slate-500 block text-[11px]">Traffic (24h Views)</span>
+                <span className="text-lg font-bold text-slate-800">{digestResult.traffic.totalVisits}</span>
+              </div>
+              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                <span className="text-slate-500 block text-[11px]">Conversion Rate</span>
+                <span className="text-lg font-bold text-[#16A34A]">{digestResult.traffic.conversionRate}%</span>
+              </div>
+            </div>
+
+            {/* Recent Leads Table */}
+            {digestResult.recentLeads && digestResult.recentLeads.length > 0 && (
+              <div className="space-y-1.5">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Recent Beta Cohort Signups (Last 24 Hours)
+                </h4>
+                <div className="border border-slate-200 rounded-xl overflow-hidden bg-white text-xs divide-y divide-slate-100">
+                  {digestResult.recentLeads.map((lead, i) => (
+                    <div key={i} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50">
+                      <div>
+                        <span className="font-bold text-[#1E3A8A] block">{lead.name || 'Colleague'}</span>
+                        <span className="text-slate-500 text-[11px] font-mono">{lead.email}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[#0F766E] font-medium block">{lead.roleTitle || 'Peer Specialist'}</span>
+                        <span className="text-[10px] text-slate-400">{lead.county || 'California'}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Raw HTML Email Code Preview */}
+            <div className="space-y-1.5 pt-2">
+              <div className="flex items-center justify-between text-xs">
+                <h4 className="font-bold text-slate-700 uppercase tracking-wider">
+                  Transactional HTML Email Body
+                </h4>
+                <button
+                  type="button"
+                  onClick={handleCopyDigestHtml}
+                  className="min-h-[36px] px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  {digestHtmlCopied ? <CheckCheck className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{digestHtmlCopied ? 'Copied HTML!' : 'Copy HTML'}</span>
+                </button>
+              </div>
+              <div className="border border-slate-200 rounded-xl p-3 bg-slate-900 text-slate-100 text-[11px] font-mono max-h-48 overflow-y-auto overflow-x-auto">
+                <pre className="whitespace-pre-wrap">{digestResult.htmlReport}</pre>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setDigestModalOpen(false)}
+                className="min-h-[44px] px-6 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs font-bold transition-colors cursor-pointer"
+              >
+                Close Preview
               </button>
             </div>
           </div>

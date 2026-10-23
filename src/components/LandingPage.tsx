@@ -30,6 +30,7 @@ import {
 import { BetaOnboardingModal } from './BetaOnboardingModal';
 import { OutreachTemplatesModal } from './OutreachTemplatesModal';
 import { TrustComplianceFooter } from './TrustComplianceFooter';
+import { ZeroAiBadge } from './ZeroAiBadge';
 import { safeStorage } from '../utils/safeStorage';
 import { leadDigestService } from '../services/leadDigestService';
 
@@ -238,10 +239,12 @@ Built with trauma-informed care at peernotebook.com`;
             {/* Left Column: Headline, Copy & Email Capture Form (Col Span 7) */}
             <div className="lg:col-span-7 space-y-6">
               {/* Category / Kicker (Clean unboxed text, no pills) */}
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#0F766E] uppercase tracking-wider">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#0F766E] uppercase tracking-wider">
                 <span>California Certified Peer Support (CPSS-CA)</span>
                 <span aria-hidden="true">·</span>
                 <span>CalAIM & Medi-Cal H0038</span>
+                <span aria-hidden="true">·</span>
+                <ZeroAiBadge variant="compact" />
               </div>
 
               {/* Main Headline */}
