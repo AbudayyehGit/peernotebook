@@ -30,6 +30,7 @@ import {
 import { BetaOnboardingModal } from './BetaOnboardingModal';
 import { OutreachTemplatesModal } from './OutreachTemplatesModal';
 import { TrustComplianceFooter } from './TrustComplianceFooter';
+import { safeStorage } from '../utils/safeStorage';
 
 // Static photo assets served from /public/images/ with absolute root paths for reliable Vercel production deployment
 const HERO_IMAGE_URL = '/images/hero-peer-support-workspace.jpg';
@@ -118,7 +119,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onOpenDoc
 
     // Save lead to local storage / IndexedDB mock store for pilot tracking
     try {
-      const existingLeads = JSON.parse(localStorage.getItem('peernotebook_pilot_leads') || '[]');
+      const existingLeads = JSON.parse(safeStorage.getItem('peernotebook_pilot_leads') || '[]');
       existingLeads.push({
         email,
         name: specialistName || 'Colleague',
@@ -127,7 +128,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onOpenDoc
         wantsBetaCohort,
         submittedAt: new Date().toISOString(),
       });
-      localStorage.setItem('peernotebook_pilot_leads', JSON.stringify(existingLeads));
+      safeStorage.setItem('peernotebook_pilot_leads', JSON.stringify(existingLeads));
     } catch {
       // Ignore local storage error
     }

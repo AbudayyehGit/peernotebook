@@ -17,6 +17,7 @@ import { ExportSessionPDF } from './ExportSessionPDF';
 import { DocumentationViewer } from './DocumentationViewer';
 import { GoalPathTracker } from './GoalPathTracker';
 import { syncWorker, SyncStatusInfo } from '../services/syncWorker';
+import { safeStorage } from '../utils/safeStorage';
 import {
   Users,
   FileText,
@@ -97,13 +98,9 @@ export const PeerNotebookWorkspace: React.FC = () => {
     }
 
     // Fallback to persisted tab from last active session
-    try {
-      const saved = localStorage.getItem('peernotebook_active_tab') as WorkspaceTab;
-      if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings'].includes(saved)) {
-        return { tab: saved };
-      }
-    } catch {
-      // ignore
+    const saved = safeStorage.getItem('peernotebook_active_tab') as WorkspaceTab;
+    if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings'].includes(saved)) {
+      return { tab: saved };
     }
 
     return { tab: 'clients' };
@@ -184,11 +181,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
     setDocSlug(slug);
     setIsMobileMenuOpen(false);
 
-    try {
-      localStorage.setItem('peernotebook_active_tab', tab);
-    } catch {
-      // ignore
-    }
+    safeStorage.setItem('peernotebook_active_tab', tab);
 
     let path = '/';
     if (tab === 'architecture') {
@@ -252,9 +245,9 @@ export const PeerNotebookWorkspace: React.FC = () => {
     ).toLowerCase();
 
     const matchSearch =
-      n.clientName.toLowerCase().includes(notesSearch.toLowerCase()) ||
-      n.clientIdentifier.toLowerCase().includes(notesSearch.toLowerCase()) ||
-      n.goalAddressed.toLowerCase().includes(notesSearch.toLowerCase()) ||
+      (n.clientName || '').toLowerCase().includes(notesSearch.toLowerCase()) ||
+      (n.clientIdentifier || '').toLowerCase().includes(notesSearch.toLowerCase()) ||
+      (n.goalAddressed || '').toLowerCase().includes(notesSearch.toLowerCase()) ||
       text.includes(notesSearch.toLowerCase());
 
     const matchFilter = notesFilter === 'ALL' || n.status === notesFilter;

@@ -6,6 +6,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { peerNotebookDB, User, Organization, UserRole } from '../db/peerNotebookDatabase';
 import { AuditLogger } from '../services/auditLogger';
+import { safeStorage } from '../utils/safeStorage';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -33,14 +34,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+    const timeout = setTimeout(() => {
+      if (mounted) {
+        setIsLoading(false);
+      }
+    }, 1200);
+
     const initializeAuth = async () => {
       try {
         const users = await peerNotebookDB.getAllUsers();
         const orgs = await peerNotebookDB.getAllOrganizations();
+        if (!mounted) return;
         setAllUsers(users);
         setAllOrgs(orgs);
 
-        const savedUserId = localStorage.getItem('peernotebook_active_user_id');
+        const savedUserId = safeStorage.getItem('peernotebook_active_user_id');
         const defaultUser = users.find(u => u.id === savedUserId) || users[0] || null;
         setCurrentUser(defaultUser);
 
@@ -51,11 +60,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (err) {
         console.error('Failed to init auth context:', err);
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+          clearTimeout(timeout);
+        }
       }
     };
 
     initializeAuth();
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+    };
   }, []);
 
   const switchUser = async (userId: string) => {
@@ -63,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
 
     setCurrentUser(user);
-    localStorage.setItem('peernotebook_active_user_id', user.id);
+    safeStorage.setItem('peernotebook_active_user_id', user.id);
 
     const org = allOrgs.find(o => o.id === user.organizationId) || currentOrg;
     setCurrentOrg(org);
@@ -87,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!org) return;
 
     setCurrentOrg(org);
-    localStorage.setItem('peernotebook_active_org_id', org.id);
+    safeStorage.setItem('peernotebook_active_org_id', org.id);
 
     // If current user is not in this org, switch to first user of this org
     const userInOrg = allUsers.find(u => u.organizationId === orgId);
@@ -98,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setCurrentUser(null);
-    localStorage.removeItem('peernotebook_active_user_id');
+    safeStorage.removeItem('peernotebook_active_user_id');
   };
 
   const role: UserRole = currentUser?.role || 'peer_specialist';

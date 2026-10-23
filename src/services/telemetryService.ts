@@ -4,6 +4,8 @@
  * and offline sync telemetry for active field peer specialist sessions.
  */
 
+import { safeStorage } from '../utils/safeStorage';
+
 export interface TelemetryPayload {
   level: 'error' | 'warn' | 'info';
   category: 'database_timeout' | 'sync_failure' | 'unhandled_exception' | 'session_anomaly' | 'storage_quota';
@@ -61,7 +63,7 @@ class TelemetryServiceClass {
 
   private loadPersistedQueue() {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
+      const stored = safeStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         this.queue = JSON.parse(stored);
       }
@@ -72,9 +74,9 @@ class TelemetryServiceClass {
 
   private persistQueue() {
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.queue.slice(-50)));
+      safeStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.queue.slice(-50)));
     } catch {
-      // LocalStorage quota or restricted
+      // Storage quota or restricted
     }
   }
 

@@ -12,9 +12,11 @@ export interface SupabaseConfig {
 const SUPABASE_URL_KEY = 'peernotebook_supabase_url';
 const SUPABASE_KEY_KEY = 'peernotebook_supabase_anon_key';
 
+import { safeStorage } from '../utils/safeStorage';
+
 export const getSupabaseConfig = (): SupabaseConfig => {
-  const url = localStorage.getItem(SUPABASE_URL_KEY) || '';
-  const anonKey = localStorage.getItem(SUPABASE_KEY_KEY) || '';
+  const url = safeStorage.getItem(SUPABASE_URL_KEY) || '';
+  const anonKey = safeStorage.getItem(SUPABASE_KEY_KEY) || '';
   return {
     url,
     anonKey,
@@ -23,13 +25,13 @@ export const getSupabaseConfig = (): SupabaseConfig => {
 };
 
 export const saveSupabaseConfig = (url: string, anonKey: string): void => {
-  localStorage.setItem(SUPABASE_URL_KEY, url);
-  localStorage.setItem(SUPABASE_KEY_KEY, anonKey);
+  safeStorage.setItem(SUPABASE_URL_KEY, url);
+  safeStorage.setItem(SUPABASE_KEY_KEY, anonKey);
 };
 
 export const clearSupabaseConfig = (): void => {
-  localStorage.removeItem(SUPABASE_URL_KEY);
-  localStorage.removeItem(SUPABASE_KEY_KEY);
+  safeStorage.removeItem(SUPABASE_URL_KEY);
+  safeStorage.removeItem(SUPABASE_KEY_KEY);
 };
 
 // Resilient client mock / proxy

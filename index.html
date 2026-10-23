@@ -16,8 +16,18 @@
     <link rel="manifest" href="/manifest.json" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="min-height: 100vh; background-color: #F8FAFC; display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1E3A8A;">
+        <div style="text-align: center; padding: 24px;">
+          <div style="width: 44px; height: 44px; border: 3px solid #0F766E; border-top-color: transparent; border-radius: 50%; margin: 0 auto 16px; animation: pnSpin 1s linear infinite;"></div>
+          <div style="font-weight: 700; font-size: 17px; letter-spacing: -0.01em; margin-bottom: 4px;">Peer Notebook</div>
+          <div style="font-size: 12px; color: #64748B;">CalAIM &amp; Medi-Cal H0038 Documentation System</div>
+        </div>
+      </div>
+      <style>
+        @keyframes pnSpin { to { transform: rotate(360deg); } }
+      </style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

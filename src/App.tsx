@@ -17,6 +17,7 @@ import { DocumentationViewer } from './components/DocumentationViewer';
 import { BetaOnboardingModal } from './components/BetaOnboardingModal';
 import { OutreachTemplatesModal } from './components/OutreachTemplatesModal';
 import { HeartHandshake, Sparkles, Globe, Mail, BookOpen } from 'lucide-react';
+import { safeStorage } from './utils/safeStorage';
 
 function AppContent() {
   const { currentOrg, currentUser, isLoading } = useAuth();
@@ -27,7 +28,7 @@ function AppContent() {
       if (pathname.startsWith('/docs') || hash.startsWith('#docs')) return 'docs';
       if (hash === '#workspace') return 'workspace';
       if (hash === '#landing' || hash === '#checklist' || hash === '#overview') return 'landing';
-      const saved = localStorage.getItem('peernotebook_active_view');
+      const saved = safeStorage.getItem('peernotebook_active_view');
       if (saved === 'workspace') return 'workspace';
       if (saved === 'docs') return 'docs';
     }
@@ -78,7 +79,7 @@ function AppContent() {
   const switchView = (view: 'landing' | 'workspace' | 'docs', docSlug?: string) => {
     setCurrentView(view);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('peernotebook_active_view', view);
+      safeStorage.setItem('peernotebook_active_view', view);
       if (view === 'workspace') {
         window.location.hash = '#workspace';
       } else if (view === 'docs') {

@@ -4,14 +4,25 @@
  * Domain: peernotebook.com
  */
 
-const CACHE_NAME = 'peernotebook-v1.2.0-ga8';
+const CACHE_NAME = 'peernotebook-v1.2.1-ga8';
 const OFFLINE_URLS = [
   '/',
   '/index.html',
   '/manifest.json'
 ];
 
+// Check if running on localhost, run.app dev server, or Vite dev environment
+const isDevEnvironment =
+  self.location.hostname === 'localhost' ||
+  self.location.hostname === '127.0.0.1' ||
+  self.location.hostname.includes('.run.app') ||
+  self.location.port === '3000';
+
 self.addEventListener('install', (event) => {
+  if (isDevEnvironment) {
+    self.skipWaiting();
+    return;
+  }
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(OFFLINE_URLS);
@@ -25,22 +36,36 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
+          .filter((name) => isDevEnvironment || name !== CACHE_NAME)
           .map((name) => caches.delete(name))
       );
+    }).then(() => {
+      if (isDevEnvironment) {
+        return self.registration.unregister();
+      }
     })
   );
   self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
+  // Never intercept requests in dev environments or cloud preview iframes
+  if (isDevEnvironment) {
+    return;
+  }
+
   // Only handle GET requests, ignore API calls and non-http(s) schemes
   if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
     return;
   }
 
-  // Bypass service worker for /api telemetry endpoints
-  if (event.request.url.includes('/api/')) {
+  // Bypass service worker for /api telemetry endpoints, Vite dev paths, or query params
+  if (
+    event.request.url.includes('/api/') ||
+    event.request.url.includes('/@vite') ||
+    event.request.url.includes('/@fs') ||
+    event.request.url.includes('?v=')
+  ) {
     return;
   }
 
