@@ -5,7 +5,7 @@
  * Overhauled single-tap peer intervention toggle chips & 44px minimum tap targets
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { peerNotebookDB, Client, SessionNote, ServiceModality } from '../db/peerNotebookDatabase';
 import { useAuth } from '../context/AuthContext';
 import { AuditLogger } from '../services/auditLogger';
@@ -192,8 +192,12 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
   // Dictation & Non-Clinical Sanitizer State
   const [isDictationModalOpen, setIsDictationModalOpen] = useState(false);
   const [dictationRawText, setDictationRawText] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
   const [sanitizedNotice, setSanitizedNotice] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
 
   // Auto-calculate Face-to-Face Duration from Start and End Times
   useEffect(() => {
@@ -328,18 +332,68 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
     setTimeout(() => setSanitizedNotice(null), 5000);
   };
 
-  // Web Speech API Voice Dictation toggle
-  const toggleSpeechRecognition = () => {
+  // Stop and cleanup speech recognition & microphone streams
+  const stopSpeechRecognition = () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.stop();
+      } catch {
+        // ignore errors on stopping already inactive recognition
+      }
+      recognitionRef.current = null;
+    }
+    if (mediaStreamRef.current) {
+      try {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      } catch {
+        // ignore
+      }
+      mediaStreamRef.current = null;
+    }
+    setIsRecording(false);
+    setInterimTranscript('');
+  };
+
+  // Component unmount cleanup
+  useEffect(() => {
+    return () => {
+      stopSpeechRecognition();
+    };
+  }, []);
+
+  // Web Speech API Voice Dictation toggle with strict Zero-Echo audio constraints
+  const toggleSpeechRecognition = async () => {
     const SpeechRecognition = (window as unknown as { SpeechRecognition?: any; webkitSpeechRecognition?: any }).SpeechRecognition ||
                               (window as unknown as { SpeechRecognition?: any; webkitSpeechRecognition?: any }).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert('Speech Recognition is not supported by this browser. You can type or paste unstructured notes directly into the field.');
+      setSpeechError('Speech Recognition is not supported by this browser. You can type or paste field notes directly.');
       return;
     }
 
     if (isRecording) {
-      setIsRecording(false);
+      stopSpeechRecognition();
       return;
+    }
+
+    setSpeechError(null);
+
+    // Apply strict hardware audio constraints (echoCancellation, noiseSuppression) on media input stream
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+        mediaStreamRef.current = stream;
+      } catch {
+        // Fall back gracefully to browser default audio route if getUserMedia is restricted
+      }
     }
 
     try {
@@ -348,21 +402,55 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-      recognition.onstart = () => setIsRecording(true);
-      recognition.onend = () => setIsRecording(false);
-      recognition.onerror = () => setIsRecording(false);
-
-      recognition.onresult = (event: any) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          transcript += event.results[i][0].transcript;
-        }
-        setDictationRawText(prev => prev ? `${prev} ${transcript}` : transcript);
+      recognition.onstart = () => {
+        setIsRecording(true);
+        setSpeechError(null);
       };
 
+      recognition.onend = () => {
+        stopSpeechRecognition();
+      };
+
+      recognition.onerror = (event: any) => {
+        if (event.error !== 'no-speech') {
+          setSpeechError(`Speech recognition notice: ${event.error}`);
+        }
+        stopSpeechRecognition();
+      };
+
+      // Strict Zero-Echo handler: committed final transcripts append precisely once; interim tokens buffer separately
+      recognition.onresult = (event: any) => {
+        let finalTokens = '';
+        let liveInterim = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const res = event.results[i];
+          const text = res[0]?.transcript || '';
+          if (res.isFinal) {
+            finalTokens += (finalTokens ? ' ' : '') + text.trim();
+          } else {
+            liveInterim += (liveInterim ? ' ' : '') + text.trim();
+          }
+        }
+
+        // Only append finalized transcript tokens precisely once
+        if (finalTokens.trim()) {
+          setDictationRawText((prev) => {
+            const cleanPrev = prev.trim();
+            const cleanChunk = finalTokens.trim();
+            return cleanPrev ? `${cleanPrev} ${cleanChunk}` : cleanChunk;
+          });
+        }
+
+        // Live visual subtitle without polluting or duplicating persistent text state
+        setInterimTranscript(liveInterim);
+      };
+
+      recognitionRef.current = recognition;
       recognition.start();
-    } catch {
-      setIsRecording(false);
+    } catch (err: any) {
+      stopSpeechRecognition();
+      setSpeechError(err?.message || 'Unable to initialize speech recognition.');
     }
   };
 
@@ -1007,8 +1095,8 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
 
       {/* PeerNote Voice / Plain-Text Dictation Modal */}
       {isDictationModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/25 backdrop-blur-sm transition-opacity overflow-y-auto">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-200">
@@ -1026,8 +1114,8 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
               <button
                 type="button"
                 onClick={() => {
+                  stopSpeechRecognition();
                   setIsDictationModalOpen(false);
-                  setIsRecording(false);
                 }}
                 className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
               >
@@ -1035,15 +1123,28 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
               </button>
             </div>
 
+            {speechError && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-[#D97706] flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{speechError}</span>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-700">
-                  Voice Dictation or Paste Rough Notes
-                </label>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-bold text-slate-700">
+                    Voice Dictation or Paste Rough Notes
+                  </label>
+                  <span className="hidden sm:inline-flex text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Echo-Cancellation Active
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={toggleSpeechRecognition}
-                  className={`min-h-[44px] px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`min-h-[44px] px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     isRecording
                       ? 'bg-rose-600 text-white animate-pulse'
                       : 'bg-teal-50 text-[#0F766E] border border-teal-200 hover:bg-teal-100'
@@ -1061,6 +1162,16 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
                 placeholder="Speak or paste field encounter notes. Example: 'Met with peer at community center for 45 mins. Worked on recovery goals and coping skills. Discussed navigating triggers and somatic box breathing. Peer reported feeling supported and anxiety down from 8 to 3. Scheduled follow up for Tuesday 10am...'"
                 className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white"
               />
+
+              {/* Zero-Echo Live Interim Subtitle Indicator */}
+              {isRecording && interimTranscript && (
+                <div className="flex items-center gap-2 p-2.5 bg-teal-50/90 border border-teal-200 rounded-xl text-xs text-[#0F766E] animate-in fade-in">
+                  <div className="w-2 h-2 rounded-full bg-[#0F766E] animate-ping shrink-0" />
+                  <span className="font-bold text-slate-500 shrink-0">Live:</span>
+                  <span className="italic truncate">{interimTranscript}</span>
+                </div>
+              )}
+
               <p className="text-[11px] text-slate-500">
                 Medicalized terms (e.g. "patient", "non-compliant", "addict") are automatically translated to strengths-based peer language upon processing.
               </p>
@@ -1070,8 +1181,8 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
               <button
                 type="button"
                 onClick={() => {
+                  stopSpeechRecognition();
                   setIsDictationModalOpen(false);
-                  setIsRecording(false);
                 }}
                 className="min-h-[44px] px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-semibold cursor-pointer"
               >

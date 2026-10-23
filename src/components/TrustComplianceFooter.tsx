@@ -310,9 +310,15 @@ export const TrustComplianceFooter: React.FC = () => {
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2.5">
               <a
                 href={selectedBadge.docUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#0F766E] hover:bg-teal-800 text-white text-xs font-bold transition-all shadow-sm"
+                onClick={(e) => {
+                  if (typeof window !== 'undefined' && selectedBadge.docUrl.includes('peernotebook.com/docs')) {
+                    e.preventDefault();
+                    const slug = selectedBadge.docUrl.replace(/^https?:\/\/peernotebook\.com\/docs\/?/, '');
+                    window.location.hash = slug ? `#docs/${slug}` : '#docs';
+                    setSelectedBadge(null);
+                  }
+                }}
+                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#0F766E] hover:bg-teal-800 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
               >
                 <span>Read Full Specification</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -419,12 +425,15 @@ export const TrustComplianceFooter: React.FC = () => {
 
             <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2.5">
               <a
-                href="https://peernotebook.com/docs"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-[#0F766E] font-semibold hover:underline flex items-center gap-1"
+                href="#docs"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.hash = '#docs';
+                  setLegalModal(null);
+                }}
+                className="text-xs text-[#0F766E] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
               >
-                <span>View Full Documentation Repository</span>
+                <span>View Full Documentation Repository (27 Docs)</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
 

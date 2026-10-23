@@ -38,9 +38,10 @@ const FIELD_TABLET_URL = '/images/field-offline-tablet.jpg';
 
 interface LandingPageProps {
   onLaunchApp: () => void;
+  onOpenDocs?: (slug?: string) => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onOpenDocs }) => {
   // Lead Capture Form State
   const [email, setEmail] = useState('');
   const [specialistName, setSpecialistName] = useState('');
@@ -167,20 +168,20 @@ Built with trauma-informed care at peernotebook.com`;
           Zone 1: Brand Wordmark | Zone 2: Single-Line Nav Links | Zone 3: 1 Primary CTA
           ========================================================================= */}
       <header className="bg-white border-b border-slate-200/90 sticky top-0 z-40 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4 md:gap-8">
           {/* Zone 1: Single text element wordmark */}
           <a
             href="/"
-            className="flex items-center gap-2.5 text-lg font-bold tracking-tight text-[#1E3A8A] whitespace-nowrap shrink-0 hover:opacity-95 transition-opacity"
+            className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg font-bold tracking-tight text-[#1E3A8A] whitespace-nowrap shrink-0 hover:opacity-95 transition-opacity"
           >
-            <div className="w-9 h-9 rounded-xl bg-[#0F766E] flex items-center justify-center text-white shadow-xs">
-              <HeartHandshake className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#0F766E] flex items-center justify-center text-white shadow-xs shrink-0">
+              <HeartHandshake className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <span>Peer Notebook</span>
           </a>
 
-          {/* Zone 2: 4 single-line clean text navigation links */}
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
+          {/* Zone 2: single-line clean text navigation links */}
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
             <a href="#overview" className="hover:text-[#1E3A8A] transition-colors whitespace-nowrap shrink-0">
               Overview
             </a>
@@ -193,16 +194,29 @@ Built with trauma-informed care at peernotebook.com`;
             <a href="#beta-cohort" className="hover:text-[#1E3A8A] transition-colors whitespace-nowrap shrink-0">
               Solo Beta Cohort
             </a>
+            <button
+              onClick={() => onOpenDocs ? onOpenDocs() : (window.location.hash = '#docs')}
+              className="text-[#0F766E] hover:text-teal-800 font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5"
+            >
+              <span>Docs Hub (27)</span>
+            </button>
           </nav>
 
           {/* Zone 3: 1 primary action */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <button
+              onClick={() => onOpenDocs ? onOpenDocs() : (window.location.hash = '#docs')}
+              className="md:hidden min-h-[44px] px-2.5 sm:px-3.5 py-2 text-xs font-bold text-[#0F766E] bg-teal-50 hover:bg-teal-100 rounded-full border border-teal-200 transition-colors shrink-0"
+            >
+              Docs
+            </button>
             <button
               onClick={onLaunchApp}
-              className="min-h-[44px] px-5 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all hover:shadow-md cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-2"
+              className="min-h-[44px] px-3.5 sm:px-5 py-2 sm:py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all hover:shadow-md cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 sm:gap-2"
             >
-              <span>Launch Beta Workspace</span>
-              <ArrowRight className="w-4 h-4" />
+              <span className="hidden xs:inline">Launch Beta Workspace</span>
+              <span className="xs:hidden">Launch App</span>
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>

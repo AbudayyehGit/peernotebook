@@ -1,206 +1,88 @@
-# Peer Notebook Documentation
+# Peer Notebook (peernotebook.com)
 
-> **Status:** Production-Ready Active Standard  
-> **Target Domain:** optimumprimers.com  
-> **Folder Path:** `peernotebook/docs/`  
-> **Resource Hub Taxonomic Link:** [`[Peer Notebook Documentation](/peernotebook/docs/README.md)`](/peernotebook/docs/README.md)  
-> **Maintainer:** Optimum Primers Systems Architecture & Technical Documentation Team  
-> **Framework:** ISO 9001:2015 Clause 7.5 (Documented Information) & Grade Craftsmanship Standards
+> **Maturity Tier:** GA #8 (Production-Hardened Progressive Web Application)  
+> **Target Domain:** [peernotebook.com](https://peernotebook.com)  
+> **Architecture:** Offline-First PWA • Dual-Layer Persistence (Dexie.js IndexedDB + PostgreSQL Supabase RLS)  
+> **Regulatory Alignment:** California SB 803 / CalMHSA / Medi-Cal CalAIM (HCPCS H0038) / HIPAA 45 CFR § 164 / California CMIA
 
 ---
 
-## Executive Overview
-**Peer Notebook** is a specialized, trauma-informed software platform and tool suite delivered via web and mobile applications. It is engineered specifically for Certified Peer Support Specialists (CPSS), Peer Recovery Coaches, and community health workers. The platform streamlines day-to-day workflow tracking, session documentation, and resource navigation while establishing rigorous data privacy, county compliance, and administrative standards.
+## Overview
+**Peer Notebook** is a specialized, trauma-informed software platform and progressive web application engineered specifically for **Certified Peer Support Specialists (CPSS)**, Peer Recovery Coaches (CPRC), and community health workers. 
 
-This centralized **Peer Notebook Documentation Hub** provides the deterministic blueprint for system architecture, regulatory compliance (California Senate Bill 803 / CalMHSA and LACDMH), Medi-Cal CalAIM billing readiness (HCPCS H0038), human-centered UX design, engineering quality, and operational reliability. Organized according to the Optimum Primers standardized numerical taxonomy (`01` through `07`), this repository minimizes cognitive fatigue, enforces clear separation of concerns, and ensures all specifications remain audit-ready.
+Designed for low cognitive fatigue and field resilience in areas with intermittent or zero cellular connectivity (shelters, street outreach, encampments, emergency departments), Peer Notebook guarantees zero data loss via transactional client-side storage, generates audit-ready 4-part encounter notes in under 90 seconds, and automatically computes Medi-Cal H0038 15-minute billing units under California's CalAIM payment reform.
 
 ---
 
-## Directory Architecture & Master Table of Contents
+## Master Documentation Binder (`/docs`)
+The complete 27-document **Master Documentation Binder** is consolidated and maintained in the [`/docs`](./docs/README.md) directory, structured across 7 numerical categories:
 
-```
-peernotebook/docs/
-├── README.md                          # Master Index & Taxonomic Manifest
-├── 01-project-management/             # Charters, roadmaps, sprint schedules, and governance
-│   ├── README.md                      # Section Overview & Governance Guide
-│   ├── project-charter.md             # Mission, scope, constraints, and success metrics
-│   ├── product-roadmap.md             # Multi-phase milestones and release targets
-│   ├── sprint-cadence.md              # Bi-weekly rituals, estimation scales, and velocity tracking
-│   └── stakeholder-matrix.md          # RACI chart and communication protocols
-├── 02-business-strategy/              # Unit economics, market positioning, and value drivers
-│   ├── README.md                      # Section Overview & Commercial Thesis
-│   ├── product-vision-scope.md        # Approved 1.0-GA Product Vision, MVP Scope & Personas
-│   ├── market-analysis.md             # TAM/SAM/SOM, market drivers, and competitive landscape
-│   ├── monetization-model.md          # Pricing tiers, SaaS margins, and revenue mechanics
-│   ├── competitive-matrix.md          # Feature-by-feature differentiation and moat analysis
-│   └── value-proposition.md           # Core customer pains, gains, and UVP statements
-├── 03-design-experience/              # Design system, personas, UX journeys, and accessibility
-│   ├── README.md                      # Section Overview & Design Constitution
-│   ├── design-system.md               # Typography scales, color tokens, and atomic components
-│   ├── user-personas.md               # User archetypes, behavioral drivers, and friction points
-│   ├── information-architecture.md    # Site map, taxonomy hierarchies, and navigation trees
-│   └── accessibility-standards.md     # WCAG 2.2 AA checklists and keyboard navigation specs
-├── 04-technical-architecture/         # System topology, data schemas, API contracts, and security
-│   ├── README.md                      # Section Overview & Architectural Philosophy
-│   ├── system-architecture.md         # Component topology, microservices, and event flows
-│   ├── data-models.md                 # Entity relationship diagrams and Firestore/SQL schemas
-│   ├── api-specifications.md          # REST/RPC endpoints, payload schemas, and error codes
-│   └── security-threat-model.md       # STRIDE evaluation, authentication, and encryption at rest
-├── 05-engineering-quality/            # CI/CD, testing methodology, code review, and QA standards
-│   ├── README.md                      # Section Overview & QA Benchmarks
-│   ├── testing-strategy.md            # Unit, integration, E2E testing ratios, and coverage bars
-│   ├── ci-cd-pipeline.md              # GitHub Actions workflows, build gates, and automated deploys
-│   ├── code-review-standards.md       # PR guidelines, linter configurations, and review rubrics
-│   └── qa-checklists.md               # Pre-release verification matrices and regression suites
-├── 06-operations-deployment/          # Infrastructure, telemetry, incident runbooks, and recovery
-│   ├── README.md                      # Section Overview & Reliability Engineering
-│   ├── infrastructure-runbook.md      # Cloud resource definitions, VPC layout, and scaling rules
-│   ├── monitoring-alerting.md         # SLIs, SLOs, Prometheus/Datadog metrics, and alert thresholds
-│   ├── incident-response.md           # Severity definitions, paging escalations, and post-mortems
-│   └── disaster-recovery.md           # RTO/RPO targets, automated failover, and backup verification
-└── 07-legal-administrative/           # Compliance, privacy, licensing, and commercial agreements
-    ├── README.md                      # Section Overview & Regulatory Framework
-    ├── privacy-policy-spec.md         # GDPR/CCPA data handling disclosures and user rights
-    ├── terms-of-service.md            # Acceptable use policies, warranty disclaimers, and liabilities
-    ├── compliance-matrix.md           # SOC 2 Type II, ISO 27001, and HIPAA compliance mapping
-    └── ip-licensing.md                # Open-source dependencies, copyright notices, and patent clauses
+| Category | Description | Key Documents |
+|---|---|---|
+| [**01. Project Management**](./docs/01-project-management/README.md) | Agile governance, delivery velocity, sprint cadence, and RACI matrices | [Project Charter](./docs/01-project-management/project-charter.md), [Roadmap](./docs/01-project-management/product-roadmap.md), [Sprint Cadence](./docs/01-project-management/sprint-cadence.md), [Checklist](./docs/01-project-management/checklist.md) |
+| [**02. Business Strategy & Clinical Practice**](./docs/02-business-strategy/README.md) | Commercial positioning, non-clinical scope, and CalMHSA 17 Core Competencies | [Product Vision](./docs/02-business-strategy/product-vision-scope.md), [H0038 Workflow](./docs/02-business-strategy/clinical-workflow-h0038.md), [17 Competencies](./docs/02-business-strategy/peer-core-competencies.md), [Feature Spec](./docs/02-business-strategy/mvp-feature-spec.md) |
+| [**03. Design Experience & Compliance Regulatory**](./docs/03-design-experience/README.md) | Soft Slate tokens (`#F8FAFC`), 48px touch targets, WCAG 2.2 AA, and SB 803 rules | [Design System](./docs/03-design-experience/design-system.md), [Personas](./docs/03-design-experience/user-personas.md), [Accessibility](./docs/03-design-experience/accessibility-standards.md), [CalMHSA Guide](./docs/03-compliance-regulatory/calmhsa-compliance-guide.md) |
+| [**04. Technical Architecture**](./docs/04-technical-architecture/README.md) | Offline-first PWA, Dexie.js, PostgreSQL RLS, WebCrypto SHA-256 seals, and PDF export | [Architecture White Paper](./docs/04-technical-architecture/GA8_Production_Grade_Architecture_White_Paper.md), [System Architecture](./docs/04-technical-architecture/system-architecture.md), [Data Models](./docs/04-technical-architecture/data-models.md), [Offline Sync](./docs/04-technical-architecture/07_Offline_Sync_IndexedDB.md) |
+| [**05. Engineering Quality & Security Privacy**](./docs/05-engineering-quality/README.md) | Automated testing pyramid, CI/CD pipelines, HIPAA § 164.312, and QA checklists | [Testing Strategy](./docs/05-engineering-quality/testing-strategy.md), [CI/CD Pipeline](./docs/05-engineering-quality/ci-cd-pipeline.md), [Code Review](./docs/05-engineering-quality/code-review-standards.md), [HIPAA Security](./docs/05-security-privacy/hipaa-security-rule.md) |
+| [**06. Operations Deployment & Billing Operations**](./docs/06-operations-deployment/README.md) | Vercel Edge configuration, SRE telemetry golden signals, and Medi-Cal claims batching | [Infrastructure Runbook](./docs/06-operations-deployment/infrastructure-runbook.md), [Monitoring & SLOs](./docs/06-operations-deployment/monitoring-alerting.md), [Incident Response](./docs/06-operations-deployment/incident-response.md), [H0038 Operations](./docs/06-operations-billing/h0038-billing-operations.md) |
+| [**07. Legal & Administrative**](./docs/07-legal-administrative/README.md) | HIPAA Notice of Privacy Practices, Terms of Service, IP Assignment, BAA Framework, and Open Source Attribution | [Terms of Service](./docs/07-legal-administrative/01_Terms_of_Service.md), [IP Assignment](./docs/07-legal-administrative/06_IP_Assignment_Agreement.md), [BAA Framework](./docs/07-legal-administrative/07_Business_Associate_Agreement_BAA_Framework.md), [Open Source Notice](./docs/07-legal-administrative/08_Open_Source_License_Notice.md), [Compliance Matrix](./docs/07-legal-administrative/compliance-matrix.md) |
+
+👉 **Read the full documentation:** [`/docs/README.md`](./docs/README.md)
+
+---
+
+## Technical Stack & Design System
+* **Frontend Framework:** React 18 SPA with TypeScript (Strict Mode)
+* **Build System:** Vite 6 with zero-downtime static bundle outputs
+* **Styling & Ergonomics:** Tailwind CSS with trauma-informed clinical color tokens:
+  * Soft Slate (`#F8FAFC` - Low-Arousal Surface Background)
+  * Deep Navy (`#1E3A8A` - High-Contrast Headings & Navigation)
+  * Muted Teal (`#0F766E` - Grounding Primary Actions)
+  * Forest Green (`#16A34A` - Sync & Audit Success)
+  * Warm Amber (`#D97706` - Offline-Queued / Caution State)
+  * Touch Targets: Minimum 44px–48px hitboxes across all mobile viewports
+* **Local Persistence Engine:** Dexie.js v4 (IndexedDB) with WebCrypto AES-GCM and SHA-256 tamper seals
+* **Cloud Relational Store:** PostgreSQL 15 on Supabase with tenant-isolated Row-Level Security (RLS)
+* **Hosting & Routing:** Vercel Global Edge Network with custom domain binding to `peernotebook.com`
+
+---
+
+## Quick Start & Local Development
+
+```bash
+# 1. Install dependencies
+npm install --legacy-peer-deps
+
+# 2. Start local development server (port 3000)
+npm run dev
+
+# 3. Type-check and production build
+npm run build
 ```
 
 ---
 
-## 01. Project Management
-*Governance, delivery velocity, milestone planning, and team synchronization.*
+## Deployment to peernotebook.com on Vercel
 
-* [**01-project-management/README.md**](./01-project-management/README.md): Governance charter and CPSS project delivery standards.
-* [**project-charter.md**](./01-project-management/project-charter.md): Approved 1.1-GA Project Charter & Initiation Document (PID) establishing trauma-informed CPSS platform mission, LACDMH/CalMHSA alignment, Medi-Cal HCPCS architecture, scope boundaries, and KPIs.
-* [**product-roadmap.md**](./01-project-management/product-roadmap.md): Three-horizon milestone schedule covering Horizon 1 (1.1-GA CPSS MVP & Field Logging), Horizon 2 (CalAIM & LACDMH County Bridge), and Horizon 3 (Enterprise EHR Interoperability).
-* [**sprint-cadence.md**](./01-project-management/sprint-cadence.md): Standardized 14-day sprint cycle, Fibonacci story-point estimation rules, and standup/retro agendas.
-* [**stakeholder-matrix.md**](./01-project-management/stakeholder-matrix.md): Formal RACI matrix outlining decision rights across executive, engineering, design, and operations leads.
+```bash
+# Initialize git and push to GitHub
+git init -b master
+git remote add origin https://github.com/[handle]/peernotebook.git
+git add .
+git commit -m "feat: Peer Notebook GA #8 complete repository hardening & documentation bundle"
+git push -u origin master
+```
 
----
-
-## 02. Business Strategy
-*Commercial positioning, unit economic viability, monetization mechanics, and market moats.*
-
-* [**02-business-strategy/README.md**](./02-business-strategy/README.md): Commercial strategy and economic foundation overview.
-* [**product-vision-scope.md**](./02-business-strategy/product-vision-scope.md): Approved 1.0-GA Product Vision & Scope: trauma-informed mission, non-clinical ethos, MVP in-scope/out-of-scope boundaries, and CPSS personas.
-* [**mvp-feature-spec.md**](./02-business-strategy/mvp-feature-spec.md): Approved 1.0-GA MVP Feature Specification: five core modules (MOD-01 to MOD-05), functional specs, and LACDMH/CalMHSA billing alignment.
-* [**value-proposition.md**](./02-business-strategy/value-proposition.md): Value proposition canvas detailing customer friction points, cognitive relief vectors, and measurable administrative ROI.
-* [**market-analysis.md**](./02-business-strategy/market-analysis.md): Quantitative behavioral health market analysis, CalAIM ECM catalysts, and macro industry tailwinds.
-* [**monetization-model.md**](./02-business-strategy/monetization-model.md): Multi-tier subscription economics for solo specialists, community health centers, and county behavioral health agencies.
-* [**competitive-matrix.md**](./02-business-strategy/competitive-matrix.md): Structural comparison against legacy medical EHRs and generic note-taking tools.
+In the Vercel Dashboard:
+* Import the repository.
+* Framework Preset: **Vite**.
+* Build Command: `tsc && vite build`.
+* Output Directory: `dist`.
+* Install Command: `npm install --legacy-peer-deps`.
+* Domain: Bind `peernotebook.com` and `www.peernotebook.com`.
 
 ---
 
-## 03. Design & Experience
-*Human-centered interface standards, responsive design tokens, and cognitive accessibility.*
-
-* [**03-design-experience/README.md**](./03-design-experience/README.md): Design constitution and human-centered design principles.
-* [**ui-ux-wireframes-flows.md**](./03-design-experience/ui-ux-wireframes-flows.md): Approved 1.2-GA UI/UX Wireframes & Interaction Flows: single-screen note capture, progressive disclosure, and touch target standards.
-* [**design-system.md**](./03-design-experience/design-system.md): Mathematical typography scales, semantic color variables, elevation levels, and atomic component anatomy.
-* [**user-personas.md**](./03-design-experience/user-personas.md): Empirical user archetypes (Peer Specialist, Peer Recovery Coach, Supervisor) with behavioral maps.
-* [**information-architecture.md**](./03-design-experience/information-architecture.md): Hierarchical navigation graphs, page state flows, and breadcrumb routing taxonomies.
-* [**accessibility-standards.md**](./03-design-experience/accessibility-standards.md): WCAG 2.2 Level AA conformance audit, ARIA landmark guidelines, and keyboard trap prevention.
-
----
-
-## 04. Technical Architecture
-*Distributed systems design, resilient state machines, schema contracts, and defensive security.*
-
-* [**04-technical-architecture/README.md**](./04-technical-architecture/README.md): Architectural philosophy and zero-trust engineering principles.
-* [**01_System_Architecture_Data_Flow.md**](./04-technical-architecture/01_System_Architecture_Data_Flow.md): Approved 1.0-GA System Architecture & Data Flow: local-first IndexedDB, TLS 1.3 gateway, and 7-step note persistence lifecycle.
-* [**02_Database_ERD_Data_Dictionary.md**](./04-technical-architecture/02_Database_ERD_Data_Dictionary.md): Approved 1.0-GA Database ERD & Data Dictionary: PostgreSQL DDL, multi-tenant RLS policies, and Medi-Cal H0038 / POS 15 compliance.
-* [**03_UI_Component_Architecture.md**](./04-technical-architecture/03_UI_Component_Architecture.md): Approved 1.0-GA UI Component Architecture: React form state, Dexie/IndexedDB auto-save, and progressive disclosure intervention pills.
-* [**04_Backend_API_Integration.md**](./04-technical-architecture/04_Backend_API_Integration.md): Approved 1.0-GA Backend API Integration: Supabase JWT auth claims, multi-tenant Express middleware, and notes locking audit endpoints.
-* [**05_Compliance_Engine_PDF_Export.md**](./04-technical-architecture/05_Compliance_Engine_PDF_Export.md): Approved 1.0-GA Compliance Engine & PDF Export: immutable audit trails, SHA-256 tamper-evident hashing, and jsPDF client-side generation.
-* [**06_Security_Load_Testing_Domain.md**](./04-technical-architecture/06_Security_Load_Testing_Domain.md): Approved 1.0-GA Security Hardening, Load Testing & Domain Configuration: TLS 1.3, CSP, k6 500-user concurrency benchmarks, and Vercel/Supabase topology.
-* [**07_Offline_Sync_IndexedDB.md**](./04-technical-architecture/07_Offline_Sync_IndexedDB.md): Approved 1.0-GA Offline Synchronization & IndexedDB: Dexie.js local-first schemas, background sync worker queues, and Last-Write-Wins conflict resolution.
-* [**07_Disaster_Recovery_IndexedDB.md**](./04-technical-architecture/07_Disaster_Recovery_IndexedDB.md): Approved 1.0-GA Disaster Recovery & Storage Quota Management: `storage.persist()`, quota warning thresholds, IndexedDB integrity probes, and OPFS snapshot recovery.
-* [**08_Agency_Dashboard_RBAC.md**](./04-technical-architecture/08_Agency_Dashboard_RBAC.md): Approved 1.0-GA Agency Dashboard & RBAC: Multi-tenant role permissions, supervisor review queue components, and agency-isolated RLS.
-* [**08_HIPAA_BAA_Consent_Model.md**](./04-technical-architecture/08_HIPAA_BAA_Consent_Model.md): Approved 1.0-GA HIPAA BAA Compliance & Digital Consent: Supabase/Vercel BAA checklist, digital signature vector capture, and SHA-256 consent binding.
-* [**09_Beta_Testing_Field_Trials.md**](./04-technical-architecture/09_Beta_Testing_Field_Trials.md): Approved 1.0-GA Beta Testing & Field Trials: Week 8 field trials, 14-day telemetry KPIs, and BetaFeedbackWidget feedback loops.
-* [**10_Production_Deployment_Polish.md**](./04-technical-architecture/10_Production_Deployment_Polish.md): Approved 1.0-GA Production Deployment & Polish: Code splitting, Lighthouse 95+ SLAs, GitHub Actions CI/CD, and pre-flight checklists.
-* [**12_Offline_Token_Auth_Handling.md**](./04-technical-architecture/12_Offline_Token_Auth_Handling.md): Approved 1.0-GA Offline Token Auth Handling: Expired JWT resilience in POS 15, WebCrypto ECDSA queue signing, and pre-reconnection auth gate.
-* [**13_Migration_Rollback_Protocol.md**](./04-technical-architecture/13_Migration_Rollback_Protocol.md): Approved 1.0-GA Database Migration & Rollback Protocol: Zero-downtime expand/contract patterns, stale offline schema adapters, and paired up/down SQL runbooks.
-* [**system-architecture.md**](./04-technical-architecture/system-architecture.md): High-level system topology diagram, client-server sync protocols, and edge compute caching layers.
-* [**data-models.md**](./04-technical-architecture/data-models.md): Strongly typed schema definitions, CalMHSA core competencies, and transactional boundary models.
-* [**api-specifications.md**](./04-technical-architecture/api-specifications.md): OpenAPI 3.1 specification, idempotency key requirements, and rate-limiting schemas.
-* [**security-threat-model.md**](./04-technical-architecture/security-threat-model.md): Comprehensive STRIDE threat assessment, token validation pipelines, and KMS data-at-rest encryption.
-
----
-
-## 05. Engineering & Quality
-*Verification gates, deterministic test harnesses, continuous delivery, and code craftsman rubrics.*
-
-* [**05-engineering-quality/README.md**](./05-engineering-quality/README.md): Engineering quality charter and verification philosophy.
-* [**testing-strategy.md**](./05-engineering-quality/testing-strategy.md): Test pyramid allocation (70% unit, 20% integration, 10% E2E) with strict flake mitigation routines.
-* [**ci-cd-pipeline.md**](./05-engineering-quality/ci-cd-pipeline.md): Declarative workflow manifests, staging smoke-test suites, and zero-downtime blue/green deployment triggers.
-* [**code-review-standards.md**](./05-engineering-quality/code-review-standards.md): Mandatory 2-reviewer consensus rules, automated lint barriers, and architectural change protocols.
-* [**qa-checklists.md**](./05-engineering-quality/qa-checklists.md): Pre-flight deployment checklists, cross-browser test grids, and performance regression benchmarks.
-
----
-
-## 06. Operations & Deployment
-*Site reliability engineering, observability telemetry, incident mitigation, and operational continuity.*
-
-* [**06-operations-deployment/README.md**](./06-operations-deployment/README.md): SRE practices and continuous operational uptime standards.
-* [**infrastructure-runbook.md**](./06-operations-deployment/infrastructure-runbook.md): Infrastructure-as-code deployment procedures, load balancer configuration, and autoscaling thresholds.
-* [**monitoring-alerting.md**](./06-operations-deployment/monitoring-alerting.md): Golden signal telemetry tracking (Latency, Traffic, Errors, Saturation) with PagerDuty escalation routes.
-* [**incident-response.md**](./06-operations-deployment/incident-response.md): P0–P3 incident classifications, commander roles, war-room runbooks, and blameless post-mortem templates.
-* [**disaster-recovery.md**](./06-operations-deployment/disaster-recovery.md): RTO (< 15 min) and RPO (< 1 min) failover scenarios, regional data replication, and restore drill schedules.
-
----
-
-## 07. Legal & Administrative
-*Regulatory compliance, intellectual property protection, terms of service, and privacy safeguards.*
-
-* [**07-legal-administrative/README.md**](./07-legal-administrative/README.md): Legal governance and compliance overview.
-* [**privacy-policy-spec.md**](./07-legal-administrative/privacy-policy-spec.md): Data retention periods, telemetry consent mechanisms, and third-party data processor disclosures.
-* [**terms-of-service.md**](./07-legal-administrative/terms-of-service.md): Standard enterprise SaaS agreements, SLA performance commitments, and liability limitation clauses.
-* [**compliance-matrix.md**](./07-legal-administrative/compliance-matrix.md): Security control mapping against SOC 2 Type II criteria, ISO/IEC 27001, and HIPAA compliance requirements.
-* [**ip-licensing.md**](./07-legal-administrative/ip-licensing.md): Software licensing inventory, patent declarations, and third-party open-source attribution tables.
-
----
-
-## Quality Checkpoints & Document Revision Standard
-In compliance with **Optimum Primers Grade Craftsmanship**:
-1. **Single Source of Truth**: Every architectural decision must be logged in its respective `.md` artifact prior to implementation pull requests.
-2. **Review Cadence**: All documents must undergo quarterly audits by the respective area leads identified in the Stakeholder Matrix.
-3. **Change Control**: Document revisions require semantic version incrementation and timestamped entries in the revision history block of each document.
-
----
-
-## 08. Standalone Extraction & Direct Vercel Deployment
-
-### Quick Deploy to Vercel (peernotebook.com)
-
-1. **GitHub Repository Sync**:
-   ```bash
-   git init -b master
-   git remote add origin https://github.com/[handle]/peernotebook.git
-   git add .
-   git commit -m "feat: Peer Notebook GA #8 complete repository hardening & deployment bundle"
-   git push -u origin master
-   ```
-
-2. **Vercel Direct Import**:
-   - Go to [Vercel Dashboard](https://vercel.com/new).
-   - Select the `peernotebook` GitHub repository.
-   - Framework Preset: **Vite**.
-   - Build Command: `tsc && vite build` (configured automatically via `package.json`).
-   - Output Directory: `dist`.
-   - Install Command: `npm install --legacy-peer-deps` (configured automatically via `vercel.json`).
-
-3. **Custom Domain Binding**:
-   - In your Vercel Project Settings → **Domains**:
-   - Add `peernotebook.com` (and `www.peernotebook.com`).
-   - Configure DNS records with your registrar:
-     - `A` record: `@` → `76.76.21.21`
-     - `CNAME` record: `www` → `cname.vercel-dns.com`
-   - SSL certificate automatically provisions via Vercel Let's Encrypt.
-
-4. **Environment Variables (Optional Cloud Layer)**:
-   - `VITE_SUPABASE_URL`: Your agency Supabase project URL.
-   - `VITE_SUPABASE_ANON_KEY`: Your agency Supabase public anonymous key.
-   *(Note: Peer Notebook operates 100% offline-first via Dexie.js IndexedDB even without remote environment variables configured).*
-
+## License
+Copyright © 2026 Optimum Primers & Peer Notebook Contributors. All Rights Reserved.
+Open specification components published under the Apache License 2.0.

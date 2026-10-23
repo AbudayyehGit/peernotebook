@@ -55,7 +55,7 @@ export const OrgSelect: React.FC = () => {
         <>
           {/* Crisp Backdrop Overlay (z-50) */}
           <div
-            className="fixed inset-0 z-50 bg-slate-900/25 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm transition-opacity"
             onClick={() => setIsOpen(false)}
           />
 

@@ -124,7 +124,7 @@ export const SyncStatusBadge: React.FC = () => {
         <>
           {/* Crisp Backdrop Overlay (z-50) */}
           <div
-            className="fixed inset-0 z-50 bg-slate-900/25 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm transition-opacity"
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);
@@ -135,7 +135,7 @@ export const SyncStatusBadge: React.FC = () => {
           <div
             role="dialog"
             aria-modal="true"
-            className="fixed inset-x-3 top-20 sm:top-auto sm:inset-auto sm:absolute sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-80 max-w-[calc(100vw-1.5rem)] p-4 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200/90 text-xs z-[60] animate-in fade-in zoom-in-95 duration-100"
+            className="fixed inset-x-3 sm:inset-x-auto top-20 sm:top-full sm:right-0 sm:mt-2 w-auto sm:w-80 max-w-[calc(100vw-1.5rem)] p-4 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200/90 text-xs z-[60] animate-in fade-in zoom-in-95 duration-100"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
