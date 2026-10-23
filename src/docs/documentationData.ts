@@ -702,6 +702,7 @@ Because Peer Notebook is offline-first, client devices continue documenting with
 ## 1. Patient & Peer Protections
 * Complete adherence to 42 CFR Part 2 substance use disorder confidentiality.
 * Client names pseudonymized into MRNs (\`PN-XXXX\`).
-* Zero commercial telemetry or third-party advertising cookies.`
+* Zero commercial telemetry or third-party advertising cookies.
+* **Official Compliance Contact:** For county BAA execution, audit disclosures, or clinical inquiries, contact \`support@peernotebook.com\` at \`peernotebook.com\`.`
   }
 ];

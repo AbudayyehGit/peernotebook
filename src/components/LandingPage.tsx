@@ -31,6 +31,7 @@ import { BetaOnboardingModal } from './BetaOnboardingModal';
 import { OutreachTemplatesModal } from './OutreachTemplatesModal';
 import { TrustComplianceFooter } from './TrustComplianceFooter';
 import { safeStorage } from '../utils/safeStorage';
+import { leadDigestService } from '../services/leadDigestService';
 
 // Static photo assets served from /public/images/ with absolute root paths for reliable Vercel production deployment
 const HERO_IMAGE_URL = '/images/hero-peer-support-workspace.jpg';
@@ -108,6 +109,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onOpenDoc
     setCheckedItems((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
+  React.useEffect(() => {
+    leadDigestService.recordPageView('/');
+  }, []);
+
   const handleSubmitLeadCapture = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@') || !email.includes('.')) {
@@ -117,21 +122,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onOpenDoc
     setFormError(null);
     setIsSubmitted(true);
 
-    // Save lead to local storage / IndexedDB mock store for pilot tracking
-    try {
-      const existingLeads = JSON.parse(safeStorage.getItem('peernotebook_pilot_leads') || '[]');
-      existingLeads.push({
-        email,
-        name: specialistName || 'Colleague',
-        roleTitle,
-        county,
-        wantsBetaCohort,
-        submittedAt: new Date().toISOString(),
-      });
-      safeStorage.setItem('peernotebook_pilot_leads', JSON.stringify(existingLeads));
-    } catch {
-      // Ignore local storage error
-    }
+    // Save lead to local storage and dispatch to daily digest lead queue
+    leadDigestService.submitLead({
+      email,
+      name: specialistName || 'Colleague',
+      roleTitle,
+      county,
+      wantsBetaCohort
+    });
   };
 
   const handleCopyChecklistText = async () => {
@@ -201,6 +199,14 @@ Built with trauma-informed care at peernotebook.com`;
             >
               <span>Docs Hub (27)</span>
             </button>
+            <a
+              href="mailto:support@peernotebook.com"
+              className="hover:text-[#1E3A8A] transition-colors whitespace-nowrap shrink-0 flex items-center gap-1"
+              title="Official Business Support: support@peernotebook.com"
+            >
+              <Mail className="w-3.5 h-3.5 text-[#0F766E]" />
+              <span>Contact</span>
+            </a>
           </nav>
 
           {/* Zone 3: 1 primary action */}

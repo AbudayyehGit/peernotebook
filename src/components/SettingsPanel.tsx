@@ -33,9 +33,17 @@ import {
   CheckCheck,
   Eye,
   Archive,
-  FolderDown
+  FolderDown,
+  Mail,
+  Award,
+  ShieldCheck,
+  Send,
+  TrendingUp,
+  BarChart3,
+  Sparkles
 } from 'lucide-react';
 import { opfsStorage, StorageQuotaInfo, OPFSSnapshotMeta } from '../services/opfsStorageService';
+import { leadDigestService, DigestResponse } from '../services/leadDigestService';
 
 const HARDENED_RLS_SQL = `-- ==============================================================================
 -- Peer Notebook: Supabase Row-Level Security (RLS) Hardening Migration
@@ -138,6 +146,17 @@ export const SettingsPanel: React.FC = () => {
   } | null>(null);
   const [sqlMigrationModalOpen, setSqlMigrationModalOpen] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
+  const [supportEmailCopied, setSupportEmailCopied] = useState(false);
+
+  const handleCopySupportEmail = async () => {
+    try {
+      await navigator.clipboard.writeText('support@peernotebook.com');
+      setSupportEmailCopied(true);
+      setTimeout(() => setSupportEmailCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
 
   // OPFS (Origin Private File System) Quota & Snapshot State
   const [storageQuota, setStorageQuota] = useState<StorageQuotaInfo | null>(null);
@@ -534,6 +553,62 @@ export const SettingsPanel: React.FC = () => {
             <span>View BAA White Paper</span>
             <ExternalLink className="w-3.5 h-3.5 shrink-0" />
           </a>
+        </div>
+      </div>
+
+      {/* Official Enterprise Support & Trust Compliance Anchors Card */}
+      <div className="p-5 sm:p-7 bg-[#F8FAFC] border border-slate-200/90 rounded-2xl shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3.5">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-200/80 shrink-0">
+              <Mail className="w-5 h-5 text-[#0F766E]" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[#1E3A8A]">Official Business Support & Compliance Desk</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Direct technical assistance, BAA execution & county EHR export requests</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+              HIPAA/CMIA Aligned
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-[#0F766E] border border-teal-200">
+              CalMHSA Standard Compliant (H0038)
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+          <div className="space-y-1 text-xs text-slate-700">
+            <p className="font-semibold text-slate-900">
+              Domain Anchor: <a href="https://peernotebook.com" target="_blank" rel="noopener noreferrer" className="text-[#0F766E] hover:underline font-mono">peernotebook.com</a>
+            </p>
+            <p className="text-slate-600 leading-relaxed max-w-xl">
+              For county behavioral health departments, managed care plans (MCPs), or solo specialists requiring custom Medi-Cal export formats or signed BAAs:
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href="mailto:support@peernotebook.com"
+              className="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+            >
+              <Mail className="w-4 h-4" />
+              <span>support@peernotebook.com</span>
+            </a>
+            <button
+              type="button"
+              onClick={handleCopySupportEmail}
+              className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors shadow-2xs cursor-pointer"
+              title="Copy official email to clipboard"
+            >
+              {supportEmailCopied ? (
+                <Check className="w-4 h-4 text-[#16A34A]" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 

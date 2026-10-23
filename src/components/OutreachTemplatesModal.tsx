@@ -62,6 +62,8 @@ Would you be open to spending 5 minutes testing a sample note this week?
 You can try it out directly right here:
 https://peernotebook.com
 
+(If you want an onboarding walkthrough or have questions, the pilot team is also available directly at support@peernotebook.com.)
+
 Warmly,
 [Your Name]
 Certified Peer Support Specialist (CPSS-CA) / Peer Advocate
@@ -80,7 +82,7 @@ Under recent Department of Health Care Services (DHCS) payment reform guidelines
 
 We’ve set up a pilot trial with Peer Notebook (peernotebook.com)—an offline-first, HIPAA-compliant PWA featuring automatic 15-minute increment calculations, digital supervisor cosigning, and tamper-evident SHA-256 audit logs (45 CFR § 164.312).
 
-We have 3 to 5 complimentary spots open in our initial California field cohort. It allows specialists to document in field shelters or clinics without losing work, and provides clean supervisor PDF summaries ready for EHR billing.
+We have 3 to 5 complimentary spots open in our initial California field cohort. It allows specialists to document in field shelters or clinics without losing work, and provides clean supervisor PDF summaries ready for EHR billing. Our team can also coordinate standard Business Associate Agreements (BAA) directly via support@peernotebook.com.
 
 Could I share a 2-minute walkthrough with you or have one of our specialists test it on 2 encounters this week?
 
@@ -104,6 +106,8 @@ We’re onboarding 3 to 5 solo specialists for free lifetime access in our first
 
 I've also attached our free "10-Minute Medi-Cal H0038 Note Checklist" if you just want the compliance guide for your own records:
 https://peernotebook.com/#checklist
+
+Questions or want direct support setting it up? Email the project team at support@peernotebook.com.
 
 Let me know if you'd like an invite link!
 
@@ -221,6 +225,22 @@ In solidarity,
               {activeTemplate.body}
             </pre>
           </div>
+        </div>
+
+        {/* Official Pilot Coordinator & Support Anchor */}
+        <div className="p-3 bg-teal-50/70 rounded-xl border border-teal-200 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
+          <div className="flex items-center gap-2">
+            <Mail className="w-4 h-4 text-[#0F766E] shrink-0" />
+            <span className="text-slate-700 font-medium">
+              Need custom pilot onboarding or BAA assistance? Reach our engineering desk:
+            </span>
+          </div>
+          <a
+            href="mailto:support@peernotebook.com"
+            className="font-bold text-[#0F766E] hover:text-[#1E3A8A] hover:underline underline-offset-2 flex items-center gap-1 shrink-0"
+          >
+            <span>support@peernotebook.com</span>
+          </a>
         </div>
 
         {/* Action Buttons */}

@@ -26,7 +26,8 @@ import {
   Code2,
   Server,
   Layers,
-  HeartHandshake
+  HeartHandshake,
+  Mail
 } from 'lucide-react';
 
 export interface DocItem {
@@ -1193,20 +1194,39 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
             </div>
           </article>
 
-          {/* Reader Footer Navigation */}
-          <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-[#16A34A]" />
-              <span>CalAIM Medi-Cal H0038 Verified Document</span>
+          {/* Reader Footer Navigation with Master Trust Anchors */}
+          <div className="pt-6 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="flex items-center gap-1.5 font-semibold text-slate-700">
+                <ShieldCheck className="w-4 h-4 text-[#16A34A]" />
+                <span>CalAIM H0038 Verified</span>
+              </span>
+              <span className="text-slate-300">·</span>
+              <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-[#16A34A] border border-emerald-200 font-bold text-[11px]">
+                HIPAA/CMIA Aligned
+              </span>
+              <span className="px-2 py-0.5 rounded-md bg-teal-50 text-[#0F766E] border border-teal-200 font-bold text-[11px]">
+                CalMHSA Standard Compliant
+              </span>
             </div>
-            <div className="flex items-center gap-3">
+
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="mailto:support@peernotebook.com"
+                className="text-[#0F766E] hover:text-[#1E3A8A] hover:underline flex items-center gap-1 font-semibold"
+                title="Email Documentation Support"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>support@peernotebook.com</span>
+              </a>
+              <span className="text-slate-300">·</span>
               <a
                 href={`https://github.com/optimumprimers/peernotebook/blob/master${activeDoc.path}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#0F766E] hover:underline flex items-center gap-1 font-semibold"
+                className="text-slate-600 hover:text-slate-900 flex items-center gap-1 font-semibold"
               >
-                <span>View on GitHub</span>
+                <span>GitHub Source</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>

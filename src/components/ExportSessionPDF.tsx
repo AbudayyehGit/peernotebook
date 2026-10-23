@@ -60,7 +60,7 @@ export const ExportSessionPDF: React.FC<ExportSessionPDFProps> = ({ note, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-900/25 backdrop-blur-sm transition-opacity overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity overflow-y-auto">
       <div className="bg-white border border-slate-200/90 rounded-2xl max-w-3xl w-full max-w-[calc(100vw-1.5rem)] p-4 sm:p-6 shadow-2xl relative max-h-[92vh] flex flex-col my-auto">
         {/* Controls Bar (Hidden during print) */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 sm:pb-4 border-b border-slate-200 print:hidden shrink-0 gap-2.5">
@@ -234,7 +234,7 @@ export const ExportSessionPDF: React.FC<ExportSessionPDFProps> = ({ note, onClos
             <div className="mt-8 pt-4 border-t border-slate-200 text-[9px] text-slate-500 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div>
                 <span>CONFIDENTIAL CLINICAL RECORD — PROTECTED UNDER HIPAA 45 CFR § 164 & 42 CFR PART 2</span>
-                <p className="mt-0.5">California CalAIM Department of Health Care Services (DHCS) Compliant Documentation • peernotebook.com</p>
+                <p className="mt-0.5">California CalAIM DHCS Compliant Documentation • peernotebook.com • support@peernotebook.com</p>
               </div>
               <div className="font-mono text-slate-600 text-left sm:text-right">
                 <span>BAA Seal: {currentOrg?.baaVersion || 'v2.4-GA8-CalAIM'}</span>

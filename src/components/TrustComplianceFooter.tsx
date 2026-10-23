@@ -18,7 +18,10 @@ import {
   ExternalLink,
   X,
   FileText,
-  Sparkles
+  Sparkles,
+  Mail,
+  Copy,
+  Check
 } from 'lucide-react';
 
 export interface FooterBadge {
@@ -38,13 +41,26 @@ export const TrustComplianceFooter: React.FC = () => {
   const { currentOrg, currentUser } = useAuth();
   const [selectedBadge, setSelectedBadge] = useState<FooterBadge | null>(null);
   const [legalModal, setLegalModal] = useState<'terms' | 'privacy' | 'calmhsa' | null>(null);
+  const [copiedContact, setCopiedContact] = useState(false);
+
+  const handleCopySupportEmail = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText('support@peernotebook.com');
+      setCopiedContact(true);
+      setTimeout(() => setCopiedContact(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
 
   // Regulatory & System Observability Badges with Title Text Only & Popup Links Preserved
   const regulatoryBadges: FooterBadge[] = [
     {
       id: 'REG-HIPAA',
       name: 'HIPAA & CMIA Compliance',
-      title: 'HIPAA & CMIA Compliant',
+      title: 'HIPAA/CMIA Aligned',
       category: 'Regulatory',
       badgeColorClass: 'bg-emerald-50 border-emerald-200/90 hover:bg-emerald-100/70',
       textColorClass: 'text-[#16A34A]',
@@ -56,7 +72,7 @@ export const TrustComplianceFooter: React.FC = () => {
     {
       id: 'REG-CALMHSA',
       name: 'CalMHSA Standards Alignment',
-      title: 'CalMHSA Standard Aligned',
+      title: 'CalMHSA Standard Compliant (H0038)',
       category: 'Regulatory',
       badgeColorClass: 'bg-teal-50 border-teal-200/90 hover:bg-teal-100/70',
       textColorClass: 'text-[#0F766E]',
@@ -183,8 +199,55 @@ export const TrustComplianceFooter: React.FC = () => {
           {/* Divider Rule */}
           <div className="border-t border-slate-200/80 pt-3" />
 
+          {/* Master Trust & Compliance Anchors + Official Contact Row */}
+          <div className="bg-[#F8FAFC] border border-slate-200/90 rounded-2xl p-3 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
+            {/* Left: Domain & Compliance Badges */}
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-center md:text-left">
+              <span className="font-bold text-[#1E3A8A] flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-[#16A34A] shrink-0" />
+                <span>peernotebook.com</span>
+              </span>
+              <span className="text-slate-300 hidden sm:inline">|</span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+                <Check className="w-3 h-3" />
+                <span>HIPAA/CMIA Aligned</span>
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-[#0F766E] border border-teal-200">
+                <Award className="w-3 h-3" />
+                <span>CalMHSA Standard Compliant (H0038)</span>
+              </span>
+            </div>
+
+            {/* Right: Official Business Email & BAA Inquiry Contact */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[11px] text-slate-500 hidden sm:inline font-medium">
+                Official Support & BAA:
+              </span>
+              <a
+                href="mailto:support@peernotebook.com"
+                className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-slate-200/90 text-[#0F766E] hover:text-[#1E3A8A] font-semibold text-xs transition-colors shadow-2xs hover:shadow-xs"
+                title="Send email to support@peernotebook.com"
+              >
+                <Mail className="w-3.5 h-3.5 text-[#0F766E]" />
+                <span>support@peernotebook.com</span>
+              </a>
+              <button
+                type="button"
+                onClick={handleCopySupportEmail}
+                className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 rounded-xl bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
+                title="Copy official email to clipboard"
+              >
+                {copiedContact ? (
+                  <Check className="w-4 h-4 text-[#16A34A]" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
           {/* Bottom Bar: Brand, Legal Links, Active Provider */}
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-3 text-xs pt-1">
             {/* Brand & Copyright */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-1 text-slate-600 text-center lg:text-left">
               <span className="font-semibold text-slate-800">
@@ -265,7 +328,7 @@ export const TrustComplianceFooter: React.FC = () => {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/25 backdrop-blur-sm transition-opacity overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity overflow-y-auto"
           onClick={() => setSelectedBadge(null)}
         >
           <div
@@ -341,7 +404,7 @@ export const TrustComplianceFooter: React.FC = () => {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/25 backdrop-blur-sm transition-opacity overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity overflow-y-auto"
           onClick={() => setLegalModal(null)}
         >
           <div
@@ -388,6 +451,9 @@ export const TrustComplianceFooter: React.FC = () => {
                   <p>
                     <strong>4. Field Offline Operation:</strong> The local persistence engine caches encounter notes securely in client IndexedDB storage. Providers agree to sync field devices to the secure cloud repository upon establishing encrypted internet connectivity.
                   </p>
+                  <p>
+                    <strong>5. BAA & Security Contact:</strong> County behavioral health departments and contracted managed care plans may request an executed Business Associate Agreement (BAA) or SOC 2 Type II audit report by contacting <a href="mailto:support@peernotebook.com" className="text-[#0F766E] font-bold underline">support@peernotebook.com</a>.
+                  </p>
                 </>
               )}
 
@@ -404,6 +470,9 @@ export const TrustComplianceFooter: React.FC = () => {
                   </p>
                   <p>
                     <strong>4. 42 CFR Part 2 Confidentiality:</strong> Substance use disorder documentation is segregated with heightened consent controls and specialized disclosure warnings for CalAIM DMC-ODS recovery pathways.
+                  </p>
+                  <p>
+                    <strong>5. Privacy Officer & Inquiries:</strong> Direct all privacy, data retention, or patient access requests to our Compliance Officer at <a href="mailto:support@peernotebook.com" className="text-[#0F766E] font-bold underline">support@peernotebook.com</a>.
                   </p>
                 </>
               )}

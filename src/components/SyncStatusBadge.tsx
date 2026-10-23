@@ -182,7 +182,7 @@ export const SyncStatusBadge: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-slate-100 flex justify-end">
+            <div className="mt-3 pt-2 border-t border-slate-100 flex flex-col gap-2">
               <button
                 type="button"
                 onClick={handleManualSync}
@@ -192,6 +192,15 @@ export const SyncStatusBadge: React.FC = () => {
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
                 <span>{isSyncing ? 'Syncing to Supabase...' : 'Force Sync with Supabase'}</span>
               </button>
+              <div className="flex items-center justify-between text-[10px] text-slate-500 pt-0.5 px-0.5">
+                <span className="font-semibold text-slate-600">peernotebook.com</span>
+                <a
+                  href="mailto:support@peernotebook.com"
+                  className="text-[#0F766E] hover:underline font-medium"
+                >
+                  support@peernotebook.com
+                </a>
+              </div>
             </div>
           </div>
         </>

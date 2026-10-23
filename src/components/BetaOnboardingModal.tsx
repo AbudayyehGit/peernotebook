@@ -16,7 +16,8 @@ import {
   X,
   FileCheck,
   Zap,
-  Check
+  Check,
+  Mail
 } from 'lucide-react';
 
 interface BetaOnboardingModalProps {
@@ -182,8 +183,22 @@ export const BetaOnboardingModal: React.FC<BetaOnboardingModalProps> = ({
           </div>
         </div>
 
+        {/* Dedicated Support & Pilot Help Anchor */}
+        <div className="flex items-center justify-between text-xs text-slate-500 px-1">
+          <span className="flex items-center gap-1.5">
+            <Mail className="w-3.5 h-3.5 text-[#0F766E]" />
+            <span>Need pilot onboarding help?</span>
+          </span>
+          <a
+            href="mailto:support@peernotebook.com"
+            className="font-bold text-[#0F766E] hover:text-[#1E3A8A] hover:underline"
+          >
+            support@peernotebook.com
+          </a>
+        </div>
+
         {/* Navigation Controls */}
-        <div className="flex items-center justify-between gap-3 pt-2">
+        <div className="flex items-center justify-between gap-3 pt-1">
           <button
             type="button"
             onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}

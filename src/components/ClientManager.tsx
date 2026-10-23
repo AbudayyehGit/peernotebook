@@ -269,7 +269,7 @@ export const ClientManager: React.FC<ClientManagerProps> = ({ onSelectClientForN
 
       {/* Intake Modal with 44px tap targets */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/25 backdrop-blur-sm transition-opacity overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity overflow-y-auto">
           <div className="bg-white border border-slate-200/90 rounded-2xl max-w-lg w-full max-w-[calc(100vw-1.5rem)] p-5 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto my-auto">
             <button
               type="button"
