@@ -47,6 +47,7 @@ import {
 } from 'lucide-react';
 import { opfsStorage, StorageQuotaInfo, OPFSSnapshotMeta } from '../services/opfsStorageService';
 import { leadDigestService, DigestResponse } from '../services/leadDigestService';
+import { safeStorage } from '../utils/safeStorage';
 
 const HARDENED_RLS_SQL = `-- ==============================================================================
 -- Peer Notebook: Supabase Row-Level Security (RLS) Hardening Migration
@@ -117,7 +118,11 @@ CREATE POLICY "Strict multi-tenant delete for session_notes"
     );
 `;
 
-export const SettingsPanel: React.FC = () => {
+interface SettingsPanelProps {
+  onReplayTutorial?: () => void;
+}
+
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }) => {
   const { currentOrg, currentUser } = useAuth();
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseKey, setSupabaseKey] = useState('');
@@ -158,6 +163,23 @@ export const SettingsPanel: React.FC = () => {
       setTimeout(() => setSupportEmailCopied(false), 2000);
     } catch {
       // ignore
+    }
+  };
+
+  const handleReplayTutorial = () => {
+    try {
+      safeStorage.removeItem('hasCompletedTutorial');
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('hasCompletedTutorial');
+      }
+    } catch {
+      // safe fallback
+    }
+    if (onReplayTutorial) {
+      onReplayTutorial();
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('peernotebook:replay-tutorial'));
     }
   };
 
@@ -769,6 +791,53 @@ export const SettingsPanel: React.FC = () => {
                 <Copy className="w-4 h-4" />
               )}
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Tutorial & Specialist Training Card */}
+      <div className="p-5 sm:p-7 bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-4 max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3.5">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-200/80 shrink-0">
+              <Sparkles className="w-6 h-6 text-[#0F766E]" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-bold text-[#1E3A8A]">Interactive Tutorial &amp; Specialist Training</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-teal-100 text-[#0F766E] font-bold">
+                  On-Demand Refresher
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                3-step guided walkthrough: 4-minute progress notes, offline Dexie.js persistence, and instant H0038 billing units
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleReplayTutorial}
+            className="min-h-[44px] px-4 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs cursor-pointer shrink-0"
+            title="Relaunch the interactive 3-step tutorial wizard"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Replay Interactive Tutorial</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-600">
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/90">
+            <strong className="text-slate-900 block mb-0.5">1. The 4-Minute Note</strong>
+            <span className="text-slate-600 leading-relaxed">CalAIM Data, Assessment &amp; Plan structured documentation format</span>
+          </div>
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/90">
+            <strong className="text-slate-900 block mb-0.5">2. Offline Resilience</strong>
+            <span className="text-slate-600 leading-relaxed">Dexie.js IndexedDB local caching with zero-connectivity field logging</span>
+          </div>
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/90">
+            <strong className="text-slate-900 block mb-0.5">3. H0038 Billing Units</strong>
+            <span className="text-slate-600 leading-relaxed">Deterministic 15-minute increments &amp; CMS 8-minute rounding</span>
           </div>
         </div>
       </div>

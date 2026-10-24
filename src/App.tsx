@@ -16,6 +16,7 @@ import { LandingPage } from './components/LandingPage';
 import { DocumentationViewer } from './components/DocumentationViewer';
 import { BetaOnboardingModal } from './components/BetaOnboardingModal';
 import { OutreachTemplatesModal } from './components/OutreachTemplatesModal';
+import { InteractiveTutorialWizard } from './components/InteractiveTutorialWizard';
 import { ZeroAiBadge } from './components/ZeroAiBadge';
 import { HeartHandshake, Sparkles, Globe, Mail, BookOpen } from 'lucide-react';
 import { safeStorage } from './utils/safeStorage';
@@ -52,6 +53,24 @@ function AppContent() {
 
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [outreachOpen, setOutreachOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
+
+  useEffect(() => {
+    // Check if user has completed the interactive tutorial
+    const hasCompleted = safeStorage.getItem('hasCompletedTutorial') === 'true' ||
+      (typeof window !== 'undefined' && window.localStorage?.getItem('hasCompletedTutorial') === 'true');
+    if (!hasCompleted) {
+      setTutorialOpen(true);
+    }
+
+    const handleReplayTutorial = () => {
+      setTutorialOpen(true);
+    };
+    window.addEventListener('peernotebook:replay-tutorial', handleReplayTutorial);
+    return () => {
+      window.removeEventListener('peernotebook:replay-tutorial', handleReplayTutorial);
+    };
+  }, []);
 
   useEffect(() => {
     const handleHashOrRoute = () => {
@@ -219,11 +238,18 @@ function AppContent() {
 
       {/* Main Clinical Workspace */}
       <main className="flex-1 w-full max-w-full overflow-x-hidden">
-        <PeerNotebookWorkspace />
+        <PeerNotebookWorkspace onReplayTutorial={() => setTutorialOpen(true)} />
       </main>
 
       {/* Professional Trust & Compliance Footer */}
       <TrustComplianceFooter />
+
+      {/* Interactive Tutorial Wizard Modal */}
+      <InteractiveTutorialWizard
+        isOpen={tutorialOpen}
+        onClose={() => setTutorialOpen(false)}
+        onComplete={() => setTutorialOpen(false)}
+      />
 
       {/* Beta Modals */}
       <BetaOnboardingModal

@@ -52,7 +52,11 @@ import {
 
 export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'supervisor' | 'audit' | 'architecture' | 'settings';
 
-export const PeerNotebookWorkspace: React.FC = () => {
+interface PeerNotebookWorkspaceProps {
+  onReplayTutorial?: () => void;
+}
+
+export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ onReplayTutorial }) => {
   const { currentOrg, currentUser, canApproveNotes } = useAuth();
 
   // Parse route from window.location.pathname, search query, hash, or localStorage
@@ -1381,7 +1385,7 @@ export const PeerNotebookWorkspace: React.FC = () => {
       )}
 
       {activeTab === 'settings' && (
-        <SettingsPanel />
+        <SettingsPanel onReplayTutorial={onReplayTutorial} />
       )}
       </div>
 
