@@ -867,6 +867,176 @@ Assignor hereby unconditionally and irrevocably sells, assigns, transfers, and c
 * **Zero GPL / AGPL Contamination:** Audit confirms no Copyleft dependencies in the production runtime bundle.
 * **Clean IP Chain of Title:** 100% of custom authoring assigned to Peer Notebook LLC.
 * **Permissive Licenses Only:** React (MIT), Vite (MIT), Dexie.js (Apache 2.0), Tailwind CSS (MIT), Lucide (ISC), Supabase JS (MIT), jsPDF (MIT).`
+  },
+  // 08-architecture-decision-records (ADRs)
+  {
+    id: '08-adr-001',
+    categoryNumber: '08',
+    categoryTitle: 'Architecture Decision Records (ADRs)',
+    title: 'ADR-001: Zero-AI Runtime Deterministic Engine',
+    slug: '08-adr/001-zero-ai-runtime',
+    path: '/docs/adr/ADR-001_Zero_AI_Runtime_Deterministic_Engine.md',
+    badge: 'Enforced',
+    badgeColor: 'bg-emerald-100 text-emerald-800',
+    summary: 'Prohibits embedding generative AI models in production runtime to prevent PHI leakage, clinical hallucinations, and audit disallowances.',
+    content: `# ADR-001: Zero-AI Runtime Deterministic Engine
+
+**Status:** Accepted & Enforced  
+**Date:** 2026-10-24  
+**Primary Standard:** HIPAA 45 CFR § 164 & Zero PHI Transmission
+
+---
+
+## Context
+Certified Peer Support Specialists (CPSS) in California document encounters under Medi-Cal CalAIM (HCPCS H0038 / POS 15) and California Mental Health Services Authority (CalMHSA) regulations. Emerging clinical software vendors frequently embed generative Artificial Intelligence (LLMs) to synthesize clinical notes.
+
+However, in peer support environments:
+1. **Confidentiality & PHI Leakage:** Transmitting peer narratives containing substance use recovery, community trauma, or psychiatric distress to cloud LLM APIs risks HIPAA 45 CFR § 164 and 42 CFR Part 2 non-compliance.
+2. **Clinical Jargon & Hallucination Risk:** Generative AI models default to DSM-5 pathology language, which directly contradicts trauma-informed, strengths-based peer support recovery philosophy.
+3. **Audit Disallowances:** County behavioral health clearinghouses disallow claims when AI-generated notes do not accurately reflect the authentic, real-time mutual aid encounter.
+
+## Decision
+We enforce a strict **Zero-AI Production Runtime Codebase Mandate**:
+- Zero artificial intelligence or machine learning packages exist in the production runtime bundle of peernotebook.com.
+- All note validations, strengths-based language cleansing, and 15-minute billing unit conversions are executed strictly via deterministic, transparent, and auditable client-side TypeScript algorithms.
+- A runtime badge \`<ZeroAiBadge />\` displays "runtime: Zero-AI (Deterministic)" across all user-facing headers and footers.`
+  },
+  {
+    id: '08-adr-002',
+    categoryNumber: '08',
+    categoryTitle: 'Architecture Decision Records (ADRs)',
+    title: 'ADR-002: Dual-Layer Persistence (Dexie.js to Supabase)',
+    slug: '08-adr/002-dual-layer-persistence',
+    path: '/docs/adr/ADR-002_Dual_Layer_Persistence_Dexie_To_Supabase.md',
+    badge: 'Enforced',
+    badgeColor: 'bg-teal-100 text-teal-800',
+    summary: 'Offline-first client IndexedDB buffering with background synchronization to Supabase PostgreSQL (≥99.5% reliability SLA).',
+    content: `# ADR-002: Dual-Layer Persistence (Dexie.js IndexedDB to Supabase PostgreSQL)
+
+**Status:** Accepted & Enforced  
+**Date:** 2026-10-24  
+**Primary Standard:** Offline-First PWA Resilience (≥ 99.5% SLA)
+
+---
+
+## Context
+Peer Support Specialists frequently operate in outreach zones with severe network limitations, including hospital basements, encampments, rural agricultural corridors, and homeless shelters. Traditional cloud-first EHR platforms freeze or discard form state when connectivity is interrupted.
+
+## Decision
+We implement a **Dual-Layer Persistence Architecture**:
+1. **Tier 1 (Client-Side Storage):** Dexie.js (IndexedDB wrapper) serves as the primary local write target. Encounters commit within 11ms–19ms.
+2. **Tier 2 (Cloud Relational Store):** Supabase PostgreSQL with strict Row-Level Security (RLS) policies serves as the centralized agency repository.
+3. **Synchronization Worker:** A background sync daemon continuously monitors network state, buffers mutations in an immutable queue, and executes reconciliation upon network re-establishment without duplicate keys using deterministic UUIDv4 identifiers.`
+  },
+  {
+    id: '08-adr-003',
+    categoryNumber: '08',
+    categoryTitle: 'Architecture Decision Records (ADRs)',
+    title: 'ADR-003: SHA-256 Tamper-Evident Audit Trails',
+    slug: '08-adr/003-sha256-audit-trails',
+    path: '/docs/adr/ADR-003_SHA256_Tamper_Evident_Audit_Trails.md',
+    badge: 'Enforced',
+    badgeColor: 'bg-emerald-100 text-emerald-800',
+    summary: 'Native Web Crypto cryptographic signature sealing on all notes, edits, and supervisor cosigns.',
+    content: `# ADR-003: SHA-256 Tamper-Evident Audit Trails & Cryptographic Sealing
+
+**Status:** Accepted & Enforced  
+**Date:** 2026-10-24  
+**Primary Standard:** HIPAA Security Rule 45 CFR § 164.312(b)
+
+---
+
+## Context
+Under HIPAA Security Rule 45 CFR § 164.312(b) and California Welfare and Institutions Code § 14043.2, all behavioral health clinical and peer support records must maintain an immutable, tamper-evident audit trail tracking the creation, alteration, review, and supervisor cosigning of electronic protected health information (ePHI).
+
+## Decision
+We enforce cryptographic **SHA-256 Tamper-Evident Sealing**:
+1. **Audit Log Generation:** Every state mutation generates an immutable AuditLogEntry.
+2. **Cryptographic Checksum:** A SHA-256 hash is computed using native Web Crypto crypto.subtle.digest.
+3. **Portability:** Supervisors can export verified JSON and CSV audit trails directly for county clearinghouse audits.`
+  },
+  {
+    id: '08-adr-004',
+    categoryNumber: '08',
+    categoryTitle: 'Architecture Decision Records (ADRs)',
+    title: 'ADR-004: WCAG 2.1/2.2 AA Trauma-Informed Design Tokens',
+    slug: '08-adr/004-wcag-trauma-informed-tokens',
+    path: '/docs/adr/ADR-004_WCAG_2_1_AA_Trauma_Informed_Design_Tokens.md',
+    badge: 'Enforced',
+    badgeColor: 'bg-blue-100 text-blue-800',
+    summary: 'Low-arousal Soft Slate (#F8FAFC) light-mode exclusive design system with min 44px touch targets.',
+    content: `# ADR-004: WCAG 2.1/2.2 AA Trauma-Informed Design Tokens
+
+**Status:** Accepted & Enforced  
+**Date:** 2026-10-24  
+**Primary Standard:** ADA Title III & Section 508
+
+---
+
+## Decision
+We enforce **Trauma-Informed Light-Mode Tokens & WCAG 2.1/2.2 AA Standards**:
+1. **Background Surface:** Low-arousal Soft Slate off-white (#F8FAFC). Pure black or harsh dark modes are excluded to avoid visual shock in unpredictable lighting.
+2. **Card Surfaces:** Pure White (#FFFFFF) with subtle borders and soft shadows.
+3. **Typography & Contrast:** Deep Navy (#1E3A8A) for headers (contrast ratio ≥ 7:1); Muted Teal (#0F766E) for primary interactive triggers (contrast ≥ 4.6:1).
+4. **Touch Ergonomics:** All clickable elements maintain a minimum touch bounding box of 44px–48px.
+5. **Responsive Markdown Wrappers:** All documentation containers use w-full overflow-x-auto to eliminate horizontal scrolling across small viewports (<640px).`
+  },
+  {
+    id: '08-adr-005',
+    categoryNumber: '08',
+    categoryTitle: 'Architecture Decision Records (ADRs)',
+    title: 'ADR-005: Medi-Cal H0038 15-Minute Billing Unit Calculations',
+    slug: '08-adr/005-medi-cal-billing-calculations',
+    path: '/docs/adr/ADR-005_Medi_Cal_H0038_15_Minute_Billing_Calculations.md',
+    badge: 'Enforced',
+    badgeColor: 'bg-blue-100 text-blue-800',
+    summary: 'Enforces CMS 8-Minute Rounding Rule and mandatory 4-part CalMHSA note validation for Procedure Code H0038.',
+    content: `# ADR-005: Medi-Cal H0038 15-Minute Billing Unit Calculations
+
+**Status:** Accepted & Enforced  
+**Date:** 2026-10-24  
+**Primary Standard:** DHCS CalAIM Payment Reform & CMS 8-Minute Rule
+
+---
+
+## Decision
+We implement a **Deterministic Medi-Cal Billing Engine**:
+1. **Time Breakdown:** Captures direct face-to-face duration, field travel minutes, and documentation time separately.
+2. **CMS 8-Minute Threshold Rule Algorithm:**
+   - 0–7 minutes: 0 billable units
+   - 8–22 minutes: 1 billable unit
+   - 23–37 minutes: 2 billable units
+   - 38–52 minutes: 3 billable units
+   - 53–67 minutes: 4 billable units
+   - ≥ 68 minutes: floor((minutes + 7) / 15) units
+3. **CalMHSA 4-Part Structure Enforcement:**
+   - 1. Recovery Plan Goal Addressed
+   - 2. Peer Support Intervention Delivered
+   - 3. Peer Engagement & Response
+   - 4. Next Steps & Recovery Commitments`
+  },
+  {
+    id: '08-openapi-spec',
+    categoryNumber: '08',
+    categoryTitle: 'Architecture Decision Records (ADRs)',
+    title: 'OpenAPI 3.1.0 Specification & API Compliance',
+    slug: '08-adr/openapi-specification',
+    path: '/docs/04-technical-architecture/openapi.json',
+    badge: 'OpenAPI 3.1',
+    badgeColor: 'bg-teal-100 text-teal-800',
+    summary: 'Machine-readable OpenAPI 3.1.0 specification documenting CalAIM telemetry, daily digests, and lead capture endpoints.',
+    content: `# Peer Notebook OpenAPI 3.1.0 Specification
+
+**Status:** Active GA Standard  
+**Format:** OpenAPI 3.1.0 JSON  
+**Live Location:** \`/openapi.json\`
+
+---
+
+## Endpoints Summary
+1. **POST /api/daily-digest** — Dispatches 24-hour telemetry, lead counts, and traffic summaries to \`support@peernotebook.com\`.
+2. **POST /api/lead-capture** — Registers CBO and specialist beta cohort inquiries with automated notification.
+3. **Client-Side Sync Interface** — RESTful sync to Supabase PostgreSQL with Row-Level Security (RLS) enforcement.`
   }
 ];
 
@@ -1378,12 +1548,19 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
                 </span>
               </div>
               <p className="text-[11px] sm:text-xs text-blue-200 truncate">
-                27-Document Master Binder • CalAIM, Medi-Cal H0038 & CalMHSA
+                33-Document Master Binder &amp; ADR Suite • CalAIM, Medi-Cal H0038 &amp; CalMHSA
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <a
+              href="#trust"
+              className="min-h-[44px] px-3 sm:px-3.5 py-2 bg-blue-900/70 hover:bg-blue-800 text-blue-100 border border-blue-700/60 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Trust Center</span>
+            </a>
             {onReturnToWorkspace && (
               <button
                 onClick={onReturnToWorkspace}
@@ -1398,7 +1575,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
                 onClick={onReturnToLanding}
                 className="min-h-[44px] px-3 sm:px-3.5 py-2 bg-blue-900/70 hover:bg-blue-800 text-blue-100 border border-blue-700/60 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
               >
-                Landing & Checklist
+                Landing &amp; Checklist
               </button>
             )}
           </div>

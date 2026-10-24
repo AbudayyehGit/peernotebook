@@ -18,21 +18,25 @@ import { BetaOnboardingModal } from './components/BetaOnboardingModal';
 import { OutreachTemplatesModal } from './components/OutreachTemplatesModal';
 import { InteractiveTutorialWizard } from './components/InteractiveTutorialWizard';
 import { ZeroAiBadge } from './components/ZeroAiBadge';
+import { TrustCenterView } from './components/TrustCenterView';
+import { PrivacyConsentBanner } from './components/PrivacyConsentBanner';
 import { HeartHandshake, Sparkles, Globe, Mail, BookOpen } from 'lucide-react';
 import { safeStorage } from './utils/safeStorage';
 
 function AppContent() {
   const { currentOrg, currentUser, isLoading } = useAuth();
-  const [currentView, setCurrentView] = useState<'landing' | 'workspace' | 'docs'>(() => {
+  const [currentView, setCurrentView] = useState<'landing' | 'workspace' | 'docs' | 'trust'>(() => {
     if (typeof window !== 'undefined') {
       const pathname = window.location.pathname;
       const hash = window.location.hash;
+      if (pathname.startsWith('/trust') || pathname.startsWith('/compliance') || hash.startsWith('#trust') || hash.startsWith('#compliance')) return 'trust';
       if (pathname.startsWith('/docs') || hash.startsWith('#docs')) return 'docs';
       if (hash === '#workspace') return 'workspace';
       if (hash === '#landing' || hash === '#checklist' || hash === '#overview') return 'landing';
       const saved = safeStorage.getItem('peernotebook_active_view');
       if (saved === 'workspace') return 'workspace';
       if (saved === 'docs') return 'docs';
+      if (saved === 'trust') return 'trust';
     }
     return 'landing';
   });
@@ -76,7 +80,9 @@ function AppContent() {
     const handleHashOrRoute = () => {
       const pathname = window.location.pathname;
       const hash = window.location.hash;
-      if (pathname.startsWith('/docs') || hash.startsWith('#docs')) {
+      if (pathname.startsWith('/trust') || pathname.startsWith('/compliance') || hash.startsWith('#trust') || hash.startsWith('#compliance')) {
+        setCurrentView('trust');
+      } else if (pathname.startsWith('/docs') || hash.startsWith('#docs')) {
         setCurrentView('docs');
         const slug = pathname.startsWith('/docs')
           ? pathname.replace(/^\/docs\/?/, '')
@@ -96,12 +102,14 @@ function AppContent() {
     };
   }, []);
 
-  const switchView = (view: 'landing' | 'workspace' | 'docs', docSlug?: string) => {
+  const switchView = (view: 'landing' | 'workspace' | 'docs' | 'trust', docSlug?: string) => {
     setCurrentView(view);
     if (typeof window !== 'undefined') {
       safeStorage.setItem('peernotebook_active_view', view);
       if (view === 'workspace') {
         window.location.hash = '#workspace';
+      } else if (view === 'trust') {
+        window.location.hash = '#trust';
       } else if (view === 'docs') {
         if (docSlug) {
           setActiveDocSlug(docSlug);
@@ -114,6 +122,16 @@ function AppContent() {
       }
     }
   };
+
+  if (currentView === 'trust') {
+    return (
+      <TrustCenterView
+        onReturnToWorkspace={() => switchView('workspace')}
+        onReturnToLanding={() => switchView('landing')}
+        onOpenDocs={(slug) => switchView('docs', slug)}
+      />
+    );
+  }
 
   if (currentView === 'docs') {
     return (
@@ -262,6 +280,9 @@ function AppContent() {
         isOpen={outreachOpen}
         onClose={() => setOutreachOpen(false)}
       />
+
+      {/* HIPAA & CMIA Privacy Consent Disclosure */}
+      <PrivacyConsentBanner />
     </div>
   );
 }

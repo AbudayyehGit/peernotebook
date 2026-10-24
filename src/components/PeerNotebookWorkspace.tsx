@@ -575,8 +575,17 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               }`}
             >
               <Settings className={`w-3.5 h-3.5 ${activeTab === 'settings' ? 'text-white' : 'text-slate-500'}`} />
-              <span>Settings & BAA</span>
+              <span>Settings &amp; BAA</span>
             </button>
+
+            <a
+              href="#trust"
+              className="min-h-[40px] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#0F766E] hover:text-[#1E3A8A] hover:bg-white/70 transition-all cursor-pointer"
+              title="Open Live Trust Center & Continuous Monitoring Portal"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-[#16A34A]" />
+              <span>Trust Center</span>
+            </a>
           </div>
         </div>
 

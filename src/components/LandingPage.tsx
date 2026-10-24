@@ -25,7 +25,8 @@ import {
   Copy,
   CheckCheck,
   FileCheck,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck
 } from 'lucide-react';
 import { BetaOnboardingModal } from './BetaOnboardingModal';
 import { OutreachTemplatesModal } from './OutreachTemplatesModal';
@@ -193,6 +194,10 @@ Built with trauma-informed care at peernotebook.com`;
             </a>
             <a href="#beta-cohort" className="hover:text-[#1E3A8A] transition-colors whitespace-nowrap shrink-0">
               Solo Beta Cohort
+            </a>
+            <a href="#trust" className="text-[#1E3A8A] hover:text-[#0F766E] font-semibold transition-colors whitespace-nowrap shrink-0 flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#16A34A]" />
+              <span>Trust Center</span>
             </a>
             <button
               onClick={() => onOpenDocs ? onOpenDocs() : (window.location.hash = '#docs')}

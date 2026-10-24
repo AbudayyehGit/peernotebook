@@ -1,0 +1,19 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Peer Notebook Compliance & Sync API",
+    "version": "1.0.0-GA",
+    "description": "Production API specification for Peer Notebook (peernotebook.com). Covers CalAIM Medi-Cal H0038 encounter synchronization, CBO agency telemetry, automated daily digests, and lead captures under HIPAA 45 CFR § 164 and California CMIA.",
+    "contact": {
+      "name": "Peer Notebook Compliance Desk",
+      "email": "support@peernotebook.com",
+      "url": "https://peernotebook.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://peernotebook.com",
+      "description": "Production Domain"
+    }
+  ]
+}

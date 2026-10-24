@@ -433,12 +433,32 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           }
         }
 
-        // Only append finalized transcript tokens precisely once
+        // Only append finalized transcript tokens precisely once with seam overlap deduplication
         if (finalTokens.trim()) {
           setDictationRawText((prev) => {
             const cleanPrev = prev.trim();
             const cleanChunk = finalTokens.trim();
-            return cleanPrev ? `${cleanPrev} ${cleanChunk}` : cleanChunk;
+            if (!cleanPrev) return cleanChunk;
+            // Guard 1: Exact repeat prevention
+            if (cleanPrev.endsWith(cleanChunk)) return cleanPrev;
+            // Guard 2: Word seam overlap deduplication (prevents Web Speech repeated tail words)
+            const prevWords = cleanPrev.split(/\s+/);
+            const chunkWords = cleanChunk.split(/\s+/);
+            let overlapCount = 0;
+            const maxOverlap = Math.min(prevWords.length, chunkWords.length, 6);
+            for (let len = maxOverlap; len >= 1; len--) {
+              const prevTail = prevWords.slice(prevWords.length - len).join(' ').toLowerCase();
+              const chunkHead = chunkWords.slice(0, len).join(' ').toLowerCase();
+              if (prevTail === chunkHead) {
+                overlapCount = len;
+                break;
+              }
+            }
+            if (overlapCount > 0) {
+              const deduplicatedChunk = chunkWords.slice(overlapCount).join(' ');
+              return deduplicatedChunk ? `${cleanPrev} ${deduplicatedChunk}` : cleanPrev;
+            }
+            return `${cleanPrev} ${cleanChunk}`;
           });
         }
 

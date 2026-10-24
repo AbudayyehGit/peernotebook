@@ -1,0 +1,197 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Peer Notebook Compliance & Sync API",
+    "version": "1.0.0-GA",
+    "description": "Production API specification for Peer Notebook (peernotebook.com). Covers CalAIM Medi-Cal H0038 encounter synchronization, CBO agency telemetry, automated daily digests, and lead captures under HIPAA 45 CFR § 164 and California CMIA.",
+    "contact": {
+      "name": "Peer Notebook Compliance Desk",
+      "email": "support@peernotebook.com",
+      "url": "https://peernotebook.com"
+    },
+    "license": {
+      "name": "Proprietary - CalMHSA & Medi-Cal Aligned",
+      "url": "https://peernotebook.com/docs"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://peernotebook.com",
+      "description": "Production Domain"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Telemetry & Digests",
+      "description": "Automated daily traffic and cohort lead digests"
+    },
+    {
+      "name": "Lead Capture",
+      "description": "CBO and specialist beta cohort registration"
+    },
+    {
+      "name": "Clinical Encounters",
+      "description": "Medi-Cal H0038 encounter synchronization & audit logs"
+    }
+  ],
+  "paths": {
+    "/api/daily-digest": {
+      "post": {
+        "tags": ["Telemetry & Digests"],
+        "summary": "Trigger automated daily traffic and lead digest",
+        "description": "Aggregates 24-hour site visits, conversion metrics, and CBO beta signups. Formats an executive summary and dispatches to support@peernotebook.com.",
+        "operationId": "triggerDailyDigest",
+        "security": [
+          { "VercelCronSecret": [] },
+          { "SupervisorBearerAuth": [] }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recipient": {
+                    "type": "string",
+                    "format": "email",
+                    "default": "support@peernotebook.com",
+                    "description": "Destination email address for digest dispatch"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Daily digest successfully compiled and delivered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyDigestReport"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error compiling digest"
+          }
+        }
+      }
+    },
+    "/api/lead-capture": {
+      "post": {
+        "tags": ["Lead Capture"],
+        "summary": "Submit CBO or individual specialist beta registration",
+        "description": "Captures specialist credentials, county of service, and organization details. Triggers an automated notification to support@peernotebook.com.",
+        "operationId": "captureLead",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeadSubmission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registration captured and notified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "leadId": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid submission payload"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "VercelCronSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "Bearer token provided by Vercel Cron invocation"
+      },
+      "SupervisorBearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Supabase JWT authentication token for CBO supervisors and admins"
+      }
+    },
+    "schemas": {
+      "LeadSubmission": {
+        "type": "object",
+        "required": ["email", "name"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "sarah.jenkins@alamedahealth.org"
+          },
+          "name": {
+            "type": "string",
+            "example": "Sarah Jenkins, CPSS"
+          },
+          "roleTitle": {
+            "type": "string",
+            "example": "Certified Medi-Cal Peer Specialist"
+          },
+          "county": {
+            "type": "string",
+            "example": "Alameda County"
+          },
+          "organization": {
+            "type": "string",
+            "example": "East Bay Recovery Network"
+          },
+          "leadSource": {
+            "type": "string",
+            "default": "landing_lead_magnet"
+          }
+        }
+      },
+      "DailyDigestReport": {
+        "type": "object",
+        "properties": {
+          "recipient": { "type": "string", "example": "support@peernotebook.com" },
+          "periodStart": { "type": "string", "format": "date-time" },
+          "periodEnd": { "type": "string", "format": "date-time" },
+          "newLeadsCount": { "type": "integer", "example": 5 },
+          "totalLeadsCount": { "type": "integer", "example": 48 },
+          "traffic": {
+            "type": "object",
+            "properties": {
+              "totalVisits": { "type": "integer", "example": 342 },
+              "uniqueVisitors": { "type": "integer", "example": 218 },
+              "conversionRate": { "type": "number", "example": 4.8 }
+            }
+          },
+          "dispatchStatus": { "type": "string", "example": "delivered" },
+          "provider": { "type": "string", "example": "resend" },
+          "messageId": { "type": "string" },
+          "htmlReport": { "type": "string" }
+        }
+      }
+    }
+  }
+}

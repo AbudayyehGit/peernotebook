@@ -283,8 +283,21 @@ export const TrustComplianceFooter: React.FC = () => {
               </span>
             </div>
 
-            {/* Legal & Documentation Links pointing correctly to peernotebook.com/docs */}
+            {/* Legal & Trust Center Links */}
             <div className="flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1.5 text-xs font-semibold">
+              <a
+                href="#trust"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.hash = '#trust';
+                  }
+                }}
+                className="text-[#1E3A8A] hover:text-[#0F766E] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-[#16A34A]" />
+                <span>Trust Center &amp; Portal</span>
+              </a>
+              <span className="text-slate-300">·</span>
               <button
                 type="button"
                 onClick={() => setLegalModal('terms')}
