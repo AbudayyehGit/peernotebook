@@ -68,7 +68,7 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss(), devApiPlugin()],
     resolve: {
       alias: {
-        '@': path.resolve(import.meta.dirname, '.'),
+        '@': path.resolve(import.meta.dirname, 'src'),
       },
     },
     server: {
