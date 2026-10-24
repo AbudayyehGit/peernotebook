@@ -524,7 +524,7 @@ export const InteractiveSandboxTutorial: React.FC<InteractiveSandboxTutorialProp
                       }`}
                     >
                       <span>{mins} Min</span>
-                      <span className="text-[10px] opacity-80 font-mono">
+                      <span className="text-xs opacity-80 font-mono">
                         {calculateBillingUnits(mins)} {calculateBillingUnits(mins) === 1 ? 'Unit' : 'Units'}
                       </span>
                     </button>
@@ -555,7 +555,7 @@ export const InteractiveSandboxTutorial: React.FC<InteractiveSandboxTutorialProp
                   <h2 id="tutorial-sandbox-title" className="text-lg sm:text-xl font-bold text-[#1E3A8A] tracking-tight">
                     Step 3: Offline Resilience &amp; Cloud Sync Simulator
                   </h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-[#0F766E] border border-teal-200">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-[#0F766E] border border-teal-200">
                     Supabase PostgreSQL
                   </span>
                 </div>
@@ -583,7 +583,7 @@ export const InteractiveSandboxTutorial: React.FC<InteractiveSandboxTutorialProp
                   )}
                 </div>
 
-                <span className="font-mono text-[11px] text-slate-500">
+                <span className="font-mono text-xs text-slate-500">
                   {queuedMutationsCount > 0 ? `${queuedMutationsCount} queued locally` : 'All synced'}
                 </span>
               </div>
@@ -597,14 +597,14 @@ export const InteractiveSandboxTutorial: React.FC<InteractiveSandboxTutorialProp
                       <Database className="w-4 h-4 text-[#0F766E]" />
                       <span>Local Device Tier</span>
                     </span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-teal-50 text-[#0F766E] font-bold">
+                    <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-teal-50 text-[#0F766E] font-bold">
                       Dexie.js
                     </span>
                   </div>
-                  <p className="text-slate-600 text-[11px]">
+                  <p className="text-slate-600 text-xs">
                     Encrypted client-side storage holds encounters, client cards, and cryptographic audit seals even when power cuts or browser reloads.
                   </p>
-                  <div className="pt-1 text-[11px] font-mono text-slate-500">
+                  <div className="pt-1 text-xs font-mono text-slate-500">
                     Queue status: <strong className="text-slate-800">{queuedMutationsCount} records buffered</strong>
                   </div>
                 </div>
@@ -616,14 +616,14 @@ export const InteractiveSandboxTutorial: React.FC<InteractiveSandboxTutorialProp
                       <Cloud className="w-4 h-4 text-[#1E3A8A]" />
                       <span>Agency Cloud Tier</span>
                     </span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-50 text-[#1E3A8A] font-bold">
+                    <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-blue-50 text-[#1E3A8A] font-bold">
                       Supabase PostgreSQL
                     </span>
                   </div>
-                  <p className="text-slate-600 text-[11px]">
+                  <p className="text-slate-600 text-xs">
                     Multi-tenant Row-Level Security (RLS) ensures notes only sync to your authorized CBO agency tenant with zero cross-tenant leakage.
                   </p>
-                  <div className="pt-1 text-[11px] font-mono text-slate-500">
+                  <div className="pt-1 text-xs font-mono text-slate-500">
                     Cloud state:{' '}
                     <strong className={queuedMutationsCount === 0 ? 'text-[#16A34A]' : 'text-amber-700'}>
                       {queuedMutationsCount === 0 ? 'Fully Reconciled' : 'Awaiting Connection'}
@@ -654,7 +654,7 @@ export const InteractiveSandboxTutorial: React.FC<InteractiveSandboxTutorialProp
                         {syncStage === 'validating' && 'Verifying SHA-256 tamper-evident integrity seals...'}
                         {syncStage === 'flushing' && 'Reconciling queued records with Supabase PostgreSQL...'}
                       </span>
-                      <span className="font-mono text-[11px]">Syncing...</span>
+                      <span className="font-mono text-xs">Syncing...</span>
                     </div>
                     <div className="w-full bg-teal-200/60 h-1.5 rounded-full overflow-hidden">
                       <div
@@ -678,12 +678,12 @@ export const InteractiveSandboxTutorial: React.FC<InteractiveSandboxTutorialProp
                       <button
                         type="button"
                         onClick={handleResetOfflineSimulation}
-                        className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 underline cursor-pointer"
                       >
                         Reset Demo
                       </button>
                     </div>
-                    <p className="text-[11px] text-emerald-800 leading-relaxed">
+                    <p className="text-xs text-emerald-800 leading-relaxed">
                       All audit seals verified. 100% data integrity preserved across offline-to-online state transitions.
                     </p>
                   </div>

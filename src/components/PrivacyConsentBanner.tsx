@@ -11,9 +11,11 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Lock, Check, X, FileText, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Check, ExternalLink } from 'lucide-react';
 import { safeStorage } from '../utils/safeStorage';
 import { peerNotebookDB } from '../db/peerNotebookDatabase';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 
 export const PrivacyConsentBanner: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -56,49 +58,49 @@ export const PrivacyConsentBanner: React.FC = () => {
   if (!isVisible) return null;
 
   return (
-    <div
+    <aside
       role="region"
       aria-label="Privacy and Local Data Handling Consent"
-      className="fixed bottom-0 left-0 right-0 z-40 p-3 sm:p-4 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-xl transition-all animate-in slide-in-from-bottom duration-300"
+      className="fixed bottom-0 left-0 right-0 z-40 p-4 sm:p-6 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-xl transition-all"
     >
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
-        <div className="flex items-start gap-3">
-          <div className="p-2.5 bg-teal-50 text-[#0F766E] rounded-xl border border-teal-200 shrink-0 mt-0.5">
-            <ShieldCheck className="w-5 h-5 text-[#0F766E]" />
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs">
+        <div className="flex items-start gap-4">
+          <div className="p-2.5 bg-teal-50 text-teal-800 rounded-xl border border-teal-200/80 shrink-0 mt-0.5">
+            <ShieldCheck className="w-5 h-5" aria-hidden="true" />
           </div>
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <strong className="text-slate-900 font-bold">
+              <strong className="text-sm font-semibold text-slate-900 tracking-tight">
                 HIPAA, CMIA &amp; Zero-AI Privacy Notice
               </strong>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+              <Badge variant="success">
                 100% Deterministic Engine
-              </span>
+              </Badge>
             </div>
-            <p className="text-slate-600 leading-relaxed text-[11px] max-w-3xl">
+            <p className="text-xs font-normal text-slate-600 leading-relaxed max-w-3xl">
               Peer Notebook uses client-side encrypted IndexedDB (Dexie.js) to guarantee offline field reliability without data loss. We enforce a strict Zero-AI runtime mandate: your encounter notes are never shared with or processed by external LLMs or third-party AI APIs.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+        <div className="flex items-center gap-3 self-end md:self-center shrink-0">
           <a
             href="#trust"
-            className="min-h-[44px] px-3.5 py-2 text-slate-600 hover:text-[#0F766E] font-semibold text-xs flex items-center gap-1 transition-colors"
+            className="min-h-[44px] px-3.5 py-2 text-slate-600 hover:text-teal-700 font-semibold text-xs flex items-center gap-1.5 transition-colors duration-150 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 rounded-md"
           >
             <span>Trust Portal</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
           </a>
-          <button
+          <Button
             type="button"
             onClick={handleAccept}
-            className="min-h-[44px] px-5 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+            className="min-h-[44px] px-6 text-xs font-bold gap-2"
           >
-            <Check className="w-4 h-4" />
+            <Check className="w-4 h-4" aria-hidden="true" />
             <span>Acknowledge &amp; Continue</span>
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };

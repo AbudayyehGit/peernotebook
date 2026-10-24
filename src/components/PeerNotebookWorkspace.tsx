@@ -462,7 +462,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               <span>Log Interaction</span>
             </button>
 
-            <div className="h-6 w-[1px] bg-slate-200 shrink-0 mx-1" />
+            <div className="h-6 w-px bg-slate-200 shrink-0 mx-1" />
 
             {/* Core Clinical Segmented Track */}
             <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-full border border-slate-200/90">
@@ -492,7 +492,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 <span>Encounter Notes</span>
                 {notes.length > 0 && (
                   <span
-                    className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                    className={`text-xs font-mono px-1.5 py-0.5 rounded-full font-bold ${
                       activeTab === 'notes' ? 'bg-blue-800 text-white' : 'bg-slate-200 text-slate-700'
                     }`}
                   >
@@ -528,7 +528,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                   <ShieldCheck className={`w-3.5 h-3.5 ${activeTab === 'supervisor' ? 'text-white' : 'text-slate-500'}`} />
                   <span>Supervisor QA</span>
                   {pendingNotesCount > 0 && (
-                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold bg-amber-100 text-[#D97706] animate-pulse">
+                    <span className="text-xs font-mono px-1.5 py-0.5 rounded-full font-bold bg-amber-100 text-[#D97706] animate-pulse">
                       {pendingNotesCount}
                     </span>
                   )}
@@ -614,7 +614,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               <button
                 type="button"
                 onClick={() => navigateToTab('clients')}
-                className={`min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`min-h-[44px] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'clients'
                     ? 'bg-[#1E3A8A] text-white shadow-sm'
                     : 'text-slate-700 hover:bg-white/60'
@@ -627,7 +627,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               <button
                 type="button"
                 onClick={() => navigateToTab('notes')}
-                className={`min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`min-h-[44px] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'notes'
                     ? 'bg-[#1E3A8A] text-white shadow-sm'
                     : 'text-slate-700 hover:bg-white/60'
@@ -637,7 +637,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 <span>Notes</span>
                 {notes.length > 0 && (
                   <span
-                    className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                    className={`text-xs font-mono px-1.5 py-0.5 rounded-full font-bold ${
                       activeTab === 'notes' ? 'bg-blue-800 text-white' : 'bg-slate-200 text-slate-700'
                     }`}
                   >
@@ -650,7 +650,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 <button
                   type="button"
                   onClick={() => navigateToTab('supervisor')}
-                  className={`min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  className={`min-h-[44px] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                     activeTab === 'supervisor'
                       ? 'bg-[#1E3A8A] text-white shadow-sm'
                       : 'text-slate-700 hover:bg-white/60'
@@ -659,7 +659,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>QA</span>
                   {pendingNotesCount > 0 && (
-                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold bg-amber-100 text-[#D97706]">
+                    <span className="text-xs font-mono px-1.5 py-0.5 rounded-full font-bold bg-amber-100 text-[#D97706]">
                       {pendingNotesCount}
                     </span>
                   )}
@@ -719,7 +719,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                       <Target className="w-4 h-4 text-[#0F766E]" />
                       <div>
                         <span>GoalPath™ Domains</span>
-                        <span className="text-[10px] text-slate-500 font-normal block">Non-clinical wellness metrics</span>
+                        <span className="text-xs text-slate-500 font-normal block">Non-clinical wellness metrics</span>
                       </div>
                     </div>
                     {activeTab === 'goalpath' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
@@ -738,7 +738,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                       <History className="w-4 h-4 text-[#0F766E]" />
                       <div>
                         <span>HIPAA Audit Trail</span>
-                        <span className="text-[10px] text-slate-500 font-normal block">Immutable SHA-256 logs</span>
+                        <span className="text-xs text-slate-500 font-normal block">Immutable SHA-256 logs</span>
                       </div>
                     </div>
                     {activeTab === 'audit' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
@@ -758,7 +758,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                       <BookOpen className="w-4 h-4 text-[#0F766E]" />
                       <div>
                         <span>GA #8 Architecture & Specs</span>
-                        <span className="text-[10px] text-slate-500 font-normal block">White papers & standards</span>
+                        <span className="text-xs text-slate-500 font-normal block">White papers & standards</span>
                       </div>
                     </div>
                     {activeTab === 'architecture' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
@@ -778,7 +778,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                       <Settings className="w-4 h-4 text-[#0F766E]" />
                       <div>
                         <span>Settings & BAA</span>
-                        <span className="text-[10px] text-slate-500 font-normal block">Storage, Supabase & keys</span>
+                        <span className="text-xs text-slate-500 font-normal block">Storage, Supabase & keys</span>
                       </div>
                     </div>
                     {activeTab === 'settings' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
@@ -805,7 +805,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                   <CurrentIcon className="w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider leading-none">
+                  <div className="text-xs uppercase font-bold text-slate-400 tracking-wider leading-none">
                     Active View
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
@@ -814,7 +814,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                     </span>
                     {currentActiveItem.badge !== null && currentActiveItem.badge !== undefined && (
                       <span
-                        className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                        className={`text-xs font-mono px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
                           currentActiveItem.badgeAlert ? 'bg-amber-100 text-[#D97706]' : 'bg-slate-100 text-slate-700'
                         }`}
                       >
@@ -859,7 +859,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               }`}
             >
               <Users className={`w-4 h-4 mb-0.5 ${activeTab === 'clients' ? 'text-white' : 'text-slate-500'}`} />
-              <span className="text-[10px] leading-tight truncate">Roster</span>
+              <span className="text-xs leading-tight truncate">Roster</span>
             </button>
 
             <button
@@ -874,12 +874,12 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               <div className="relative flex items-center justify-center">
                 <FileText className={`w-4 h-4 mb-0.5 ${activeTab === 'notes' ? 'text-white' : 'text-slate-500'}`} />
                 {notes.length > 0 && (
-                  <span className="absolute -top-1 -right-2 text-[8px] font-mono px-1 rounded-full bg-[#0F766E] text-white font-bold">
+                  <span className="absolute -top-1 -right-2 text-xs font-mono px-1 rounded-full bg-[#0F766E] text-white font-bold">
                     {notes.length}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] leading-tight truncate">Notes</span>
+              <span className="text-xs leading-tight truncate">Notes</span>
             </button>
 
             {canApproveNotes ? (
@@ -895,12 +895,12 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 <div className="relative flex items-center justify-center">
                   <ShieldCheck className={`w-4 h-4 mb-0.5 ${activeTab === 'supervisor' ? 'text-white' : 'text-slate-500'}`} />
                   {pendingNotesCount > 0 && (
-                    <span className="absolute -top-1 -right-2 text-[8px] font-mono px-1 rounded-full bg-[#D97706] text-white font-bold animate-pulse">
+                    <span className="absolute -top-1 -right-2 text-xs font-mono px-1 rounded-full bg-[#D97706] text-white font-bold animate-pulse">
                       {pendingNotesCount}
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] leading-tight truncate">QA</span>
+                <span className="text-xs leading-tight truncate">QA</span>
               </button>
             ) : (
               <button
@@ -913,7 +913,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 }`}
               >
                 <History className={`w-4 h-4 mb-0.5 ${activeTab === 'audit' ? 'text-white' : 'text-slate-500'}`} />
-                <span className="text-[10px] leading-tight truncate">Audit</span>
+                <span className="text-xs leading-tight truncate">Audit</span>
               </button>
             )}
 
@@ -927,7 +927,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               }`}
             >
               <Grid className={`w-4 h-4 mb-0.5 ${['audit', 'architecture', 'settings'].includes(activeTab) ? 'text-white' : 'text-slate-500'}`} />
-              <span className="text-[10px] leading-tight truncate">More</span>
+              <span className="text-xs leading-tight truncate">More</span>
             </button>
           </div>
         </div>
@@ -943,7 +943,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
             {/* Active Shift Posture Card */}
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mb-1.5">
-                <span className="inline-flex items-center gap-1 font-bold text-[#0F766E] uppercase tracking-wider text-[11px] bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/80">
+                <span className="inline-flex items-center gap-1 font-bold text-[#0F766E] uppercase tracking-wider text-xs bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/80">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#0F766E]" />
                   Active Shift Posture
                 </span>
@@ -968,23 +968,23 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
             {/* Quick Metrics Cluster */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 shrink-0 w-full lg:w-auto">
               <div className="bg-[#F8FAFC] border border-slate-200/90 rounded-xl p-3 shadow-2xs">
-                <span className="text-[11px] text-slate-500 font-medium block">Approved Today</span>
+                <span className="text-xs text-slate-500 font-medium block">Approved Today</span>
                 <div className="flex items-baseline gap-1 mt-0.5">
                   <span className="text-lg sm:text-xl font-bold text-slate-900">{approvedNotesCount}</span>
-                  <span className="text-[10px] text-slate-500 font-medium">notes</span>
+                  <span className="text-xs text-slate-500 font-medium">notes</span>
                 </div>
               </div>
 
               <div className="bg-[#F8FAFC] border border-slate-200/90 rounded-xl p-3 shadow-2xs">
-                <span className="text-[11px] text-slate-500 font-medium block">Billable Time</span>
+                <span className="text-xs text-slate-500 font-medium block">Billable Time</span>
                 <div className="flex items-baseline gap-1 mt-0.5">
                   <span className="text-lg sm:text-xl font-bold text-[#0F766E]">{totalShiftMinutes}</span>
-                  <span className="text-[10px] text-slate-500 font-medium">min ({totalShiftUnits || Math.ceil(totalShiftMinutes / 15)}u)</span>
+                  <span className="text-xs text-slate-500 font-medium">min ({totalShiftUnits || Math.ceil(totalShiftMinutes / 15)}u)</span>
                 </div>
               </div>
 
               <div className="bg-[#F8FAFC] border border-slate-200/90 rounded-xl p-3 shadow-2xs col-span-2 sm:col-span-1">
-                <span className="text-[11px] text-slate-500 font-medium block">Persistence Posture</span>
+                <span className="text-xs text-slate-500 font-medium block">Persistence Posture</span>
                 <div className="flex items-center gap-1.5 mt-1">
                   <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse shrink-0" />
                   <span className="text-xs font-bold text-slate-800 truncate">
@@ -1118,13 +1118,13 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
 
           {/* GoalPath Wellness Domain Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
-            <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] shrink-0 mr-1 flex items-center gap-1">
+            <span className="text-slate-400 font-bold uppercase tracking-wider text-xs shrink-0 mr-1 flex items-center gap-1">
               <Target className="w-3.5 h-3.5 text-[#0F766E]" /> GoalPath:
             </span>
             <button
               type="button"
               onClick={() => setSelectedDomainFilter(null)}
-              className={`min-h-[32px] px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`min-h-[36px] px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 !selectedDomainFilter
                   ? 'bg-[#1E3A8A] text-white shadow-2xs'
                   : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
@@ -1137,7 +1137,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 key={domain}
                 type="button"
                 onClick={() => setSelectedDomainFilter(selectedDomainFilter === domain ? null : domain)}
-                className={`min-h-[32px] px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                className={`min-h-[36px] px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   selectedDomainFilter === domain
                     ? 'bg-[#0F766E] text-white shadow-2xs'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
