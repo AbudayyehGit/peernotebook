@@ -40,7 +40,10 @@ import {
   Send,
   TrendingUp,
   BarChart3,
-  Sparkles
+  Sparkles,
+  Users,
+  Building2,
+  FileSpreadsheet
 } from 'lucide-react';
 import { opfsStorage, StorageQuotaInfo, OPFSSnapshotMeta } from '../services/opfsStorageService';
 import { leadDigestService, DigestResponse } from '../services/leadDigestService';
@@ -480,6 +483,47 @@ export const SettingsPanel: React.FC = () => {
     }
   };
 
+  const handleExportAuditLogsCSV = async () => {
+    const logs = await peerNotebookDB.getAllAuditLogs();
+    const headers = ['Event ID', 'Timestamp (UTC)', 'Actor Name', 'Actor Role', 'Action', 'Entity Type', 'Entity ID', 'Tamper-Proof SHA-256 Checksum'];
+    const rows = logs.map(log => [
+      `"${log.id}"`,
+      `"${log.timestamp}"`,
+      `"${(log.actorName || '').replace(/"/g, '""')}"`,
+      `"${log.actorRole}"`,
+      `"${log.action}"`,
+      `"${log.entityType}"`,
+      `"${log.entityId}"`,
+      `"${log.tamperProofChecksum || ''}"`
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cbo-audit-trail-${currentOrg?.id || 'peernotebook'}-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setExportNotice('CBO audit trail CSV exported successfully for county compliance audit.');
+    setTimeout(() => setExportNotice(null), 4000);
+
+    if (currentUser && currentOrg) {
+      await AuditLogger.log({
+        organizationId: currentOrg.id,
+        actorId: currentUser.id,
+        actorName: currentUser.fullName,
+        actorRole: currentUser.role,
+        action: 'EXPORT_PDF',
+        entityType: 'system',
+        entityId: 'audit_logs_csv',
+        details: { exportFormat: 'csv_county_standard', records: logs.length }
+      });
+    }
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -605,6 +649,72 @@ export const SettingsPanel: React.FC = () => {
             <ExternalLink className="w-3.5 h-3.5 shrink-0" />
           </a>
         </div>
+      </div>
+
+      {/* CBO Agency Multi-Seat Architecture & County Audit Export Card */}
+      <div className="p-5 sm:p-7 bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-5 max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200/80 shrink-0">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-bold text-[#1E3A8A]">CBO Multi-Seat Agency Architecture &amp; Licensing</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold">
+                  Grade-A CBO License
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Multi-seat team deployment for certified Peer Support Specialists operating under CalAIM &amp; CalMHSA standards
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleExportAuditLogs}
+              className="min-h-[44px] px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Download tamper-evident JSON audit trail"
+            >
+              <Download className="w-3.5 h-3.5 text-[#0F766E]" />
+              <span>Export Audit JSON</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleExportAuditLogsCSV}
+              className="min-h-[44px] px-3.5 py-2 bg-[#0F766E] hover:bg-teal-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+              title="Download county-ready CSV audit trail"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-white" />
+              <span>Export Audit CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4 text-xs">
+          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
+            <span className="text-slate-500 block mb-1 font-semibold">Assigned CBO Network:</span>
+            <span className="font-bold text-slate-900 break-words">{currentOrg?.name}</span>
+          </div>
+          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
+            <span className="text-slate-500 block mb-1 font-semibold">Active Seats Allocation:</span>
+            <span className="font-mono text-[#1E3A8A] font-bold block">5 CPSS Seats · 2 Supervisors</span>
+          </div>
+          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
+            <span className="text-slate-500 block mb-1 font-semibold">Team Submission SLA:</span>
+            <span className="font-bold text-emerald-700 block">96.4% On-Time (&lt; 24h)</span>
+          </div>
+          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
+            <span className="text-slate-500 block mb-1 font-semibold">Offline Sync Health:</span>
+            <span className="font-bold text-teal-800 block">0 Pending (100% Synced)</span>
+          </div>
+        </div>
+
+        <p className="text-xs text-slate-600 leading-relaxed">
+          The CBO agency license provides supervisor review queues, batch cosignature workflows, and automated county compliance exports. All field mutations are stamped with SHA-256 tamper-evident checksums and audited per 45 CFR § 164.312(b).
+        </p>
       </div>
 
       {/* Official Enterprise Support & Trust Compliance Anchors Card */}

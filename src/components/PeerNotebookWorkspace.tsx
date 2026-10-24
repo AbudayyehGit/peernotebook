@@ -319,6 +319,45 @@ export const PeerNotebookWorkspace: React.FC = () => {
     navigateToTab('new_note');
   };
 
+  const handleExportAuditLogsJSON = () => {
+    const payload = {
+      organization: currentOrg ? { id: currentOrg.id, name: currentOrg.name, npi: currentOrg.npi } : 'All Organizations',
+      exportedAt: new Date().toISOString(),
+      complianceStandard: '45 CFR § 164.312(b) Audit Controls & CalMHSA / Medi-Cal H0038 Standards',
+      totalLogs: auditLogs.length,
+      logs: auditLogs
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `peernotebook_audit_trail_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportAuditLogsCSV = () => {
+    const headers = ['Event ID', 'Timestamp (UTC)', 'Actor Name', 'Actor Role', 'Action', 'Entity Type', 'Entity ID', 'Tamper-Proof SHA-256'];
+    const rows = auditLogs.map(log => [
+      `"${log.id}"`,
+      `"${log.timestamp}"`,
+      `"${(log.actorName || '').replace(/"/g, '""')}"`,
+      `"${log.actorRole}"`,
+      `"${log.action}"`,
+      `"${log.entityType}"`,
+      `"${log.entityId}"`,
+      `"${log.tamperProofChecksum || ''}"`
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `peernotebook_audit_trail_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const navItems = [
     {
       id: 'clients' as WorkspaceTab,
@@ -1267,10 +1306,28 @@ export const PeerNotebookWorkspace: React.FC = () => {
                 45 CFR § 164.312(b) Audit Controls & 42 CFR Part 2 Confidentiality Verification
               </p>
             </div>
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <span className="text-xs font-mono text-slate-700 bg-white px-3.5 py-1.5 rounded-xl border border-slate-200 font-semibold shadow-[0_2px_6px_rgba(15,23,42,0.03)]">
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+              <span className="text-xs font-mono text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200 font-semibold shadow-2xs">
                 {auditLogs.length} Events Logged
               </span>
+              <button
+                type="button"
+                onClick={handleExportAuditLogsJSON}
+                className="min-h-[44px] px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                title="Download immutable audit logs in JSON format"
+              >
+                <Download className="w-3.5 h-3.5 text-[#0F766E]" />
+                <span>Export JSON</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleExportAuditLogsCSV}
+                className="min-h-[44px] px-3.5 py-2 bg-[#0F766E] hover:bg-teal-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                title="Download spreadsheet-ready audit logs in CSV format for county audits"
+              >
+                <Download className="w-3.5 h-3.5 text-white" />
+                <span>Export CSV (County Audit)</span>
+              </button>
             </div>
           </div>
 

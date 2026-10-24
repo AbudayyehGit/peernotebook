@@ -27,7 +27,9 @@ import {
   Server,
   Layers,
   HeartHandshake,
-  Mail
+  Mail,
+  Eye,
+  Table as TableIcon
 } from 'lucide-react';
 
 export interface DocItem {
@@ -868,6 +870,405 @@ Assignor hereby unconditionally and irrevocably sells, assigns, transfers, and c
   }
 ];
 
+interface ParsedBlock {
+  type: 'heading' | 'code' | 'table' | 'blockquote' | 'hr' | 'list' | 'paragraph';
+  level?: number;
+  lang?: string;
+  code?: string;
+  headers?: string[];
+  rows?: string[][];
+  items?: string[];
+  ordered?: boolean;
+  text?: string;
+}
+
+const renderInlineMarkdown = (text: string): React.ReactNode => {
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(<span key={key++}>{text.substring(lastIndex, match.index)}</span>);
+    }
+    const token = match[0];
+    if (token.startsWith('**') && token.endsWith('**')) {
+      parts.push(
+        <strong key={key++} className="font-bold text-slate-900">
+          {token.slice(2, -2)}
+        </strong>
+      );
+    } else if (token.startsWith('`') && token.endsWith('`')) {
+      parts.push(
+        <code
+          key={key++}
+          className="px-1.5 py-0.5 rounded bg-slate-100 text-[#0F766E] font-mono text-[11px] sm:text-xs border border-slate-200 break-all font-semibold"
+        >
+          {token.slice(1, -1)}
+        </code>
+      );
+    } else if (token.startsWith('[') && token.includes('](')) {
+      const linkText = token.slice(1, token.indexOf(']('));
+      const linkUrl = token.slice(token.indexOf('](') + 2, -1);
+      parts.push(
+        <a
+          key={key++}
+          href={linkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#0F766E] font-semibold underline hover:text-[#1E3A8A]"
+        >
+          {linkText}
+        </a>
+      );
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push(<span key={key++}>{text.substring(lastIndex)}</span>);
+  }
+  return parts.length > 0 ? parts : text;
+};
+
+const CodeBlockComponent: React.FC<{ code: string; lang?: string }> = ({ code, lang }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="w-full overflow-x-auto my-4 rounded-xl border border-slate-700 bg-slate-900 shadow-sm text-left">
+      <div className="flex items-center justify-between px-3.5 py-2 bg-slate-800/90 border-b border-slate-700/60 text-slate-300 text-[11px] font-mono">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-rose-500/80 inline-block"></span>
+          <span className="w-2 h-2 rounded-full bg-amber-500/80 inline-block"></span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500/80 inline-block"></span>
+          <span className="ml-1 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+            {lang || 'snippet'}
+          </span>
+        </div>
+        <button
+          onClick={handleCopy}
+          className="min-h-[32px] px-2.5 py-1 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer text-[11px]"
+          title="Copy snippet"
+        >
+          {copied ? (
+            <>
+              <Check className="w-3 h-3 text-emerald-400" />
+              <span className="text-emerald-300 font-semibold">Copied</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3 h-3" />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+      <pre className="p-4 text-xs font-mono text-emerald-300 whitespace-pre overflow-x-auto leading-relaxed">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+};
+
+const TableBlockComponent: React.FC<{ headers: string[]; rows: string[][] }> = ({
+  headers,
+  rows
+}) => {
+  return (
+    <div className="w-full overflow-x-auto my-4 rounded-xl border border-slate-200 shadow-2xs bg-white">
+      <table className="min-w-full divide-y divide-slate-200 text-xs text-left">
+        {headers.length > 0 && (
+          <thead className="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
+            <tr>
+              {headers.map((h, idx) => (
+                <th key={idx} scope="col" className="px-4 py-3 whitespace-nowrap">
+                  {renderInlineMarkdown(h)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        )}
+        <tbody className="divide-y divide-slate-100 text-slate-700">
+          {rows.map((row, rIdx) => (
+            <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+              {row.map((cell, cIdx) => (
+                <td key={cIdx} className="px-4 py-2.5 text-xs text-slate-600 align-top">
+                  {renderInlineMarkdown(cell)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export const ResponsiveMarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
+  const blocks = useMemo(() => {
+    const lines = content.split('\n');
+    const result: ParsedBlock[] = [];
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i];
+
+      // Fenced code block
+      if (line.trim().startsWith('```')) {
+        const lang = line.trim().slice(3).trim();
+        const codeLines: string[] = [];
+        i++;
+        while (i < lines.length && !lines[i].trim().startsWith('```')) {
+          codeLines.push(lines[i]);
+          i++;
+        }
+        i++; // skip closing ```
+        result.push({
+          type: 'code',
+          lang: lang || 'text',
+          code: codeLines.join('\n')
+        });
+        continue;
+      }
+
+      // Markdown Table
+      if (line.trim().startsWith('|') && line.includes('|')) {
+        const tableLines: string[] = [];
+        while (i < lines.length && lines[i].trim().startsWith('|')) {
+          tableLines.push(lines[i].trim());
+          i++;
+        }
+        if (tableLines.length >= 2) {
+          const headers = tableLines[0]
+            .split('|')
+            .slice(1, -1)
+            .map(h => h.trim());
+          const startRow = tableLines[1].includes('---') ? 2 : 1;
+          const rows: string[][] = [];
+          for (let r = startRow; r < tableLines.length; r++) {
+            const cells = tableLines[r]
+              .split('|')
+              .slice(1, -1)
+              .map(c => c.trim());
+            rows.push(cells);
+          }
+          result.push({
+            type: 'table',
+            headers,
+            rows
+          });
+          continue;
+        }
+      }
+
+      // Headings
+      const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
+      if (headingMatch) {
+        result.push({
+          type: 'heading',
+          level: headingMatch[1].length,
+          text: headingMatch[2].trim()
+        });
+        i++;
+        continue;
+      }
+
+      // Blockquote
+      if (line.trim().startsWith('>')) {
+        const quoteLines: string[] = [];
+        while (i < lines.length && lines[i].trim().startsWith('>')) {
+          quoteLines.push(lines[i].trim().replace(/^>\s?/, ''));
+          i++;
+        }
+        result.push({
+          type: 'blockquote',
+          text: quoteLines.join(' ')
+        });
+        continue;
+      }
+
+      // Horizontal Rule
+      if (/^(\*\*\*|---|___)$/.test(line.trim())) {
+        result.push({ type: 'hr' });
+        i++;
+        continue;
+      }
+
+      // List item
+      const listMatch = line.match(/^(\s*)([-*]|\d+\.)\s+(.*)$/);
+      if (listMatch) {
+        const isOrdered = /^\d+\./.test(listMatch[2]);
+        const items: string[] = [];
+        while (i < lines.length) {
+          const itemMatch = lines[i].match(/^(\s*)([-*]|\d+\.)\s+(.*)$/);
+          if (!itemMatch) break;
+          items.push(itemMatch[3]);
+          i++;
+        }
+        result.push({
+          type: 'list',
+          ordered: isOrdered,
+          items
+        });
+        continue;
+      }
+
+      // Blank line
+      if (line.trim() === '') {
+        i++;
+        continue;
+      }
+
+      // Paragraph
+      const paraLines: string[] = [];
+      while (
+        i < lines.length &&
+        lines[i].trim() !== '' &&
+        !lines[i].trim().startsWith('#') &&
+        !lines[i].trim().startsWith('```') &&
+        !lines[i].trim().startsWith('>') &&
+        !lines[i].trim().startsWith('|') &&
+        !lines[i].match(/^(\s*)([-*]|\d+\.)\s+/) &&
+        !/^(\*\*\*|---|___)$/.test(lines[i].trim())
+      ) {
+        paraLines.push(lines[i]);
+        i++;
+      }
+      if (paraLines.length > 0) {
+        result.push({
+          type: 'paragraph',
+          text: paraLines.join(' ')
+        });
+      }
+    }
+
+    return result;
+  }, [content]);
+
+  return (
+    <div className="w-full min-w-0 space-y-2 text-slate-800">
+      {blocks.map((block, idx) => {
+        switch (block.type) {
+          case 'heading': {
+            if (block.level === 1) {
+              return (
+                <h1
+                  key={idx}
+                  className="text-xl sm:text-2xl font-bold text-[#1E3A8A] mt-6 mb-3 pb-2 border-b border-slate-200 tracking-tight break-words"
+                >
+                  {renderInlineMarkdown(block.text || '')}
+                </h1>
+              );
+            }
+            if (block.level === 2) {
+              return (
+                <h2
+                  key={idx}
+                  className="text-lg sm:text-xl font-bold text-[#1E3A8A] mt-5 mb-2.5 tracking-tight flex items-center gap-2 break-words"
+                >
+                  {renderInlineMarkdown(block.text || '')}
+                </h2>
+              );
+            }
+            if (block.level === 3) {
+              return (
+                <h3
+                  key={idx}
+                  className="text-base font-bold text-[#0F766E] mt-4 mb-2 tracking-tight break-words"
+                >
+                  {renderInlineMarkdown(block.text || '')}
+                </h3>
+              );
+            }
+            return (
+              <h4
+                key={idx}
+                className="text-sm font-semibold text-slate-800 mt-3 mb-1.5 break-words"
+              >
+                {renderInlineMarkdown(block.text || '')}
+              </h4>
+            );
+          }
+          case 'code':
+            return (
+              <CodeBlockComponent
+                key={idx}
+                code={block.code || ''}
+                lang={block.lang}
+              />
+            );
+          case 'table':
+            return (
+              <TableBlockComponent
+                key={idx}
+                headers={block.headers || []}
+                rows={block.rows || []}
+              />
+            );
+          case 'blockquote':
+            return (
+              <blockquote
+                key={idx}
+                className="w-full overflow-x-auto my-3 border-l-4 border-[#0F766E] bg-teal-50/70 p-3.5 rounded-r-xl text-slate-700 text-xs sm:text-sm italic leading-relaxed break-words"
+              >
+                {renderInlineMarkdown(block.text || '')}
+              </blockquote>
+            );
+          case 'hr':
+            return <hr key={idx} className="border-t border-slate-200 my-6" />;
+          case 'list': {
+            if (block.ordered) {
+              return (
+                <ol
+                  key={idx}
+                  className="my-3 space-y-1.5 list-decimal list-inside text-xs sm:text-sm text-slate-700 pl-1"
+                >
+                  {(block.items || []).map((item, itemIdx) => (
+                    <li key={itemIdx} className="leading-relaxed break-words">
+                      {renderInlineMarkdown(item)}
+                    </li>
+                  ))}
+                </ol>
+              );
+            }
+            return (
+              <ul
+                key={idx}
+                className="my-3 space-y-1.5 list-disc list-inside text-xs sm:text-sm text-slate-700 pl-1"
+              >
+                {(block.items || []).map((item, itemIdx) => (
+                  <li key={itemIdx} className="leading-relaxed break-words">
+                    {renderInlineMarkdown(item)}
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+          case 'paragraph':
+          default:
+            return (
+              <p
+                key={idx}
+                className="my-2.5 text-xs sm:text-sm text-slate-700 leading-relaxed break-words"
+              >
+                {renderInlineMarkdown(block.text || '')}
+              </p>
+            );
+        }
+      })}
+    </div>
+  );
+};
+
 interface DocumentationViewerProps {
   initialSlug?: string;
   onSlugChange?: (slug: string) => void;
@@ -896,6 +1297,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [copied, setCopied] = useState(false);
+  const [viewMode, setViewMode] = useState<'formatted' | 'raw'>('formatted');
 
   // Synchronize slug if initialSlug updates
   useEffect(() => {
@@ -1128,7 +1530,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
                 {activeDoc.categoryTitle}
               </span>
               <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-              <span className="text-slate-900 font-bold truncate max-w-xs">
+              <span className="text-slate-900 font-bold truncate max-w-[130px] xs:max-w-[200px] sm:max-w-xs lg:max-w-sm">
                 {activeDoc.title}
               </span>
             </div>
@@ -1165,8 +1567,8 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
 
           {/* Document Header Metadata */}
           <div className="py-4 border-b border-slate-100">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-bold">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-bold break-all">
                 {activeDoc.path}
               </span>
               {activeDoc.badge && (
@@ -1179,19 +1581,58 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
                 </span>
               )}
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-[#1E3A8A] tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#1E3A8A] tracking-tight break-words">
               {activeDoc.title}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed break-words">
               {activeDoc.summary}
             </p>
           </div>
 
-          {/* Formatted Markdown Content Body - Strict zero-overflow & auto-scroll for wide markdown tables */}
-          <article className="prose prose-slate max-w-none py-6 flex-1 text-slate-800 leading-relaxed text-sm w-full min-w-0 overflow-hidden">
-            <div className="whitespace-pre-wrap font-sans text-xs sm:text-sm leading-relaxed bg-[#F8FAFC] p-4 sm:p-7 rounded-2xl border border-slate-200 shadow-inner font-mono w-full min-w-0 overflow-x-auto break-words">
-              {activeDoc.content}
+          {/* Reading Mode Switcher & Responsive Body */}
+          <div className="py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setViewMode('formatted')}
+                className={`min-h-[36px] px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'formatted'
+                    ? 'bg-white text-[#1E3A8A] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Eye className="w-3.5 h-3.5 text-[#0F766E]" />
+                <span>Formatted View</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('raw')}
+                className={`min-h-[36px] px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'raw'
+                    ? 'bg-white text-[#1E3A8A] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Code2 className="w-3.5 h-3.5 text-slate-500" />
+                <span>Raw Markdown</span>
+              </button>
             </div>
+            <span className="text-[11px] text-slate-400 font-medium">
+              Deterministic Parser • Responsive Stackable Blocks
+            </span>
+          </div>
+
+          {/* Formatted Markdown Content Body - Strict zero-overflow & auto-scroll for wide markdown tables */}
+          <article className="py-5 flex-1 text-slate-800 leading-relaxed text-sm w-full min-w-0">
+            {viewMode === 'formatted' ? (
+              <div className="w-full min-w-0">
+                <ResponsiveMarkdownRenderer content={activeDoc.content} />
+              </div>
+            ) : (
+              <div className="w-full overflow-x-auto p-4 sm:p-6 bg-slate-900 rounded-2xl border border-slate-800 text-emerald-300 font-mono text-xs leading-relaxed whitespace-pre shadow-inner">
+                {activeDoc.content}
+              </div>
+            )}
           </article>
 
           {/* Reader Footer Navigation with Master Trust Anchors */}
