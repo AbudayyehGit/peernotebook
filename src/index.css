@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@theme {
+  --color-accent: #D97706;
+  --color-accent-tint: #FEF3C7;
+  --color-surface: #F8FAFC;
+  --color-card: #FFFFFF;
+  --color-navy: #1E3A8A;
+  --color-teal: #0F766E;
+  --color-green: #16A34A;
+}
+
 @layer base {
   *, *::before, *::after {
     box-sizing: border-box;
@@ -42,11 +52,31 @@
     --color-navy: #1E3A8A;
     --color-teal: #0F766E;
     --color-teal-light: #0D9488;
+    --color-accent: #D97706;
     --color-orange: #D97706;
     --color-orange-tint: #FEF3C7;
+    --color-amber-500: #F59E0B;
+    --color-amber-600: #D97706;
     --color-green: #16A34A;
     --color-green-light: #10B981;
     --shadow-ambient: 0 4px 20px rgba(15, 23, 42, 0.04);
+  }
+
+  /* Explicit Warm Amber / Orange utility overrides to prevent primary theme collision */
+  .bg-amber-600, .bg-accent-amber {
+    background-color: #D97706;
+  }
+  .text-amber-600, .text-accent-amber {
+    color: #D97706;
+  }
+  .border-amber-500, .border-accent-amber {
+    border-color: #F59E0B;
+  }
+  .border-amber-600 {
+    border-color: #D97706;
+  }
+  .bg-amber-50, .bg-accent-tint {
+    background-color: #FEF3C7;
   }
 
   .card-clinical {
