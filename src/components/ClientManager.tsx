@@ -9,6 +9,7 @@ import { peerNotebookDB, Client } from '../db/peerNotebookDatabase';
 import { useAuth } from '../context/AuthContext';
 import { AuditLogger } from '../services/auditLogger';
 import { Users, Search, Plus, ShieldCheck, HeartHandshake, Calendar, FileText, X } from 'lucide-react';
+import { EmptyState, Button } from './ui';
 
 interface ClientManagerProps {
   onSelectClientForNote?: (client: Client) => void;
@@ -260,11 +261,21 @@ export const ClientManager: React.FC<ClientManagerProps> = ({ onSelectClientForN
       </div>
 
       {filteredClients.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_12px_rgba(15,23,42,0.05)]">
-          <Users className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-          <h4 className="text-[#1E3A8A] font-bold">No peer clients found</h4>
-          <p className="text-xs text-slate-500 mt-1">Try refining your search or add a new peer intake.</p>
-        </div>
+        <EmptyState
+          icon={<Users className="w-6 h-6 text-slate-500" />}
+          title="No peer clients found"
+          description="Try refining your search query, adjusting the pathway filter, or create a new peer intake."
+          action={
+            <Button
+              type="button"
+              onClick={() => setIsAddModalOpen(true)}
+              className="gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Peer Intake</span>
+            </Button>
+          }
+        />
       )}
 
       {/* Intake Modal with 44px tap targets */}

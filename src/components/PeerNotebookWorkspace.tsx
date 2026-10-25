@@ -18,6 +18,7 @@ import { DocumentationViewer } from './DocumentationViewer';
 import { GoalPathTracker } from './GoalPathTracker';
 import { syncWorker, SyncStatusInfo } from '../services/syncWorker';
 import { safeStorage } from '../utils/safeStorage';
+import { EmptyState, Button } from './ui';
 import {
   Users,
   FileText,
@@ -1280,9 +1281,25 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
           </div>
 
           {filteredNotes.length === 0 && (
-            <div className="p-10 text-center bg-white rounded-2xl border border-slate-200/90 text-slate-500 text-sm shadow-[0_4px_12px_rgba(15,23,42,0.05)]">
-              No encounter notes match your search criteria.
-            </div>
+            <EmptyState
+              icon={<FileText className="w-6 h-6 text-slate-500" />}
+              title="No encounter notes found"
+              description="No notes match your current filter or search criteria. Log a new Medi-Cal encounter or clear filters."
+              action={
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setSelectedNoteForEdit(null);
+                    setSelectedClientForNote(null);
+                    navigateToTab('new_note');
+                  }}
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Log Interaction</span>
+                </Button>
+              }
+            />
           )}
         </div>
       )}
