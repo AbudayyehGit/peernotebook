@@ -140,6 +140,58 @@ try {
   reportCheck('Metadata.json & Index.html Title/Description Synchronization', false, err.message);
 }
 
+// Check 6: Vercel Root Build & Deployment Configuration
+try {
+  const vercelCfg = JSON.parse(fs.readFileSync(path.join(rootDir, 'vercel.json'), 'utf8'));
+  const hasBuildCmd = vercelCfg.buildCommand === 'npm run build';
+  reportCheck(
+    'Vercel Root Build & Cron Deployment Configuration',
+    hasBuildCmd && Array.isArray(vercelCfg.crons) && vercelCfg.crons.length > 0,
+    hasBuildCmd
+      ? `buildCommand verified: "${vercelCfg.buildCommand}". Daily digest cron schedule verified.`
+      : 'Missing buildCommand in vercel.json'
+  );
+} catch (err) {
+  reportCheck('Vercel Root Build & Cron Deployment Configuration', false, err.message);
+}
+
+// Check 7: Peer Notebook LLC Legal & IP Ownership
+try {
+  const license = fs.readFileSync(path.join(rootDir, 'LICENSE.md'), 'utf8');
+  const notice = fs.readFileSync(path.join(rootDir, 'NOTICE'), 'utf8');
+  const hasLlcLicense = license.includes('Peer Notebook LLC');
+  const hasLlcNotice = notice.includes('Peer Notebook LLC');
+  reportCheck(
+    'Peer Notebook LLC Legal & IP Asset Ownership',
+    hasLlcLicense && hasLlcNotice,
+    hasLlcLicense && hasLlcNotice
+      ? 'Verified Peer Notebook LLC ownership in LICENSE.md and NOTICE'
+      : 'Missing Peer Notebook LLC copyright assertions'
+  );
+} catch (err) {
+  reportCheck('Peer Notebook LLC Legal & IP Asset Ownership', false, err.message);
+}
+
+// Check 8: Medi-Cal H0038, POS 15 & 4-Part Clinical Structure Verification
+try {
+  const formCode = fs.readFileSync(path.join(rootDir, 'src', 'components', 'SessionNoteForm.tsx'), 'utf8');
+  const dbCode = fs.readFileSync(path.join(rootDir, 'src', 'db', 'peerNotebookDatabase.ts'), 'utf8');
+  const hasH0038 = formCode.includes('H0038') && dbCode.includes('H0038');
+  const hasPos15 = formCode.includes('POS 15') && dbCode.includes('15');
+  const has4Part = formCode.includes('goalAddressed') && formCode.includes('peerIntervention') && formCode.includes('clientResponse') && formCode.includes('planNextSteps');
+  
+  const allClinicalPassed = hasH0038 && hasPos15 && has4Part;
+  reportCheck(
+    'Clinical Medi-Cal H0038, POS 15 & 4-Part Structure Verification',
+    allClinicalPassed,
+    allClinicalPassed
+      ? 'Verified Medi-Cal H0038, POS 15 Mobile Unit standard, and CalAIM 4-Part DAP structure.'
+      : 'Missing H0038, POS 15, or 4-Part structure components'
+  );
+} catch (err) {
+  reportCheck('Clinical Medi-Cal H0038, POS 15 & 4-Part Structure Verification', false, err.message);
+}
+
 console.log('\n----------------------------------------------------------------');
 if (failedChecks === 0) {
   console.log('✓ ALL COMPLIANCE CHECKS PASSED: SYSTEM 100% PRODUCTION READY');

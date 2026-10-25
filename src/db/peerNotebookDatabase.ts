@@ -79,7 +79,7 @@ export interface SessionNote {
   billingUnits: number; // 1 unit per 15 min increments
   modality: ServiceModality;
   locationDetails: string;
-  placeOfServiceCode: string; // '99' (Other Place / Community), '11' (Office), '02' (Telehealth)
+  placeOfServiceCode: string; // '15' (Mobile Unit / Community Field), '99' (Other Place / Community), '11' (Office), '02' (Telehealth)
   
   // Structured CalAIM DAP / Peer Support Documentation
   focusDomains: string[];
@@ -370,7 +370,7 @@ class PeerNotebookDBManager {
         billingCode: 'H0038',
         billingUnits: 5, // 70 min = 5 units (15m increments under CalAIM)
         modality: 'community_field',
-        placeOfServiceCode: '99',
+        placeOfServiceCode: '15',
         locationDetails: 'Main Public Library Community Study Room 4',
         focusDomains: ['Recovery Goals', 'Housing Stability', 'Relapse Prevention', 'CalAIM Community Supports'],
         goalAddressed: 'Goal 1 & 2: Sobriety maintenance milestone and CalAIM supportive housing application packet review.',

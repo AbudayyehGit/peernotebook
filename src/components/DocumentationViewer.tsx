@@ -1126,7 +1126,7 @@ const CodeBlockComponent: React.FC<{ code: string; lang?: string }> = ({ code, l
         </div>
         <button
           onClick={handleCopy}
-          className="min-h-[32px] px-2.5 py-1 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer text-[11px]"
+          className="min-h-[44px] px-3.5 py-2 rounded-full bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer text-xs"
           title="Copy snippet"
         >
           {copied ? (
@@ -1603,10 +1603,10 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
             <div className="flex flex-wrap items-center gap-1.5 mt-3 text-[11px]">
               <button
                 onClick={() => setSelectedCategory('all')}
-                className={`min-h-[36px] px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                className={`min-h-[44px] px-3.5 py-2 rounded-full font-medium whitespace-nowrap transition-colors cursor-pointer ${
                   selectedCategory === 'all'
-                    ? 'bg-[#1E3A8A] text-white font-bold'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-[#1E3A8A] text-white font-bold shadow-2xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80'
                 }`}
               >
                 All (27)
@@ -1615,10 +1615,10 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
                 <button
                   key={c.num}
                   onClick={() => setSelectedCategory(c.num)}
-                  className={`min-h-[36px] px-2.5 py-1.5 rounded-lg font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                  className={`min-h-[44px] px-3.5 py-2 rounded-full font-medium whitespace-nowrap transition-colors cursor-pointer ${
                     selectedCategory === c.num
-                      ? 'bg-[#1E3A8A] text-white font-bold'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-[#1E3A8A] text-white font-bold shadow-2xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80'
                   }`}
                 >
                   Cat {c.num}
@@ -1768,11 +1768,11 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
 
           {/* Reading Mode Switcher & Responsive Body */}
           <div className="py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-full border border-slate-200">
               <button
                 type="button"
                 onClick={() => setViewMode('formatted')}
-                className={`min-h-[36px] px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`min-h-[44px] px-4 py-2 rounded-full font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   viewMode === 'formatted'
                     ? 'bg-white text-[#1E3A8A] shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -1784,7 +1784,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
               <button
                 type="button"
                 onClick={() => setViewMode('raw')}
-                className={`min-h-[36px] px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`min-h-[44px] px-4 py-2 rounded-full font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   viewMode === 'raw'
                     ? 'bg-white text-[#1E3A8A] shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'

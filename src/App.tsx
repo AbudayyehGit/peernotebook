@@ -198,28 +198,28 @@ function AppContent() {
           <div className="hidden lg:flex items-center gap-2 text-xs font-semibold">
             <button
               onClick={() => switchView('landing')}
-              className="min-h-[36px] px-3 py-1.5 rounded-lg bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="min-h-[44px] px-3.5 py-2 rounded-full bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Globe className="w-3.5 h-3.5 text-teal-300" />
               <span>Landing & Checklist</span>
             </button>
             <button
               onClick={() => switchView('docs')}
-              className="min-h-[36px] px-3 py-1.5 rounded-lg bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="min-h-[44px] px-3.5 py-2 rounded-full bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <BookOpen className="w-3.5 h-3.5 text-teal-300" />
               <span>Docs Hub (27)</span>
             </button>
             <button
               onClick={() => setOnboardingOpen(true)}
-              className="min-h-[36px] px-3 py-1.5 rounded-lg bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="min-h-[44px] px-3.5 py-2 rounded-full bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
               <span>2-Min Walkthrough</span>
             </button>
             <button
               onClick={() => setOutreachOpen(true)}
-              className="min-h-[36px] px-3 py-1.5 rounded-lg bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="min-h-[44px] px-3.5 py-2 rounded-full bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Mail className="w-3.5 h-3.5 text-teal-300" />
               <span>Beta Outreach</span>
@@ -231,7 +231,7 @@ function AppContent() {
             {/* Tablet/Mobile Quick Nav: Compact icon or pill to prevent header overlap */}
             <button
               onClick={() => switchView('docs')}
-              className="lg:hidden min-h-[38px] px-2 sm:px-2.5 py-1 text-xs font-semibold bg-blue-900/80 hover:bg-blue-800 text-teal-200 rounded-lg border border-blue-700 transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
+              className="lg:hidden min-h-[44px] px-3 py-2 text-xs font-semibold bg-blue-900/80 hover:bg-blue-800 text-teal-200 rounded-full border border-blue-700 transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
               title="Documentation Hub"
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -239,7 +239,7 @@ function AppContent() {
             </button>
             <button
               onClick={() => switchView('landing')}
-              className="hidden sm:inline-flex lg:hidden min-h-[38px] px-2.5 py-1 text-xs font-semibold bg-blue-800 hover:bg-blue-700 text-white rounded-lg border border-blue-700 transition-colors shrink-0 cursor-pointer"
+              className="hidden sm:inline-flex lg:hidden min-h-[44px] px-3 py-2 text-xs font-semibold bg-blue-800 hover:bg-blue-700 text-white rounded-full border border-blue-700 transition-colors shrink-0 cursor-pointer"
               title="Return to Landing Page"
             >
               Landing

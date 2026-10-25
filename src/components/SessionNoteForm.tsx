@@ -162,9 +162,9 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
 
   const [billingCode] = useState<string>(existingNote?.billingCode || 'H0038');
   const [modality, setModality] = useState<ServiceModality>(existingNote?.modality || 'community_field');
-  const [placeOfServiceCode, setPlaceOfServiceCode] = useState<string>(existingNote?.placeOfServiceCode || '99');
+  const [placeOfServiceCode, setPlaceOfServiceCode] = useState<string>(existingNote?.placeOfServiceCode || '15');
   const [locationDetails, setLocationDetails] = useState<string>(
-    existingNote?.locationDetails || 'Community Outreach / Field'
+    existingNote?.locationDetails || 'Community Outreach / Field Mobile (POS 15)'
   );
 
   // Note Content (CalAIM DAP Format)
@@ -709,18 +709,19 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             Modality & Place of Service *
           </label>
           <select
-            value={modality}
+            value={`${modality}:${placeOfServiceCode}`}
             onChange={(e) => {
-              const val = e.target.value as ServiceModality;
-              setModality(val);
-              setPlaceOfServiceCode(val === 'community_field' ? '99' : val === 'telehealth_video' ? '02' : '11');
+              const [modVal, posVal] = e.target.value.split(':') as [ServiceModality, string];
+              setModality(modVal);
+              setPlaceOfServiceCode(posVal);
             }}
             className="w-full min-h-[44px] px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
           >
-            <option value="community_field">Community / Field Outreach (POS 99)</option>
-            <option value="face_to_face">Office / Clinic Encounter (POS 11)</option>
-            <option value="telehealth_video">Telehealth Video (POS 02)</option>
-            <option value="phone_outreach">Phone Outreach (POS 02)</option>
+            <option value="community_field:15">Community Field Mobile (POS 15 - CalAIM H0038 Standard)</option>
+            <option value="community_field:99">Community Outreach / Street / Park (POS 99)</option>
+            <option value="face_to_face:11">Office / Clinic Site (POS 11)</option>
+            <option value="telehealth_video:02">Telehealth Video Encounter (POS 02)</option>
+            <option value="phone_outreach:02">Phone Outreach Encounter (POS 02)</option>
           </select>
         </div>
       </div>

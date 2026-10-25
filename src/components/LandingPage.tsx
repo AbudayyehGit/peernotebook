@@ -514,7 +514,7 @@ Built with trauma-informed care at peernotebook.com`;
                 </div>
                 <button
                   onClick={() => setOnboardingModalOpen(true)}
-                  className="min-h-[36px] px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                  className="min-h-[44px] px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-bold text-xs transition-colors cursor-pointer flex items-center gap-1.5 border border-slate-200/80"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-[#0F766E]" />
                   <span>2-Min Walkthrough</span>

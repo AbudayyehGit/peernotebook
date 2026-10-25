@@ -678,10 +678,10 @@ export const SupervisorDashboard: React.FC = () => {
                   key={unit}
                   type="button"
                   onClick={() => setSelectedUnit(unit)}
-                  className={`min-h-[36px] px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
+                  className={`min-h-[44px] px-3.5 py-2 rounded-full font-semibold transition-colors cursor-pointer ${
                     selectedUnit === unit
-                      ? 'bg-[#1E3A8A] text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-[#1E3A8A] text-white shadow-2xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80'
                   }`}
                 >
                   {unit === 'ALL' ? 'All Units' : unit}

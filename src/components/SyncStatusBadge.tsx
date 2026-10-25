@@ -113,9 +113,9 @@ export const SyncStatusBadge: React.FC = () => {
             }
           }}
           title="Force Sync with Cloud Store"
-          className="hidden sm:flex min-h-[32px] min-w-[32px] items-center justify-center p-1 hover:bg-black/10 rounded-full transition-transform active:scale-90 cursor-pointer"
+          className="hidden sm:flex min-h-[44px] min-w-[44px] items-center justify-center p-2 hover:bg-black/10 rounded-full transition-transform active:scale-90 cursor-pointer"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
         </span>
       </button>
 

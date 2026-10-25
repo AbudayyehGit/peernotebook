@@ -1105,7 +1105,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
                     <button
                       type="button"
                       onClick={() => handleRestoreFromOPFS(snap.filename)}
-                      className="min-h-[36px] px-2.5 py-1 text-xs font-bold text-[#1E3A8A] hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+                      className="min-h-[44px] px-3.5 py-2 text-xs font-bold text-[#1E3A8A] hover:bg-blue-50 border border-blue-200 rounded-full transition-colors cursor-pointer"
                       title="Inspect and restore this snapshot"
                     >
                       Restore
@@ -1113,10 +1113,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
                     <button
                       type="button"
                       onClick={() => handleDeleteSnapshot(snap.filename)}
-                      className="min-h-[36px] p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors cursor-pointer"
                       title="Delete snapshot"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -1523,9 +1523,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
               <button
                 type="button"
                 onClick={handleCopySqlMigration}
-                className="absolute top-3 right-3 min-h-[36px] px-3 py-1.5 bg-[#0F766E] hover:bg-teal-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                className="absolute top-3 right-3 min-h-[44px] px-4 py-2 bg-[#0F766E] hover:bg-teal-700 text-white rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
               >
-                {sqlCopied ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {sqlCopied ? <CheckCheck className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 <span>{sqlCopied ? "Copied SQL!" : "Copy SQL"}</span>
               </button>
             </div>
@@ -1651,9 +1651,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
                 <button
                   type="button"
                   onClick={handleCopyDigestHtml}
-                  className="min-h-[36px] px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="min-h-[44px] px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-200/80"
                 >
-                  {digestHtmlCopied ? <CheckCheck className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  {digestHtmlCopied ? <CheckCheck className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                   <span>{digestHtmlCopied ? 'Copied HTML!' : 'Copy HTML'}</span>
                 </button>
               </div>

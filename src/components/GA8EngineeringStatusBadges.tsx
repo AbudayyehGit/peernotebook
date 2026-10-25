@@ -131,7 +131,7 @@ export const GA8EngineeringStatusBadges: React.FC = () => {
               <button
                 key={badge.id}
                 onClick={() => setSelectedBadge(badge)}
-                className={`min-h-[36px] sm:min-h-[44px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold transition-all hover:shadow-xs shrink-0 whitespace-nowrap cursor-pointer ${badge.badgeColorClass} ${badge.textColorClass}`}
+                className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-semibold transition-all hover:shadow-xs shrink-0 whitespace-nowrap cursor-pointer ${badge.badgeColorClass} ${badge.textColorClass}`}
                 title={`${badge.name}: Click to view GA #8 specification & verification`}
               >
                 {badge.icon}

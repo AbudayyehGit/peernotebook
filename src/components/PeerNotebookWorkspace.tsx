@@ -1125,7 +1125,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
             <button
               type="button"
               onClick={() => setSelectedDomainFilter(null)}
-              className={`min-h-[36px] px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`min-h-[44px] px-3.5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 !selectedDomainFilter
                   ? 'bg-[#1E3A8A] text-white shadow-2xs'
                   : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
@@ -1138,14 +1138,14 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 key={domain}
                 type="button"
                 onClick={() => setSelectedDomainFilter(selectedDomainFilter === domain ? null : domain)}
-                className={`min-h-[36px] px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                className={`min-h-[44px] px-3.5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   selectedDomainFilter === domain
                     ? 'bg-[#0F766E] text-white shadow-2xs'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 }`}
               >
                 <span>{domain}</span>
-                {selectedDomainFilter === domain && <Check className="w-3 h-3 text-white" />}
+                {selectedDomainFilter === domain && <Check className="w-3.5 h-3.5 text-white" />}
               </button>
             ))}
           </div>

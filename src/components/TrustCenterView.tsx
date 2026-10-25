@@ -600,10 +600,10 @@ export const TrustCenterView: React.FC<TrustCenterViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedLegalDoc('privacy')}
-                    className={`min-h-[36px] px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    className={`min-h-[44px] px-4 py-2 rounded-full font-bold transition-all cursor-pointer ${
                       selectedLegalDoc === 'privacy'
                         ? 'bg-[#0F766E] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/80'
                     }`}
                   >
                     Privacy Policy
@@ -611,10 +611,10 @@ export const TrustCenterView: React.FC<TrustCenterViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedLegalDoc('terms')}
-                    className={`min-h-[36px] px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    className={`min-h-[44px] px-4 py-2 rounded-full font-bold transition-all cursor-pointer ${
                       selectedLegalDoc === 'terms'
                         ? 'bg-[#0F766E] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/80'
                     }`}
                   >
                     Terms of Service
@@ -622,10 +622,10 @@ export const TrustCenterView: React.FC<TrustCenterViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedLegalDoc('baa')}
-                    className={`min-h-[36px] px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    className={`min-h-[44px] px-4 py-2 rounded-full font-bold transition-all cursor-pointer ${
                       selectedLegalDoc === 'baa'
                         ? 'bg-[#0F766E] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/80'
                     }`}
                   >
                     BAA Standard Terms
@@ -633,10 +633,10 @@ export const TrustCenterView: React.FC<TrustCenterViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedLegalDoc('accessibility')}
-                    className={`min-h-[36px] px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    className={`min-h-[44px] px-4 py-2 rounded-full font-bold transition-all cursor-pointer ${
                       selectedLegalDoc === 'accessibility'
                         ? 'bg-[#0F766E] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/80'
                     }`}
                   >
                     Accessibility Statement

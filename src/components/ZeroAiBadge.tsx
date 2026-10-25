@@ -25,7 +25,7 @@ export const ZeroAiBadge: React.FC<ZeroAiBadgeProps> = ({
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className={`min-h-[36px] px-2.5 sm:px-3 py-1 rounded-full bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-300 text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95 ${className}`}
+          className={`min-h-[44px] px-3.5 sm:px-4 py-2 rounded-full bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-2xs active:scale-95 ${className}`}
           title="Verified Zero-AI Runtime Engine: 100% Deterministic Client Logic (Click to Inspect)"
         >
           <span className="relative flex h-2 w-2 shrink-0">
@@ -41,7 +41,7 @@ export const ZeroAiBadge: React.FC<ZeroAiBadgeProps> = ({
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className={`min-h-[32px] px-2.5 py-0.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-[#16A34A] border border-emerald-200 text-[10px] font-bold font-mono inline-flex items-center gap-1 transition-colors cursor-pointer ${className}`}
+          className={`min-h-[44px] px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-[#16A34A] border border-emerald-200 text-xs font-bold font-mono inline-flex items-center gap-1.5 transition-colors cursor-pointer ${className}`}
           title="runtime: Zero-AI (Deterministic)"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] shrink-0" />
