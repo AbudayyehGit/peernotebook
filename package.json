@@ -12,6 +12,7 @@
     "audit:compliance": "node scripts/audit-compliance.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.1.2",
     "clsx": "^2.1.1",

@@ -50,7 +50,7 @@ export interface CBOTeamMember {
 }
 
 export const SupervisorDashboard: React.FC = () => {
-  const { currentOrg, currentUser } = useAuth();
+  const { currentOrg, currentUser, allUsers } = useAuth();
   const [notes, setNotes] = useState<SessionNote[]>([]);
   const [selectedNote, setSelectedNote] = useState<SessionNote | null>(null);
   const [activeTab, setActiveTab] = useState<'queue' | 'team' | 'compliance'>('queue');
@@ -84,108 +84,45 @@ export const SupervisorDashboard: React.FC = () => {
   const totalUnits = useMemo(() => notes.reduce((sum, n) => sum + (n.billingUnits || 0), 0), [notes]);
   const safetyCount = useMemo(() => notes.filter(n => n.safetyConcerns).length, [notes]);
 
-  // Dynamic CBO Team Multi-Seat Roster
+  // Dynamic CBO Team Multi-Seat Roster from IndexedDB / Supabase Users
   const cboTeamMembers: CBOTeamMember[] = useMemo(() => {
-    const baseSpecialists: CBOTeamMember[] = [
-      {
-        id: 'cpss-01',
-        fullName: 'Marcus Vance',
-        credentialTitle: 'Certified Peer Support Specialist',
-        cpssCertNumber: 'CPSS-CA #88412',
-        unit: 'Field Mobile Crisis',
-        role: 'peer_specialist',
-        notesLogged: 0,
-        notesApproved: 0,
-        pendingCosign: 0,
-        billableUnits: 0,
-        onTimeRate: 98.2,
-        pendingSyncQueue: 0,
-        complianceStatus: 'audit_ready'
-      },
-      {
-        id: 'cpss-02',
-        fullName: 'Elena Reyes',
-        credentialTitle: 'Lead Peer Navigator (ECM)',
-        cpssCertNumber: 'CPSS-CA #90124',
-        unit: 'Harm Reduction & Navigation',
-        role: 'peer_specialist',
-        notesLogged: 0,
-        notesApproved: 0,
-        pendingCosign: 0,
-        billableUnits: 0,
-        onTimeRate: 96.5,
-        pendingSyncQueue: 0,
-        complianceStatus: 'audit_ready'
-      },
-      {
-        id: 'cpss-03',
-        fullName: 'David Cho',
-        credentialTitle: 'Certified Peer Support Specialist',
-        cpssCertNumber: 'CPSS-CA #77319',
-        unit: 'Enhanced Care Management (ECM)',
-        role: 'peer_specialist',
-        notesLogged: 0,
-        notesApproved: 0,
-        pendingCosign: 0,
-        billableUnits: 0,
-        onTimeRate: 94.0,
-        pendingSyncQueue: 0,
-        complianceStatus: 'audit_ready'
-      },
-      {
-        id: 'cpss-04',
-        fullName: 'Maya Lin',
-        credentialTitle: 'Community Health Specialist',
-        cpssCertNumber: 'CPSS-CA #66410',
-        unit: 'Supportive Housing Transition',
-        role: 'peer_specialist',
-        notesLogged: 0,
-        notesApproved: 0,
-        pendingCosign: 0,
-        billableUnits: 0,
-        onTimeRate: 95.8,
-        pendingSyncQueue: 0,
-        complianceStatus: 'audit_ready'
-      },
-      {
-        id: 'cpss-05',
-        fullName: currentUser?.fullName || 'Sarah Jenkins, CPSS-CA',
-        credentialTitle: currentUser?.credentialTitle || 'Senior Certified Peer Specialist',
-        cpssCertNumber: 'CPSS-CA #10423',
-        unit: 'Peer Outreach & Triage',
-        role: currentUser?.role || 'peer_specialist',
-        notesLogged: 0,
-        notesApproved: 0,
-        pendingCosign: 0,
-        billableUnits: 0,
-        onTimeRate: 99.1,
-        pendingSyncQueue: 0,
-        complianceStatus: 'audit_ready'
-      }
-    ];
+    const orgUsers = currentOrg
+      ? allUsers.filter(u => u.organizationId === currentOrg.id)
+      : allUsers;
 
-    // Aggregate from actual database notes
-    notes.forEach(note => {
-      const match = baseSpecialists.find(s =>
-        s.fullName.toLowerCase().includes(note.authorName.toLowerCase()) ||
-        note.authorName.toLowerCase().includes(s.fullName.toLowerCase())
+    return orgUsers.map((user) => {
+      const userNotes = notes.filter(
+        n => n.authorId === user.id || n.authorName.toLowerCase().includes(user.fullName.toLowerCase())
       );
-      if (match) {
-        match.notesLogged += 1;
-        if (note.status === 'approved') match.notesApproved += 1;
-        if (note.status === 'pending_supervisor') match.pendingCosign += 1;
-        match.billableUnits += (note.billingUnits || 0);
-        if (note.safetyConcerns) match.complianceStatus = 'flagged';
-      } else {
-        baseSpecialists[4].notesLogged += 1;
-        if (note.status === 'approved') baseSpecialists[4].notesApproved += 1;
-        if (note.status === 'pending_supervisor') baseSpecialists[4].pendingCosign += 1;
-        baseSpecialists[4].billableUnits += (note.billingUnits || 0);
-      }
-    });
+      const approvedCount = userNotes.filter(n => n.status === 'approved').length;
+      const pendingCount = userNotes.filter(n => n.status === 'pending_supervisor').length;
+      const userUnits = userNotes.reduce((sum, n) => sum + (n.billingUnits || 0), 0);
+      const hasSafetyConcerns = userNotes.some(n => n.safetyConcerns);
 
-    return baseSpecialists;
-  }, [notes, currentUser]);
+      return {
+        id: user.id,
+        fullName: user.fullName,
+        credentialTitle: user.credentialTitle,
+        cpssCertNumber: user.licenseNumber || 'CPSS-CA Verified',
+        unit:
+          user.role === 'supervisor'
+            ? 'Clinical QA & Supervision'
+            : user.role === 'admin'
+            ? 'Agency Administration'
+            : user.isContractor1099
+            ? '1099 Contractor Field Outreach'
+            : 'Field Mobile & CalAIM Outreach',
+        role: user.role,
+        notesLogged: userNotes.length,
+        notesApproved: approvedCount,
+        pendingCosign: pendingCount,
+        billableUnits: userUnits,
+        onTimeRate: userNotes.length > 0 ? Number((((approvedCount + pendingCount) / userNotes.length) * 100).toFixed(1)) : 100,
+        pendingSyncQueue: userNotes.filter(n => !n.synced).length,
+        complianceStatus: hasSafetyConcerns ? 'flagged' : 'audit_ready'
+      };
+    });
+  }, [allUsers, currentOrg, notes]);
 
   const handleApprove = async (note: SessionNote) => {
     if (!currentUser || !currentOrg) return;

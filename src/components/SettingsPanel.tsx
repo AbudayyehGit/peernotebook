@@ -43,7 +43,10 @@ import {
   Sparkles,
   Users,
   Building2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Car,
+  DollarSign,
+  Briefcase
 } from 'lucide-react';
 import { opfsStorage, StorageQuotaInfo, OPFSSnapshotMeta } from '../services/opfsStorageService';
 import { leadDigestService, DigestResponse } from '../services/leadDigestService';
@@ -123,7 +126,7 @@ interface SettingsPanelProps {
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }) => {
-  const { currentOrg, currentUser } = useAuth();
+  const { currentOrg, currentUser, updateContractorSettings } = useAuth();
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseKey, setSupabaseKey] = useState('');
   const [isSupabaseSaved, setIsSupabaseSaved] = useState(false);
@@ -131,6 +134,27 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
   const [syncStatus, setSyncStatus] = useState<SyncStatusInfo>(syncWorker.getStatus());
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
+
+  // 1099 Contractor Profile Configuration
+  const [isContractor, setIsContractor] = useState(Boolean(currentUser?.isContractor1099));
+  const [contractorTaxId, setContractorTaxId] = useState(currentUser?.contractorTaxId || '');
+  const [hourlyRate, setHourlyRate] = useState(currentUser?.hourlyContractRate || 45);
+  const [mileageRate, setMileageRate] = useState(currentUser?.mileageReimbursementRate || 0.67);
+  const [contractAgency, setContractAgency] = useState(currentUser?.contractAgencyName || currentOrg?.name || '');
+  const [contractorSavedNotice, setContractorSavedNotice] = useState<string | null>(null);
+
+  const handleSaveContractorSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await updateContractorSettings({
+      isContractor1099: isContractor,
+      contractorTaxId,
+      hourlyContractRate: Number(hourlyRate),
+      mileageReimbursementRate: Number(mileageRate),
+      contractAgencyName: contractAgency
+    });
+    setContractorSavedNotice('1099 contractor billing rates and tax classification saved successfully.');
+    setTimeout(() => setContractorSavedNotice(null), 3500);
+  };
   
   // Modals & UI States
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
@@ -737,6 +761,128 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
         <p className="text-xs text-slate-600 leading-relaxed">
           The CBO agency license provides supervisor review queues, batch cosignature workflows, and automated county compliance exports. All field mutations are stamped with SHA-256 tamper-evident checksums and audited per 45 CFR § 164.312(b).
         </p>
+      </div>
+
+      {/* 1099 Independent Contractor & Rate Configuration Card */}
+      <div className="p-5 sm:p-7 bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-5 max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-amber-50 text-[#D97706] rounded-xl border border-amber-200/80 shrink-0">
+              <Briefcase className="w-6 h-6 text-[#D97706]" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-bold text-[#1E3A8A]">1099 Independent Contractor &amp; Tax Classification</h3>
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md font-bold ${isContractor ? 'bg-amber-100 text-[#D97706]' : 'bg-slate-100 text-slate-600'}`}>
+                  {isContractor ? '1099 Contractor Active' : 'W-2 Agency Employee'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Track billable encounter hours, IRS standard mileage reimbursement, and agency contracts
+              </p>
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2.5 cursor-pointer bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200/90 hover:bg-slate-100 transition-colors">
+            <input
+              type="checkbox"
+              checked={isContractor}
+              onChange={(e) => setIsContractor(e.target.checked)}
+              className="w-4 h-4 text-[#0F766E] rounded focus:ring-0"
+            />
+            <span className="text-xs font-bold text-slate-800">Enable 1099 Tracking</span>
+          </label>
+        </div>
+
+        {isContractor ? (
+          <form onSubmit={handleSaveContractorSettings} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Hourly Rate ($/hr)
+                </label>
+                <div className="relative">
+                  <DollarSign className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={hourlyRate}
+                    onChange={(e) => setHourlyRate(Number(e.target.value) || 0)}
+                    className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Mileage Rate ($/mile)
+                </label>
+                <div className="relative">
+                  <Car className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={mileageRate}
+                    onChange={(e) => setMileageRate(Number(e.target.value) || 0)}
+                    className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white"
+                  />
+                </div>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">IRS 2026: $0.67/mi</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Contractor Tax ID / EIN
+                </label>
+                <input
+                  type="text"
+                  placeholder="EIN-XX-XXXXXXX"
+                  value={contractorTaxId}
+                  onChange={(e) => setContractorTaxId(e.target.value)}
+                  className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Contracting Agency
+                </label>
+                <input
+                  type="text"
+                  placeholder="Partner CBO Name"
+                  value={contractAgency}
+                  onChange={(e) => setContractAgency(e.target.value)}
+                  className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+              <span className="text-xs text-slate-500">
+                Hourly and mileage rates are automatically applied when logging encounter notes.
+              </span>
+              <button
+                type="submit"
+                className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                Save 1099 Contractor Profile
+              </button>
+            </div>
+
+            {contractorSavedNotice && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-[#16A34A] font-semibold flex items-center gap-2">
+                <Check className="w-4 h-4 shrink-0" />
+                <span>{contractorSavedNotice}</span>
+              </div>
+            )}
+          </form>
+        ) : (
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+            <span>Currently operating as standard agency staff. Check the box above if you operate as an independent 1099 contractor to log mileage and hourly contract rates.</span>
+          </div>
+        )}
       </div>
 
       {/* Official Enterprise Support & Trust Compliance Anchors Card */}

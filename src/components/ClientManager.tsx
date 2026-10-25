@@ -16,7 +16,7 @@ interface ClientManagerProps {
 }
 
 export const ClientManager: React.FC<ClientManagerProps> = ({ onSelectClientForNote }) => {
-  const { currentOrg, currentUser } = useAuth();
+  const { currentOrg, currentUser, role } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPathway, setFilterPathway] = useState<string>('ALL');
@@ -37,11 +37,14 @@ export const ClientManager: React.FC<ClientManagerProps> = ({ onSelectClientForN
 
   const loadClients = async () => {
     const list = await peerNotebookDB.getAllClients();
+    let scoped = list;
     if (currentOrg) {
-      setClients(list.filter(c => c.organizationId === currentOrg.id));
-    } else {
-      setClients(list);
+      scoped = scoped.filter(c => c.organizationId === currentOrg.id);
     }
+    if (role === 'peer_specialist' && currentUser) {
+      scoped = scoped.filter(c => c.assignedSpecialistId === currentUser.id || !c.assignedSpecialistId);
+    }
+    setClients(scoped);
   };
 
   useEffect(() => {

@@ -19,6 +19,7 @@ import { GoalPathTracker } from './GoalPathTracker';
 import { syncWorker, SyncStatusInfo } from '../services/syncWorker';
 import { safeStorage } from '../utils/safeStorage';
 import { EmptyState, Button } from './ui';
+import { AdminUserManagement } from './AdminUserManagement';
 import {
   Users,
   FileText,
@@ -48,17 +49,18 @@ import {
   RefreshCw,
   SlidersHorizontal,
   FolderOpen,
-  Target
+  Target,
+  Building2
 } from 'lucide-react';
 
-export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'supervisor' | 'audit' | 'architecture' | 'settings';
+export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'supervisor' | 'audit' | 'architecture' | 'settings' | 'admin_users';
 
 interface PeerNotebookWorkspaceProps {
   onReplayTutorial?: () => void;
 }
 
 export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ onReplayTutorial }) => {
-  const { currentOrg, currentUser, canApproveNotes } = useAuth();
+  const { currentOrg, currentUser, canApproveNotes, canManageAgency, role } = useAuth();
 
   // Parse route from window.location.pathname, search query, hash, or localStorage
   const parseRoute = (): { tab: WorkspaceTab; slug?: string } => {
@@ -77,12 +79,13 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     if (path.startsWith('/supervisor')) return { tab: 'supervisor' };
     if (path.startsWith('/audit')) return { tab: 'audit' };
     if (path.startsWith('/settings')) return { tab: 'settings' };
+    if (path.startsWith('/admin') || path.startsWith('/users')) return { tab: 'admin_users' };
 
     // Support query param ?tab= (e.g., inside AI Studio preview iframe or direct link)
     try {
       const searchParams = new URLSearchParams(window.location.search);
       const tabParam = searchParams.get('tab') as WorkspaceTab;
-      if (tabParam && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings'].includes(tabParam)) {
+      if (tabParam && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users'].includes(tabParam)) {
         return { tab: tabParam };
       }
     } catch {
@@ -93,18 +96,19 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     try {
       const hash = window.location.hash.replace('#/', '').replace('#', '').toLowerCase();
       if (hash.startsWith('docs')) return { tab: 'architecture' };
-      if (['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'settings'].includes(hash)) {
+      if (['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'settings', 'admin_users'].includes(hash)) {
         return { tab: hash as WorkspaceTab };
       }
       if (hash === 'new-note') return { tab: 'new_note' };
       if (hash === 'goal-path' || hash === 'wellness') return { tab: 'goalpath' };
+      if (hash.startsWith('admin') || hash.startsWith('user')) return { tab: 'admin_users' };
     } catch {
       // ignore
     }
 
     // Fallback to persisted tab from last active session
     const saved = safeStorage.getItem('peernotebook_active_tab') as WorkspaceTab;
-    if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings'].includes(saved)) {
+    if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users'].includes(saved)) {
       return { tab: saved };
     }
 
@@ -205,6 +209,8 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       path = '/audit';
     } else if (tab === 'settings') {
       path = '/settings';
+    } else if (tab === 'admin_users') {
+      path = '/admin/users';
     }
 
     if (window.location.pathname !== path) {
@@ -215,11 +221,22 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
   const refreshData = async () => {
     const allNotes = await peerNotebookDB.getAllNotes();
     const allLogs = await peerNotebookDB.getAllAuditLogs();
+    
+    let scopedNotes = allNotes;
     if (currentOrg) {
-      setNotes(allNotes.filter(n => n.organizationId === currentOrg.id));
+      scopedNotes = scopedNotes.filter(n => n.organizationId === currentOrg.id);
+    }
+    // RBAC: If peer_specialist, restrict to personal session notes
+    if (role === 'peer_specialist' && currentUser) {
+      scopedNotes = scopedNotes.filter(
+        n => n.authorId === currentUser.id || n.authorName.toLowerCase().includes(currentUser.fullName.toLowerCase())
+      );
+    }
+    setNotes(scopedNotes);
+
+    if (currentOrg) {
       setAuditLogs(allLogs.filter(l => l.organizationId === currentOrg.id));
     } else {
-      setNotes(allNotes);
       setAuditLogs(allLogs);
     }
   };
@@ -291,8 +308,8 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       clientId: selectedClientForNote?.id || '',
       clientName: selectedClientForNote?.preferredName || 'Unassigned / Field Crisis Walk-in',
       clientIdentifier: selectedClientForNote?.clientIdentifier || 'PN-CRISIS',
-      authorId: currentUser?.id || 'cpss-01',
-      authorName: currentUser?.fullName || 'Sarah Jenkins, CPSS-CA',
+      authorId: currentUser?.id || 'user-cpss-01',
+      authorName: currentUser?.fullName || 'Certified Peer Support Specialist',
       authorCredentials: currentUser?.credentialTitle || 'CalAIM Certified Peer Support Specialist',
       encounterDate: new Date().toISOString().split('T')[0],
       startTime: '13:00',
@@ -313,7 +330,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       planNextSteps: 'Peer will stay with verified safe community member tonight. CPSS scheduled follow-up welfare check call tomorrow morning at 09:30 AM.',
       safetyConcerns: true,
       safetyNotes: 'Crisis de-escalated safely in the field without requiring law enforcement intervention. Supervisor notified and secondary contact person verified.',
-      specialistSignature: currentUser?.fullName || 'Sarah Jenkins, CPSS-CA',
+      specialistSignature: currentUser?.fullName || 'Certified Peer Support Specialist',
       signedAt: new Date().toISOString(),
       status: 'draft',
       synced: false,
@@ -425,7 +442,18 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       shortLabel: 'Settings',
       icon: Settings,
       badge: null
-    }
+    },
+    ...(canManageAgency
+      ? [
+          {
+            id: 'admin_users' as WorkspaceTab,
+            label: 'Users & CBOs',
+            shortLabel: 'Admin',
+            icon: Building2,
+            badge: null
+          }
+        ]
+      : [])
   ];
 
   const currentActiveItem = navItems.find((item) => item.id === activeTab) || navItems[0];
@@ -579,6 +607,21 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               <span>Settings &amp; BAA</span>
             </button>
 
+            {canManageAgency && (
+              <button
+                type="button"
+                onClick={() => navigateToTab('admin_users')}
+                className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'admin_users'
+                    ? 'bg-[#1E3A8A] text-white shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                }`}
+              >
+                <Building2 className={`w-3.5 h-3.5 ${activeTab === 'admin_users' ? 'text-white' : 'text-slate-500'}`} />
+                <span>Users &amp; CBOs</span>
+              </button>
+            )}
+
             <a
               href="#trust"
               className="min-h-[40px] flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#0F766E] hover:text-[#1E3A8A] hover:bg-white/70 transition-all cursor-pointer"
@@ -675,7 +718,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               type="button"
               onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
               className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                ['goalpath', 'audit', 'architecture', 'settings'].includes(activeTab)
+                ['goalpath', 'audit', 'architecture', 'settings', 'admin_users'].includes(activeTab)
                   ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-sm'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90'
               }`}
@@ -690,6 +733,8 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                   ? 'GA #8 Specs'
                   : activeTab === 'settings'
                   ? 'Settings & BAA'
+                  : activeTab === 'admin_users'
+                  ? 'Users & CBOs'
                   : 'More Modules'}
               </span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isMoreMenuOpen ? 'rotate-180' : ''}`} />
@@ -784,6 +829,28 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                     </div>
                     {activeTab === 'settings' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
                   </button>
+
+                  {canManageAgency && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigateToTab('admin_users');
+                        setIsMoreMenuOpen(false);
+                      }}
+                      className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between text-xs font-bold transition-colors cursor-pointer ${
+                        activeTab === 'admin_users' ? 'bg-blue-50 text-[#1E3A8A]' : 'hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-[#0F766E]" />
+                        <div>
+                          <span>Users &amp; CBO Agencies</span>
+                          <span className="text-xs text-slate-500 font-normal block">Provision accounts &amp; contracts</span>
+                        </div>
+                      </div>
+                      {activeTab === 'admin_users' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
+                    </button>
+                  )}
                 </div>
               </>
             )}
@@ -922,12 +989,12 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               type="button"
               onClick={() => setIsMobileMenuOpen(true)}
               className={`min-h-[44px] flex flex-col items-center justify-center p-1.5 rounded-xl border text-center transition-all cursor-pointer ${
-                ['audit', 'architecture', 'settings'].includes(activeTab)
+                ['audit', 'architecture', 'settings', 'admin_users'].includes(activeTab)
                   ? 'bg-[#0F766E] text-white border-teal-700 shadow-2xs font-bold'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90 font-medium'
               }`}
             >
-              <Grid className={`w-4 h-4 mb-0.5 ${['audit', 'architecture', 'settings'].includes(activeTab) ? 'text-white' : 'text-slate-500'}`} />
+              <Grid className={`w-4 h-4 mb-0.5 ${['audit', 'architecture', 'settings', 'admin_users'].includes(activeTab) ? 'text-white' : 'text-slate-500'}`} />
               <span className="text-xs leading-tight truncate">More</span>
             </button>
           </div>
@@ -950,7 +1017,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 </span>
                 <span aria-hidden="true" className="text-slate-300">·</span>
                 <span className="font-semibold text-slate-700">
-                  {currentUser?.fullName || 'Sarah Jenkins, CPSS-CA #CA-4102'}
+                  {currentUser?.fullName || 'Certified Peer Specialist'}
                 </span>
                 <span aria-hidden="true" className="text-slate-300">·</span>
                 <span className="inline-flex items-center gap-1 text-[#16A34A] font-bold">
@@ -1413,6 +1480,10 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       {activeTab === 'settings' && (
         <SettingsPanel onReplayTutorial={onReplayTutorial} />
       )}
+
+      {activeTab === 'admin_users' && (
+        <AdminUserManagement />
+      )}
       </div>
 
       {/* PDF Export Modal */}
@@ -1537,14 +1608,14 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
             type="button"
             onClick={() => setIsMobileMenuOpen(true)}
             className={`min-h-[50px] flex flex-col items-center justify-center gap-1 transition-all rounded-xl py-1 cursor-pointer ${
-              isMobileMenuOpen || ['audit', 'architecture', 'settings'].includes(activeTab)
+              isMobileMenuOpen || ['audit', 'architecture', 'settings', 'admin_users'].includes(activeTab)
                 ? 'text-[#0F766E] font-bold'
                 : 'text-slate-500 hover:text-slate-900 font-medium'
             }`}
           >
             <Grid
               className={`w-5 h-5 ${
-                isMobileMenuOpen || ['audit', 'architecture', 'settings'].includes(activeTab)
+                isMobileMenuOpen || ['audit', 'architecture', 'settings', 'admin_users'].includes(activeTab)
                   ? 'text-[#0F766E]'
                   : 'text-slate-400'
               }`}
@@ -1581,7 +1652,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 <div>
                   <h3 className="text-sm font-bold text-[#1E3A8A]">Workspace Modules & Navigation</h3>
                   <p className="text-[11px] text-slate-500">
-                    {currentUser?.fullName || 'Sarah Jenkins, CPSS-CA'} · {currentOrg?.name || 'Alameda Health System'}
+                    {currentUser?.fullName || 'Certified Peer Specialist'} · {currentOrg?.name || 'CalAIM CBO Partner'}
                   </p>
                 </div>
               </div>
@@ -1752,6 +1823,29 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
+
+                {canManageAgency && (
+                  <button
+                    type="button"
+                    onClick={() => navigateToTab('admin_users')}
+                    className={`w-full p-3 rounded-xl border text-left flex items-center justify-between min-h-[48px] transition-all cursor-pointer ${
+                      activeTab === 'admin_users'
+                        ? 'bg-blue-50/80 border-blue-200 text-[#1E3A8A]'
+                        : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-indigo-50 text-[#1E3A8A] border border-indigo-200">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="font-bold text-xs block">User Provisioning &amp; CBO Contracts</span>
+                        <span className="text-[11px] text-slate-500">Manage peer specialists, 1099 rates, and partner CBOs</span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </button>
+                )}
               </div>
             </div>
 

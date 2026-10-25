@@ -31,7 +31,19 @@ function AppContent() {
       const hash = window.location.hash;
       if (pathname.startsWith('/trust') || pathname.startsWith('/compliance') || hash.startsWith('#trust') || hash.startsWith('#compliance')) return 'trust';
       if (pathname.startsWith('/docs') || hash.startsWith('#docs')) return 'docs';
-      if (hash === '#workspace') return 'workspace';
+      if (
+        pathname.startsWith('/admin') ||
+        pathname.startsWith('/users') ||
+        pathname.startsWith('/clients') ||
+        pathname.startsWith('/notes') ||
+        pathname.startsWith('/supervisor') ||
+        pathname.startsWith('/settings') ||
+        pathname.startsWith('/goalpath') ||
+        pathname.startsWith('/new-note') ||
+        hash.startsWith('#admin') ||
+        hash.startsWith('#users') ||
+        hash === '#workspace'
+      ) return 'workspace';
       if (hash === '#landing' || hash === '#checklist' || hash === '#overview') return 'landing';
       const saved = safeStorage.getItem('peernotebook_active_view');
       if (saved === 'workspace') return 'workspace';
@@ -88,7 +100,19 @@ function AppContent() {
           ? pathname.replace(/^\/docs\/?/, '')
           : hash.replace(/^#docs\/?/, '');
         if (slug) setActiveDocSlug(slug);
-      } else if (hash === '#workspace') {
+      } else if (
+        pathname.startsWith('/admin') ||
+        pathname.startsWith('/users') ||
+        pathname.startsWith('/clients') ||
+        pathname.startsWith('/notes') ||
+        pathname.startsWith('/supervisor') ||
+        pathname.startsWith('/settings') ||
+        pathname.startsWith('/goalpath') ||
+        pathname.startsWith('/new-note') ||
+        hash.startsWith('#admin') ||
+        hash.startsWith('#users') ||
+        hash === '#workspace'
+      ) {
         setCurrentView('workspace');
       } else if (hash === '#landing' || hash === '#overview' || hash === '#lead-magnet' || hash === '#beta-cohort') {
         setCurrentView('landing');

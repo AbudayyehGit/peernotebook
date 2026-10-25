@@ -15,6 +15,10 @@ export interface Organization {
   calaimContractActive: boolean;
   baaSignedAt: string;
   baaVersion: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  contractType?: 'CBO Partner' | 'County Health Department' | 'Managed Care Plan (MCP)' | 'Contracted Provider';
+  allocatedMonthlyUnits?: number;
 }
 
 export type UserRole = 'peer_specialist' | 'supervisor' | 'admin' | 'compliance_officer';
@@ -29,6 +33,12 @@ export interface User {
   npi?: string;
   role: UserRole;
   isActive: boolean;
+  // Contractor / 1099 Tax Classification & Billing Settings
+  isContractor1099?: boolean;
+  contractorTaxId?: string; // EIN / W-9 reference
+  contractAgencyName?: string;
+  hourlyContractRate?: number; // e.g. $45/hr
+  mileageReimbursementRate?: number; // e.g. $0.67/mile
 }
 
 export interface Client {
@@ -73,6 +83,11 @@ export interface SessionNote {
   travelMinutes: number;
   documentationMinutes: number;
   durationMinutes: number; // Sum of total billable time under CalAIM rules
+
+  // Contractor Tracking
+  isContractorEncounter?: boolean;
+  mileageMiles?: number;
+  contractorBillableAmount?: number;
 
   // Medi-Cal Coding
   billingCode: string; // 'H0038' (Self-help / Peer support services), 'H0038-HQ' (Group), 'H0038-U8' (ECM)
@@ -200,234 +215,75 @@ class PeerNotebookDBManager {
   public async init(): Promise<void> {
     await dexieDB.open();
     if (!this.isSeeded) {
+      await this.purgeMockData();
       await this.seedInitialDataIfEmpty();
       this.isSeeded = true;
     }
   }
 
   public async seedInitialDataIfEmpty(): Promise<void> {
-    const clientCount = await dexieDB.clients.count();
-    if (clientCount > 0) return;
+    // 1. Clean slate: Purge any legacy mock records if present
+    await this.purgeMockData();
 
-    // Seed California Behavioral Health & CalAIM Organizations
-    const orgs: Organization[] = [
-      {
+    // 2. Initialize default organization if not present
+    const orgCount = await dexieDB.organizations.count();
+    if (orgCount === 0) {
+      const defaultOrg: Organization = {
         id: 'org-calaim-01',
         name: 'Bay Area Peer Recovery Collaborative (CalAIM)',
         npi: '1982019482',
         medicaidProviderId: 'CA-MC-948102',
         countyCode: '38-San Francisco',
         calaimContractActive: true,
-        baaSignedAt: '2026-01-10T08:00:00Z',
-        baaVersion: 'v2.4-GA8-CalAIM'
-      },
-      {
-        id: 'org-calaim-02',
-        name: 'Golden State Community Health Network',
-        npi: '1092837465',
-        medicaidProviderId: 'CA-MC-819283',
-        countyCode: '19-Los Angeles',
-        calaimContractActive: true,
-        baaSignedAt: '2026-02-15T09:30:00Z',
-        baaVersion: 'v2.4-GA8-CalAIM'
-      }
-    ];
+        baaSignedAt: new Date().toISOString(),
+        baaVersion: 'v2.4-GA8-CalAIM',
+        contactEmail: 'compliance@peernotebook.com',
+        contactPhone: '(415) 555-0199',
+        contractType: 'CBO Partner',
+        allocatedMonthlyUnits: 1200
+      };
+      await dexieDB.organizations.put(defaultOrg);
+    }
 
-    await dexieDB.organizations.bulkPut(orgs);
-
-    // Seed Certified Specialists & Supervisors
-    const users: User[] = [
-      {
+    // 3. Initialize default specialist account if not present
+    const userCount = await dexieDB.users.count();
+    if (userCount === 0) {
+      const defaultUser: User = {
         id: 'user-cpss-01',
         organizationId: 'org-calaim-01',
-        email: 'alex.rivera@bayareapeer.org',
+        email: 'specialist@peernotebook.com',
         fullName: 'Alex Rivera, CPSS-CA',
-        credentialTitle: 'CalAIM Certified Peer Support Specialist',
+        credentialTitle: 'Certified Peer Support Specialist (CPSS-CA)',
         licenseNumber: 'CA-CPSS-2024-9182',
         npi: '1487293810',
         role: 'peer_specialist',
-        isActive: true
-      },
-      {
-        id: 'user-sup-01',
-        organizationId: 'org-calaim-01',
-        email: 'sarah.jenkins@bayareapeer.org',
-        fullName: 'Dr. Sarah Jenkins, LCSW, MAC',
-        credentialTitle: 'Licensed Clinical Supervisor & CalAIM Director',
-        licenseNumber: 'LCSW-CA-89214',
-        npi: '1928374650',
-        role: 'supervisor',
-        isActive: true
-      },
-      {
-        id: 'user-admin-01',
-        organizationId: 'org-calaim-01',
-        email: 'marcus.vance@bayareapeer.org',
-        fullName: 'Marcus Vance',
-        credentialTitle: 'Chief Compliance Officer & HIPAA Privacy Lead',
-        licenseNumber: 'HCCA-CHC-7819',
-        role: 'admin',
-        isActive: true
+        isActive: true,
+        isContractor1099: false,
+        hourlyContractRate: 45,
+        mileageReimbursementRate: 0.67
+      };
+      await dexieDB.users.put(defaultUser);
+    }
+
+    // Zero mock clients and zero mock notes seeded: Clean Slate GA #8 Production Standard
+  }
+
+  /**
+   * Purges all mock data completely across clients and notes for clean slate initialization
+   */
+  public async purgeMockData(): Promise<void> {
+    try {
+      const mockClientIds = ['cli-001', 'cli-002', 'cli-003'];
+      const mockNoteIds = ['note-001', 'note-002', 'crisis-1'];
+      for (const id of mockClientIds) {
+        await dexieDB.clients.delete(id);
       }
-    ];
-
-    await dexieDB.users.bulkPut(users);
-
-    // Seed CalAIM Peer Clients
-    const initialClients: Client[] = [
-      {
-        id: 'cli-001',
-        organizationId: 'org-calaim-01',
-        clientIdentifier: 'PN-4091',
-        mediCalCin: '98471029B',
-        preferredName: 'Jordan Reyes',
-        dateOfBirth: '1989-05-14',
-        assignedSpecialistId: 'user-cpss-01',
-        recoveryGoals: [
-          'Maintain 90-day alcohol abstinence with weekly SMART Recovery & CPSS mentoring',
-          'CalAIM Housing Navigation: Complete Section 8 Coordinated Entry paperwork',
-          'Strengthen social recovery network with family reconnection'
-        ],
-        currentStatus: 'Active Recovery',
-        calaimPathway: 'Community Supports',
-        consentSigned: true,
-        consentDate: '2026-01-18',
-        phone: '(415) 555-8901',
-        emergencyContact: 'Sister (Maria Reyes) - (415) 555-1234',
-        lastEncounterDate: '2026-10-18',
-        createdAt: '2026-01-18T10:00:00Z',
-        updatedAt: '2026-10-18T15:00:00Z'
-      },
-      {
-        id: 'cli-002',
-        organizationId: 'org-calaim-01',
-        clientIdentifier: 'PN-5120',
-        mediCalCin: '49281720C',
-        preferredName: 'Maya Washington',
-        dateOfBirth: '1994-11-22',
-        assignedSpecialistId: 'user-cpss-01',
-        recoveryGoals: [
-          'Apply 5-4-3-2-1 sensory grounding and non-pharmacological anxiety reduction skills',
-          'CalAIM ECM: Complete community college vocational certification enrollment',
-          'Sustain weekly routine peer wellness support groups'
-        ],
-        currentStatus: 'Maintenance',
-        calaimPathway: 'Enhanced Care Management (ECM)',
-        consentSigned: true,
-        consentDate: '2026-02-10',
-        phone: '(415) 555-9012',
-        emergencyContact: 'ECM Lead Case Worker - (415) 555-9988',
-        lastEncounterDate: '2026-10-16',
-        createdAt: '2026-02-10T14:30:00Z',
-        updatedAt: '2026-10-16T11:45:00Z'
-      },
-      {
-        id: 'cli-003',
-        organizationId: 'org-calaim-01',
-        clientIdentifier: 'PN-6819',
-        mediCalCin: '71829304D',
-        preferredName: 'Tyler Brooks',
-        dateOfBirth: '2001-03-08',
-        assignedSpecialistId: 'user-cpss-01',
-        recoveryGoals: [
-          'Harm reduction education and weekly street outreach check-ins',
-          'Obtain California Real ID transit pass replacement',
-          'Engage with Tenderloin youth recovery peer drop-in center'
-        ],
-        currentStatus: 'Intensive Support',
-        calaimPathway: 'DMC-ODS Recovery Services',
-        consentSigned: true,
-        consentDate: '2026-09-01',
-        phone: '(415) 555-6789',
-        emergencyContact: 'Street Outreach Lead - (415) 555-2345',
-        lastEncounterDate: '2026-10-12',
-        createdAt: '2026-09-01T09:15:00Z',
-        updatedAt: '2026-10-12T16:20:00Z'
+      for (const id of mockNoteIds) {
+        await dexieDB.session_notes.delete(id);
       }
-    ];
-
-    await dexieDB.clients.bulkPut(initialClients);
-
-    // Seed CalAIM Medi-Cal Encounter Notes
-    const initialNotes: SessionNote[] = [
-      {
-        id: 'note-001',
-        organizationId: 'org-calaim-01',
-        clientId: 'cli-001',
-        clientName: 'Jordan Reyes',
-        clientIdentifier: 'PN-4091',
-        mediCalCin: '98471029B',
-        authorId: 'user-cpss-01',
-        authorName: 'Alex Rivera, CPSS-CA',
-        authorCredentials: 'CA-CPSS-2024-9182',
-        encounterDate: '2026-10-18',
-        startTime: '10:00',
-        endTime: '10:45',
-        faceToFaceMinutes: 45,
-        travelMinutes: 15,
-        documentationMinutes: 10,
-        durationMinutes: 70, // Total Medi-Cal billable time
-        billingCode: 'H0038',
-        billingUnits: 5, // 70 min = 5 units (15m increments under CalAIM)
-        modality: 'community_field',
-        placeOfServiceCode: '15',
-        locationDetails: 'Main Public Library Community Study Room 4',
-        focusDomains: ['Recovery Goals', 'Housing Stability', 'Relapse Prevention', 'CalAIM Community Supports'],
-        goalAddressed: 'Goal 1 & 2: Sobriety maintenance milestone and CalAIM supportive housing application packet review.',
-        peerIntervention: 'CPSS shared lived recovery experience regarding anxiety management prior to housing interviews. Assisted peer in organizing proof of California residency and income verification documents. Practiced box breathing (4-4-4-4) to de-escalate acute stress.',
-        clientResponse: 'Peer expressed visible relief after organizing paperwork. Stated: "Having a peer specialist who understands the recovery journey makes this process human." Reported 72 continuous days sober with zero cravings over the weekend.',
-        planNextSteps: 'Peer will attend Tuesday evening All-Recovery meeting. CPSS and peer will meet Friday at 10:30 AM to accompany peer to the county housing authority interview.',
-        safetyConcerns: false,
-        specialistSignature: 'Alex Rivera, CPSS-CA [Electronic Signature Verified]',
-        signedAt: '2026-10-18T11:00:00Z',
-        status: 'pending_supervisor',
-        synced: true,
-        createdAt: '2026-10-18T10:45:00Z',
-        updatedAt: '2026-10-18T11:00:00Z'
-      },
-      {
-        id: 'note-002',
-        organizationId: 'org-calaim-01',
-        clientId: 'cli-002',
-        clientName: 'Maya Washington',
-        clientIdentifier: 'PN-5120',
-        mediCalCin: '49281720C',
-        authorId: 'user-cpss-01',
-        authorName: 'Alex Rivera, CPSS-CA',
-        authorCredentials: 'CA-CPSS-2024-9182',
-        encounterDate: '2026-10-16',
-        startTime: '14:00',
-        endTime: '14:45',
-        faceToFaceMinutes: 45,
-        travelMinutes: 0,
-        documentationMinutes: 15,
-        durationMinutes: 60,
-        billingCode: 'H0038',
-        billingUnits: 4,
-        modality: 'face_to_face',
-        placeOfServiceCode: '11',
-        locationDetails: 'Outpatient Peer Wellness Center, Room 102',
-        focusDomains: ['Mental Health Wellness', 'Vocational/Employment', 'Coping Skills', 'CalAIM ECM'],
-        goalAddressed: 'Goal 2: Vocational interview readiness and workplace distress tolerance.',
-        peerIntervention: 'Facilitated trauma-informed mock interview roleplay. Practiced healthy boundaries regarding mental health history disclosure, emphasizing personal resilience and strengths. Reviewed reasonable accommodation requests under ADA.',
-        clientResponse: 'Maya demonstrated noticeable growth in posture and voice tone. Self-reported anxiety dropped from 8/10 to 3/10 following somatic grounding.',
-        planNextSteps: 'Maya will attend job interview on Thursday at 2:00 PM. Follow-up phone check-in scheduled for 4:00 PM.',
-        safetyConcerns: false,
-        specialistSignature: 'Alex Rivera, CPSS-CA [Electronic Signature Verified]',
-        signedAt: '2026-10-16T15:00:00Z',
-        status: 'approved',
-        supervisorId: 'user-sup-01',
-        supervisorName: 'Dr. Sarah Jenkins, LCSW',
-        supervisorSignature: 'Dr. Sarah Jenkins, LCSW [Cosigned]',
-        supervisorFeedback: 'Outstanding CalAIM documentation. Demonstrates peer-delivered intervention, client response, and clear Medi-Cal medical necessity under Behavioral Health Payment Reform.',
-        approvedAt: '2026-10-17T09:30:00Z',
-        synced: true,
-        createdAt: '2026-10-16T14:45:00Z',
-        updatedAt: '2026-10-17T09:30:00Z'
-      }
-    ];
-
-    await dexieDB.session_notes.bulkPut(initialNotes);
+    } catch {
+      // ignore
+    }
   }
 
   // Domain Queries
@@ -447,6 +303,11 @@ class PeerNotebookDBManager {
     return client;
   }
 
+  public async deleteClient(id: string): Promise<void> {
+    await this.init();
+    await dexieDB.clients.delete(id);
+  }
+
   public async getAllNotes(): Promise<SessionNote[]> {
     await this.init();
     const notes = await dexieDB.session_notes.toArray();
@@ -462,6 +323,33 @@ class PeerNotebookDBManager {
     await this.init();
     await dexieDB.session_notes.put(note);
     return note;
+  }
+
+  public async deleteNote(id: string): Promise<void> {
+    await this.init();
+    await dexieDB.session_notes.delete(id);
+  }
+
+  public async saveUser(user: User): Promise<User> {
+    await this.init();
+    await dexieDB.users.put(user);
+    return user;
+  }
+
+  public async deleteUser(id: string): Promise<void> {
+    await this.init();
+    await dexieDB.users.delete(id);
+  }
+
+  public async saveOrganization(org: Organization): Promise<Organization> {
+    await this.init();
+    await dexieDB.organizations.put(org);
+    return org;
+  }
+
+  public async deleteOrganization(id: string): Promise<void> {
+    await this.init();
+    await dexieDB.organizations.delete(id);
   }
 
   public async getAllAuditLogs(): Promise<AuditLogEntry[]> {

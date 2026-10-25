@@ -26,7 +26,9 @@ import {
   Mic,
   MicOff,
   Wand2,
-  X
+  X,
+  Car,
+  DollarSign
 } from 'lucide-react';
 import {
   calculateMediCalBillingUnits,
@@ -216,6 +218,15 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
   const totalBillableMinutes = faceToFaceMinutes + travelMinutes + documentationMinutes;
   // CMS & Medi-Cal 8-Minute Threshold Rule
   const billingUnits = calculateMediCalBillingUnits(totalBillableMinutes);
+
+  // 1099 Contractor Encounter Tracking & Compensation
+  const [contractorMileage, setContractorMileage] = useState<number>(existingNote?.mileageMiles || 0);
+  const isContractor = Boolean(currentUser?.isContractor1099 || existingNote?.isContractorEncounter);
+  const hourlyRate = currentUser?.hourlyContractRate || 45;
+  const mileageRate = currentUser?.mileageReimbursementRate || 0.67;
+  const contractorTimeEarnings = (totalBillableMinutes / 60) * hourlyRate;
+  const contractorMileageEarnings = contractorMileage * mileageRate;
+  const totalContractorAmount = contractorTimeEarnings + contractorMileageEarnings;
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -537,6 +548,9 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       specialistSignature: signatureTyped,
       signedAt: signatureConfirmed ? now : undefined,
       status: submitToSupervisor ? 'pending_supervisor' : 'draft',
+      isContractorEncounter: isContractor,
+      mileageMiles: isContractor ? contractorMileage : undefined,
+      contractorBillableAmount: isContractor ? Number(totalContractorAmount.toFixed(2)) : undefined,
       synced: false,
       createdAt: existingNote?.createdAt || now,
       updatedAt: now
@@ -788,6 +802,56 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 1099 Independent Contractor Mileage & Billable Ledger (if contractor) */}
+      {isContractor && (
+        <div className="p-4 bg-amber-50/70 rounded-2xl border border-amber-200/90 space-y-3 shadow-[0_2px_6px_rgba(15,23,42,0.03)]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#D97706] flex items-center gap-1.5">
+              <Car className="w-4 h-4 text-[#D97706] shrink-0" />
+              1099 Contractor Encounter Ledger
+            </span>
+            <span className="text-xs font-bold text-amber-900 bg-amber-100/90 px-2.5 py-1 rounded-md border border-amber-300">
+              Contractor Billable: ${totalContractorAmount.toFixed(2)}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                Travel Mileage (Miles)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                min={0}
+                value={contractorMileage}
+                onChange={(e) => setContractorMileage(Number(e.target.value) || 0)}
+                placeholder="e.g. 14.5"
+                className="w-full min-h-[44px] px-3 py-2 bg-white border border-amber-300 rounded-xl text-sm text-slate-900 font-bold focus:outline-hidden focus:border-[#D97706]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                Hourly Time Compensation
+              </label>
+              <div className="flex items-center min-h-[44px] px-3 py-2 bg-white border border-amber-300 rounded-xl text-xs font-mono text-slate-800 font-bold">
+                {totalBillableMinutes}m @ ${hourlyRate}/hr = ${contractorTimeEarnings.toFixed(2)}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                Mileage Reimbursement
+              </label>
+              <div className="flex items-center min-h-[44px] px-3 py-2 bg-white border border-amber-300 rounded-xl text-xs font-mono text-slate-800 font-bold">
+                {contractorMileage}mi @ ${mileageRate}/mi = ${contractorMileageEarnings.toFixed(2)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Focus Domains (Single-Tap Toggle Chips with rounded-full & 44-48px min tap target) */}
       <div className="space-y-2">

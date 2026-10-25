@@ -174,6 +174,78 @@ export const TrustComplianceFooter: React.FC = () => {
       <footer className="bg-white border-t border-slate-200 mt-auto pt-5 pb-28 sm:py-6 px-3 sm:px-6 lg:px-8 text-xs text-slate-600 transition-colors w-full max-w-full overflow-hidden">
         <div className="max-w-7xl mx-auto space-y-4">
           
+          {/* Authoritative CalAIM & Medi-Cal H0038 Verification Card */}
+          <div className="bg-[#F8FAFC] border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-3.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200/80 gap-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-teal-50 text-[#0F766E] border border-teal-200/80 shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-[#0F766E]" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#1E3A8A]">
+                      CalAIM H0038 &amp; Medi-Cal Verification Engine
+                    </h3>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-[#16A34A] border border-emerald-200 font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
+                      Active &amp; Validated: Medi-Cal Standard
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    DHCS Behavioral Health Payment Reform &middot; CalMHSA 4-Part Note Architecture &middot; POS 15 Verified
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-mono">
+                <span className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-slate-700 font-bold shadow-2xs">
+                  POS: 15 (Mobile Unit / Field)
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              {/* POS 15 Calculation Rules */}
+              <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1 shadow-2xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F766E] block">
+                  POS 15 Calculation Rules
+                </span>
+                <p className="text-slate-800 font-semibold leading-tight">
+                  15-Minute Increments (CMS 8-Minute Threshold)
+                </p>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Total Billable Time = Direct Face-to-Face + Travel + Documentation. 8–22 min = 1 unit, 23–37 min = 2 units, 38–52 min = 3 units, 53–67 min = 4 units.
+                </p>
+              </div>
+
+              {/* CalMHSA 4-Part Structure */}
+              <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1 shadow-2xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#1E3A8A] block">
+                  CalMHSA 4-Part Golden Thread
+                </span>
+                <p className="text-slate-800 font-semibold leading-tight">
+                  Strengths-Based Narrative Standard
+                </p>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Requires explicit link between Client Goal Addressed, Peer Intervention delivered, Client Response, and Collaborative Next Steps. Non-clinical language cleansed.
+                </p>
+              </div>
+
+              {/* Cryptographic Audit Trail */}
+              <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1 shadow-2xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#16A34A] block">
+                  Cryptographic Integrity
+                </span>
+                <p className="text-slate-800 font-semibold leading-tight flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-[#16A34A]" />
+                  SHA-256 Tamper-Evident Ledger
+                </p>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Every field mutation, electronic cosignature, and export generates an immutable hash chain compliant with 45 CFR § 164.312(b) and multi-tenant RLS.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Section Header: Low Cognitive Load Regulatory Badges Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -339,12 +411,12 @@ export const TrustComplianceFooter: React.FC = () => {
               <span>
                 Active Provider:{' '}
                 <strong className="text-slate-800">
-                  {currentUser?.fullName || 'Sarah Jenkins, CPSS-CA #CA-4102'}
+                  {currentUser?.fullName || 'Certified Peer Specialist'}
                 </strong>
               </span>
               <span className="text-slate-300">·</span>
               <span className="truncate max-w-[150px] font-medium text-slate-700">
-                {currentOrg?.name || 'Alameda Health System'}
+                {currentOrg?.name || 'CalAIM CBO Partner Agency'}
               </span>
             </div>
           </div>
