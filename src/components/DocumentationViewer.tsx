@@ -1529,7 +1529,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans selection:bg-[#0F766E] selection:text-white">
       {/* Top Navigation Bar */}
       <header className="bg-[#1E3A8A] border-b border-blue-950 sticky top-0 z-40 shadow-sm text-white">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-16 py-2 sm:py-0 flex flex-wrap items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-16 py-2.5 sm:py-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <button
               onClick={onReturnToLanding || onReturnToWorkspace}
@@ -1543,11 +1543,11 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
                 <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
                   Peer Notebook Documentation Hub
                 </h1>
-                <span className="hidden xs:inline-flex text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-800/90 border border-blue-700/80 text-blue-100 font-semibold shrink-0">
+                <span className="hidden xs:inline-flex text-xs font-mono px-2 py-0.5 rounded-md bg-blue-800/90 border border-blue-700/80 text-blue-100 font-semibold shrink-0">
                   GA #8 Standard
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-blue-200 truncate">
+              <p className="text-xs text-blue-200 truncate">
                 33-Document Master Binder &amp; ADR Suite • CalAIM, Medi-Cal H0038 &amp; CalMHSA
               </p>
             </div>
@@ -1600,7 +1600,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
             </div>
 
             {/* Category Filter Pills - Flex-wrap to prevent clipping & overflow on narrow screens */}
-            <div className="flex flex-wrap items-center gap-1.5 mt-3 text-[11px]">
+            <div className="flex flex-wrap items-center gap-1.5 mt-3 text-xs">
               <button
                 onClick={() => setSelectedCategory('all')}
                 className={`min-h-[44px] px-3.5 py-2 rounded-full font-medium whitespace-nowrap transition-colors cursor-pointer ${

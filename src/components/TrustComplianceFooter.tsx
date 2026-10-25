@@ -184,7 +184,7 @@ export const TrustComplianceFooter: React.FC = () => {
                 Standards & Compliance Badges
               </h2>
             </div>
-            <span className="text-[11px] text-slate-500 font-medium">
+            <span className="text-xs text-slate-500 font-medium">
               Click any badge to inspect verification certificate and architecture runbook
             </span>
           </div>
@@ -222,11 +222,11 @@ export const TrustComplianceFooter: React.FC = () => {
                 <span>peernotebook.com</span>
               </span>
               <span className="text-slate-300 hidden sm:inline">|</span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-[#16A34A] border border-emerald-200">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-[#16A34A] border border-emerald-200">
                 <Check className="w-3 h-3" />
                 <span>HIPAA/CMIA Aligned</span>
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-[#0F766E] border border-teal-200">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-teal-50 text-[#0F766E] border border-teal-200">
                 <Award className="w-3 h-3" />
                 <span>CalMHSA Standard Compliant (H0038)</span>
               </span>
@@ -235,7 +235,7 @@ export const TrustComplianceFooter: React.FC = () => {
 
             {/* Right: Official Business Email & BAA Inquiry Contact */}
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[11px] text-slate-500 hidden sm:inline font-medium">
+              <span className="text-xs text-slate-500 hidden sm:inline font-medium">
                 Official Support & BAA:
               </span>
               <a
@@ -278,7 +278,7 @@ export const TrustComplianceFooter: React.FC = () => {
                 )
               </span>
               <span className="hidden sm:inline text-slate-300">·</span>
-              <span className="text-slate-500 text-[11px]">
+              <span className="text-slate-500 text-xs">
                 CalAIM Medi-Cal H0038 Documentation System
               </span>
             </div>
@@ -334,7 +334,7 @@ export const TrustComplianceFooter: React.FC = () => {
             </div>
 
             {/* Provider and Agency Info */}
-            <div className="flex items-center gap-2 text-[11px] text-slate-600 bg-[#F8FAFC] px-3 py-1.5 rounded-xl border border-slate-200/90 shadow-2xs shrink-0">
+            <div className="flex items-center gap-2 text-xs text-slate-600 bg-[#F8FAFC] px-3 py-1.5 rounded-xl border border-slate-200/90 shadow-2xs shrink-0">
               <span className="w-2 h-2 rounded-full bg-[#16A34A] shrink-0" />
               <span>
                 Active Provider:{' '}
@@ -369,7 +369,7 @@ export const TrustComplianceFooter: React.FC = () => {
                   {selectedBadge.icon}
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold text-[#0F766E] uppercase tracking-wider block">
+                  <span className="text-xs font-bold text-[#0F766E] uppercase tracking-wider block">
                     {selectedBadge.category} Standard • {selectedBadge.id}
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-[#1E3A8A] leading-tight">
@@ -450,7 +450,7 @@ export const TrustComplianceFooter: React.FC = () => {
                     {legalModal === 'privacy' && 'HIPAA & CMIA Privacy Policy'}
                     {legalModal === 'calmhsa' && 'CalMHSA Peer Support Standards Alignment'}
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-xs text-slate-500">
                     Production Grade GA #8 • CalAIM & Medi-Cal H0038 Compliance
                   </p>
                 </div>

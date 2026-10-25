@@ -183,11 +183,11 @@ function AppContent() {
                   <h1 className="text-sm sm:text-base font-bold text-white tracking-tight leading-tight truncate">
                     Peer Notebook
                   </h1>
-                  <span className="hidden sm:inline-flex text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded-md bg-blue-800/90 border border-blue-700/80 text-blue-100 font-semibold shrink-0">
+                  <span className="hidden sm:inline-flex text-xs font-mono px-1.5 sm:px-2 py-0.5 rounded-md bg-blue-800/90 border border-blue-700/80 text-blue-100 font-semibold shrink-0">
                     CalAIM H0038
                   </span>
                 </div>
-                <p className="hidden md:block text-[11px] text-blue-100/90 leading-tight mt-0.5 truncate max-w-md lg:max-w-xl">
+                <p className="hidden md:block text-xs text-blue-100/90 leading-tight mt-0.5 truncate max-w-md lg:max-w-xl">
                   Medi-Cal Peer Encounter Documentation · Trauma-Informed Clinical System
                 </p>
               </div>
@@ -248,7 +248,7 @@ function AppContent() {
               <ZeroAiBadge variant="header" />
             </div>
             <SyncStatusBadge />
-            <div className="hidden sm:block h-6 w-[1px] bg-blue-800/80 shrink-0" />
+            <div className="hidden sm:block h-6 w-px bg-blue-800/80 shrink-0" />
             <OrgSelect />
           </div>
         </div>
