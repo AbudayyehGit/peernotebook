@@ -23,6 +23,9 @@ export interface Organization {
 
 export type UserRole = 'peer_specialist' | 'supervisor' | 'admin' | 'compliance_officer';
 export type AccountType = 'agency_cbo' | 'solo_1099';
+export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'canceled' | 'incomplete' | 'unpaid';
+export type SubscriptionTier = 'founding_specialist' | 'solo_1099_pro' | 'agency_unlimited';
+export type BillingInterval = 'monthly' | 'annual';
 
 export interface User {
   id: string;
@@ -41,6 +44,17 @@ export interface User {
   contractAgencyName?: string;
   hourlyContractRate?: number; // e.g. $45/hr
   mileageReimbursementRate?: number; // e.g. $0.67/mile
+
+  // Stripe Billing & 14-Day Free Trial
+  trialEndsAt?: string;
+  subscriptionStatus?: SubscriptionStatus;
+  subscriptionTier?: SubscriptionTier;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  stripePriceId?: string;
+  billingInterval?: BillingInterval;
+  currentPeriodEnd?: string;
+  cancelAtPeriodEnd?: boolean;
 }
 
 export interface Client {
@@ -262,7 +276,13 @@ class PeerNotebookDBManager {
         isActive: true,
         isContractor1099: false,
         hourlyContractRate: 45,
-        mileageReimbursementRate: 0.67
+        mileageReimbursementRate: 0.67,
+        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        subscriptionStatus: 'trialing',
+        subscriptionTier: 'founding_specialist',
+        billingInterval: 'monthly',
+        currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        cancelAtPeriodEnd: false
       };
       await dexieDB.users.put(defaultUser);
     }
@@ -336,6 +356,18 @@ class PeerNotebookDBManager {
     await this.init();
     await dexieDB.users.put(user);
     return user;
+  }
+
+  public async updateUserBilling(
+    userId: string,
+    billingData: Partial<Pick<User, 'subscriptionStatus' | 'subscriptionTier' | 'stripeCustomerId' | 'stripeSubscriptionId' | 'stripePriceId' | 'billingInterval' | 'trialEndsAt' | 'currentPeriodEnd' | 'cancelAtPeriodEnd'>>
+  ): Promise<User | undefined> {
+    await this.init();
+    const existing = await dexieDB.users.get(userId);
+    if (!existing) return undefined;
+    const updated: User = { ...existing, ...billingData };
+    await dexieDB.users.put(updated);
+    return updated;
   }
 
   public async deleteUser(id: string): Promise<void> {

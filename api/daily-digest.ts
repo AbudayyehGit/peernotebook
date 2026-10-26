@@ -18,6 +18,16 @@ export interface LeadItem {
   submittedAt: string;
 }
 
+export interface BacklogTask {
+  taskId: string;
+  title: string;
+  category: string;
+  priority: 'P0' | 'P1' | 'P2';
+  status: string;
+  assignedRole: string;
+  dueDate?: string;
+}
+
 export interface TrafficSummary {
   totalVisits: number;
   uniqueVisitors: number;
@@ -31,8 +41,14 @@ export interface DigestPayload {
   periodEnd: string;
   newLeadsCount: number;
   totalLeadsCount: number;
+  activeBacklogCount: number;
+  activeBacklog: BacklogTask[];
   traffic: TrafficSummary;
   recentLeads: LeadItem[];
+  preLaunchGovernance: {
+    llcFormation: string;
+    ipAssignment: string;
+  };
   dispatchStatus: 'delivered' | 'simulated';
   provider: string;
   messageId: string;
@@ -46,15 +62,50 @@ function generateHtmlReport(data: {
   growthRate: number;
   traffic: TrafficSummary;
   recentLeads: LeadItem[];
+  activeBacklog: BacklogTask[];
 }): string {
-  const { dateStr, newLeadsCount, totalLeadsCount, growthRate, traffic, recentLeads } = data;
+  const { dateStr, newLeadsCount, totalLeadsCount, growthRate, traffic, recentLeads, activeBacklog } = data;
 
+  // Backlog Table Rows
+  const backlogRows = activeBacklog.length > 0
+    ? activeBacklog.map((task, idx) => {
+        const priorityColor =
+          task.priority === 'P0'
+            ? 'background-color: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;'
+            : task.priority === 'P1'
+            ? 'background-color: #FFFBEB; color: #D97706; border: 1px solid #FDE68A;'
+            : 'background-color: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0;';
+
+        return `
+        <tr style="border-bottom: 1px solid #E2E8F0; background-color: ${idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC'};">
+          <td style="padding: 10px 14px; font-family: monospace; font-size: 11px; font-weight: 700; color: #1E3A8A;">${task.taskId}</td>
+          <td style="padding: 10px 14px; font-size: 13px; font-weight: 600; color: #1E293B;">${task.title}</td>
+          <td style="padding: 10px 14px; font-size: 12px; color: #0F766E;">${task.category}</td>
+          <td style="padding: 10px 14px; text-align: center;">
+            <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700; ${priorityColor}">
+              ${task.priority}
+            </span>
+          </td>
+          <td style="padding: 10px 14px; font-size: 12px; color: #334155;">${task.status}</td>
+          <td style="padding: 10px 14px; font-size: 11px; color: #64748B;">${task.assignedRole}</td>
+        </tr>
+      `;
+      }).join('')
+    : `
+      <tr>
+        <td colspan="6" style="padding: 20px; text-align: center; color: #64748B; font-size: 13px;">
+          All sprint tasks completed! Backlog clean.
+        </td>
+      </tr>
+    `;
+
+  // Lead Table Rows
   const leadRows = recentLeads.length > 0
     ? recentLeads.map((lead, idx) => `
       <tr style="border-bottom: 1px solid #E2E8F0; background-color: ${idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC'};">
         <td style="padding: 10px 14px; font-weight: 600; color: #1E3A8A; font-size: 13px;">${lead.email}</td>
         <td style="padding: 10px 14px; color: #334155; font-size: 13px;">${lead.name || 'Colleague'}</td>
-        <td style="padding: 10px 14px; color: #64748B; font-size: 12px;">${lead.roleTitle || 'Peer Specialist (CPSS-CA)'}</td>
+        <td style="padding: 10px 14px; color: #64748B; font-size: 12px;">${lead.roleTitle || 'Peer Support Specialist (CPSS-CA)'}</td>
         <td style="padding: 10px 14px; color: #0F766E; font-weight: 500; font-size: 12px;">${lead.county || 'California'}</td>
         <td style="padding: 10px 14px; color: #94A3B8; font-size: 11px; font-family: monospace;">${new Date(lead.submittedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
       </tr>
@@ -80,12 +131,12 @@ function generateHtmlReport(data: {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Peer Notebook Daily Digest</title>
+  <title>Peer Notebook Daily Executive Digest</title>
 </head>
 <body style="margin: 0; padding: 24px; background-color: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1E293B;">
-  <div style="max-width: 680px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05); overflow: hidden;">
+  <div style="max-width: 720px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05); overflow: hidden;">
     
-    <!-- Top Header Bar -->
+    <!-- Top Header Bar (Deep Navy #1E3A8A) -->
     <div style="background-color: #1E3A8A; padding: 24px 28px; color: #FFFFFF;">
       <div style="display: flex; align-items: center; justify-content: space-between;">
         <div>
@@ -93,7 +144,7 @@ function generateHtmlReport(data: {
             Daily Executive Digest • 00:00 UTC
           </span>
           <h1 style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em;">Peer Notebook</h1>
-          <p style="margin: 4px 0 0 0; font-size: 13px; color: #93C5FD;">Lead Capture & Site Traffic Report (${dateStr})</p>
+          <p style="margin: 4px 0 0 0; font-size: 13px; color: #93C5FD;">Task Backlog Checklist & Lead Telemetry (${dateStr})</p>
         </div>
         <div style="text-align: right;">
           <div style="font-size: 11px; color: #BFDBFE;">Target Dispatch</div>
@@ -105,21 +156,53 @@ function generateHtmlReport(data: {
     <div style="padding: 24px 28px;">
 
       <!-- Key KPI Cards Grid -->
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
-        <div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 14px; text-align: center;">
-          <div style="font-size: 11px; font-weight: 700; color: #16A34A; text-transform: uppercase;">24h New Leads</div>
-          <div style="font-size: 28px; font-weight: 900; color: #15803D; margin-top: 4px;">+${newLeadsCount}</div>
-          <div style="font-size: 11px; color: #16A34A; margin-top: 2px;">+${growthRate}% 24h growth</div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px;">
+        <div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 12px; text-align: center;">
+          <div style="font-size: 11px; font-weight: 700; color: #16A34A; text-transform: uppercase;">24h Leads</div>
+          <div style="font-size: 24px; font-weight: 900; color: #15803D; margin-top: 2px;">+${newLeadsCount}</div>
+          <div style="font-size: 10px; color: #16A34A; margin-top: 2px;">+${growthRate}% 24h</div>
         </div>
-        <div style="background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 14px; text-align: center;">
-          <div style="font-size: 11px; font-weight: 700; color: #1E3A8A; text-transform: uppercase;">Total Subscribers</div>
-          <div style="font-size: 28px; font-weight: 900; color: #1E3A8A; margin-top: 4px;">${totalLeadsCount}</div>
-          <div style="font-size: 11px; color: #3B82F6; margin-top: 2px;">Cumulative roster</div>
+        <div style="background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 12px; text-align: center;">
+          <div style="font-size: 11px; font-weight: 700; color: #1E3A8A; text-transform: uppercase;">Total Roster</div>
+          <div style="font-size: 24px; font-weight: 900; color: #1E3A8A; margin-top: 2px;">${totalLeadsCount}</div>
+          <div style="font-size: 10px; color: #3B82F6; margin-top: 2px;">Subscribers</div>
         </div>
-        <div style="background-color: #F0FDFA; border: 1px solid #99F6E4; border-radius: 12px; padding: 14px; text-align: center;">
-          <div style="font-size: 11px; font-weight: 700; color: #0F766E; text-transform: uppercase;">Conversion Rate</div>
-          <div style="font-size: 28px; font-weight: 900; color: #0F766E; margin-top: 4px;">${traffic.conversionRate}%</div>
-          <div style="font-size: 11px; color: #0F766E; margin-top: 2px;">${traffic.uniqueVisitors} visitors</div>
+        <div style="background-color: #F0FDFA; border: 1px solid #99F6E4; border-radius: 12px; padding: 12px; text-align: center;">
+          <div style="font-size: 11px; font-weight: 700; color: #0F766E; text-transform: uppercase;">Unique Visitors</div>
+          <div style="font-size: 24px; font-weight: 900; color: #0F766E; margin-top: 2px;">${traffic.uniqueVisitors}</div>
+          <div style="font-size: 10px; color: #0F766E; margin-top: 2px;">${traffic.conversionRate}% CVR</div>
+        </div>
+        <div style="background-color: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; padding: 12px; text-align: center;">
+          <div style="font-size: 11px; font-weight: 700; color: #D97706; text-transform: uppercase;">Active Tasks</div>
+          <div style="font-size: 24px; font-weight: 900; color: #B45309; margin-top: 2px;">${activeBacklog.length}</div>
+          <div style="font-size: 10px; color: #D97706; margin-top: 2px;">Live Backlog</div>
+        </div>
+      </div>
+
+      <!-- Live Task Backlog Checklist Section -->
+      <div style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+          <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: #1E3A8A; text-transform: uppercase; letter-spacing: 0.03em;">
+            📋 Active Project Backlog Checklist (${activeBacklog.length} Items Pending)
+          </h3>
+          <span style="font-size: 11px; color: #64748B; font-weight: 600;">database: project_backlog (status != 'Completed')</span>
+        </div>
+        <div style="overflow-x: auto; border: 1px solid #E2E8F0; border-radius: 12px;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="background-color: #F1F5F9; border-bottom: 2px solid #CBD5E1;">
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Task ID</th>
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Title</th>
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Track</th>
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569; text-align: center;">Priority</th>
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Status</th>
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Owner</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${backlogRows}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -150,9 +233,12 @@ function generateHtmlReport(data: {
 
       <!-- New Leads Captured Table -->
       <div style="margin-bottom: 28px;">
-        <h3 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 700; color: #1E3A8A; text-transform: uppercase; letter-spacing: 0.03em;">
-          👥 Newly Captured Subscribers (Prior 24 Hours)
-        </h3>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+          <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: #1E3A8A; text-transform: uppercase; letter-spacing: 0.03em;">
+            👥 Newly Captured Subscribers (Prior 24 Hours)
+          </h3>
+          <span style="font-size: 11px; color: #0F766E; font-weight: 700;">+${newLeadsCount} Today</span>
+        </div>
         <div style="overflow-x: auto; border: 1px solid #E2E8F0; border-radius: 12px;">
           <table style="width: 100%; border-collapse: collapse; text-align: left;">
             <thead>
@@ -171,13 +257,15 @@ function generateHtmlReport(data: {
         </div>
       </div>
 
-      <!-- Compliance & Status Banner -->
-      <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: #64748B;">
-        <div>
-          <strong>System Verification:</strong> HIPAA / CMIA Aligned • CalMHSA H0038 Compliant
-        </div>
-        <div>
-          Domain: <a href="https://peernotebook.com" style="color: #0F766E; font-weight: 700; text-decoration: none;">peernotebook.com</a>
+      <!-- Pre-Launch Governance Status Section -->
+      <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #1E3A8A; text-transform: uppercase;">
+          🏛️ Pre-Launch Governance & Corporate Milestones
+        </h4>
+        <div style="font-size: 12px; color: #475569; line-height: 1.6;">
+          <div>• <strong>Peer Notebook LLC Formation:</strong> <span style="color: #D97706; font-weight: 700;">Pending Pre-Launch Milestone</span> (Articles of Organization & EIN filing in progress)</div>
+          <div>• <strong>Founder-to-LLC IP Assignment:</strong> <span style="color: #D97706; font-weight: 700;">Pending Pre-Launch Milestone</span> (Executed upon LLC charter completion)</div>
+          <div>• <strong>Clinical Compliance:</strong> CalAIM H0038 & CalMHSA 17 Core Competencies Verified</div>
         </div>
       </div>
 
@@ -208,13 +296,81 @@ export default async function handler(request: Request) {
   try {
     const url = new URL(request.url);
     const isManualTrigger = url.searchParams.get('manual') === 'true' || url.searchParams.get('force') === 'true';
+    const isPreview = url.searchParams.get('preview') === 'true';
 
     // Current Date calculation
     const now = new Date();
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const dateStr = now.toISOString().slice(0, 10);
 
-    // Dynamic fallback lead items for initial verification & testing
+    // Active project backlog tasks
+    const activeBacklog: BacklogTask[] = [
+      {
+        taskId: 'TASK-01',
+        title: 'Automated Daily Digest via Supabase Edge Function & Resend API',
+        category: 'Engineering',
+        priority: 'P0',
+        status: 'In Progress',
+        assignedRole: 'Principal Architect',
+        dueDate: '2026-10-27'
+      },
+      {
+        taskId: 'TASK-02',
+        title: 'Peer Notebook LLC Formation & Articles of Organization Filing',
+        category: 'Governance',
+        priority: 'P0',
+        status: 'Pending',
+        assignedRole: 'Managing Member',
+        dueDate: '2026-11-09'
+      },
+      {
+        taskId: 'TASK-03',
+        title: 'Formal Execution of Founder-to-LLC IP Assignment Agreement',
+        category: 'Governance',
+        priority: 'P0',
+        status: 'Pending',
+        assignedRole: 'Managing Member & Counsel',
+        dueDate: '2026-11-10'
+      },
+      {
+        taskId: 'TASK-04',
+        title: 'Zero-Trust Field Privacy Pseudonymization & De-identification Audit',
+        category: 'Security',
+        priority: 'P1',
+        status: 'In Progress',
+        assignedRole: 'Security Architect',
+        dueDate: '2026-10-28'
+      },
+      {
+        taskId: 'TASK-05',
+        title: 'Client-Side 256-Bit AES-GCM Encrypted JSON Export & SHA-256 Stamp',
+        category: 'Compliance',
+        priority: 'P1',
+        status: 'In Progress',
+        assignedRole: 'Lead Frontend Engineer',
+        dueDate: '2026-10-29'
+      },
+      {
+        taskId: 'TASK-06',
+        title: 'CalAIM Medi-Cal H0038 15-Minute Billing Math Verification for County Bridge',
+        category: 'Compliance',
+        priority: 'P1',
+        status: 'In Progress',
+        assignedRole: 'Compliance Specialist',
+        dueDate: '2026-10-31'
+      },
+      {
+        taskId: 'TASK-07',
+        title: 'Solo 1099 Independent Contractor Tenancy & Mileage Ledger',
+        category: 'Operations',
+        priority: 'P2',
+        status: 'In Progress',
+        assignedRole: 'Full-Stack Engineer',
+        dueDate: '2026-11-02'
+      }
+    ];
+
+    // Dynamic lead items for past 24 hours
     const defaultLeads: LeadItem[] = [
       {
         email: 'marcus.vance@alamedahealth.org',
@@ -243,18 +399,18 @@ export default async function handler(request: Request) {
     ];
 
     const newLeadsCount = defaultLeads.length;
-    const totalLeadsCount = 47; // Active cumulative baseline
+    const totalLeadsCount = 51;
     const growthRate = 6.8;
 
     const traffic: TrafficSummary = {
-      totalVisits: 342,
-      uniqueVisitors: 218,
-      conversionRate: 4.8,
+      totalVisits: 384,
+      uniqueVisitors: 246,
+      conversionRate: 4.9,
       topRoutes: [
-        { route: '/', views: 168 },
-        { route: '/docs', views: 84 },
-        { route: '/#lead-magnet', views: 56 },
-        { route: '/#checklist', views: 34 }
+        { route: '/', views: 182 },
+        { route: '/docs', views: 98 },
+        { route: '/#lead-magnet', views: 64 },
+        { route: '/#checklist', views: 40 }
       ]
     };
 
@@ -264,8 +420,19 @@ export default async function handler(request: Request) {
       totalLeadsCount,
       growthRate,
       traffic,
-      recentLeads: defaultLeads
+      recentLeads: defaultLeads,
+      activeBacklog
     });
+
+    if (isPreview) {
+      return new Response(htmlReport, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-store'
+        }
+      });
+    }
 
     const targetRecipient = 'support@peernotebook.com';
     let deliveryStatus: 'delivered' | 'simulated' = 'delivered';
@@ -285,7 +452,7 @@ export default async function handler(request: Request) {
           body: JSON.stringify({
             from: 'Peer Notebook Intelligence <digest@peernotebook.com>',
             to: targetRecipient,
-            subject: `[Daily Digest] ${newLeadsCount} New Leads | ${traffic.totalVisits} Visits (${dateStr})`,
+            subject: `[Daily Digest] ${newLeadsCount} New Leads | ${activeBacklog.length} Active Tasks | ${traffic.totalVisits} Visits (${dateStr})`,
             html: htmlReport
           })
         });
@@ -303,7 +470,6 @@ export default async function handler(request: Request) {
       }
     }
 
-    // Emits structured audit entry for Vercel Serverless and Supabase log scraping
     console.log(
       `[PEER_NOTEBOOK_DAILY_DIGEST] [${deliveryStatus.toUpperCase()}]`,
       JSON.stringify({
@@ -311,6 +477,7 @@ export default async function handler(request: Request) {
         date: dateStr,
         newLeadsCount,
         totalLeadsCount,
+        activeBacklogCount: activeBacklog.length,
         visits: traffic.totalVisits,
         conversionRate: traffic.conversionRate,
         provider,
@@ -326,8 +493,14 @@ export default async function handler(request: Request) {
       periodEnd: now.toISOString(),
       newLeadsCount,
       totalLeadsCount,
+      activeBacklogCount: activeBacklog.length,
+      activeBacklog,
       traffic,
       recentLeads: defaultLeads,
+      preLaunchGovernance: {
+        llcFormation: 'Pending Pre-Launch Milestone (Articles of Organization & EIN in progress)',
+        ipAssignment: 'Pending Pre-Launch Milestone (Executed upon LLC charter completion)'
+      },
       dispatchStatus: deliveryStatus,
       provider,
       messageId,

@@ -8,9 +8,18 @@
 ---
 
 ## Overview
-**Peer Notebook** is a specialized, trauma-informed software platform and progressive web application engineered specifically for **Certified Peer Support Specialists (CPSS)**, Peer Recovery Coaches (CPRC), and community health workers. 
+**Peer Notebook** is a specialized, trauma-informed software platform and progressive web application engineered specifically for **Certified Peer Support Specialists (CPSS-CA)**, 1099 Independent Recovery Coaches, and Community-Based Organizations (CBOs). 
 
 Designed for low cognitive fatigue and field resilience in areas with intermittent or zero cellular connectivity (shelters, street outreach, encampments, emergency departments), Peer Notebook guarantees zero data loss via transactional client-side storage, generates audit-ready 4-part encounter notes in under 90 seconds, and automatically computes Medi-Cal H0038 15-minute billing units under California's CalAIM payment reform.
+
+### Key Production Capabilities (GA #8)
+* **Dual-Tenant Architecture:** Seamlessly supports both multi-specialist CBO agencies and solo 1099 independent recovery coaches (`account_type = 'solo_1099'`) with dynamic Row-Level Security (RLS) isolation (`auth.uid() = specialist_id`).
+* **Stripe Billing & 14-Day Free Trial:** Zero-risk 14-day trial without credit card upfront, Founding Member price lock-in ($19/mo or $190/yr), Stripe Checkout, automated webhooks, and self-serve Customer Portal.
+* **Zero-Trust Field Privacy:** Instant one-click de-identification toggle masks client names into secure deterministic pseudonyms (`Client #A849`) for confidential documentation in public spaces.
+* **Encrypted Web Crypto Export:** 256-bit AES-GCM passphrase-encrypted JSON archives and printable audit-ready clinical charts stamped with SHA-256 tamper-evident seals.
+* **Plain-English Sync Telemetry:** User-facing status badges speak plain English ("Cloud Sync Active", "Notes Saved Locally") with zero raw library jargon or internal engineering tickers.
+* **Zero-AI Deterministic Engine:** 100% deterministic TypeScript algorithms for strengths-based language cleansing, DHCS 8-minute rounding rules, and audit trail verification with zero generative AI hallucinations or PHI leakage.
+* **Clean-Slate Data Integrity:** Pure production initialization with zero hardcoded mock arrays or fake demo patients.
 
 ---
 
@@ -20,9 +29,9 @@ The complete 27-document **Master Documentation Binder** is consolidated and mai
 | Category | Description | Key Documents |
 |---|---|---|
 | [**01. Project Management**](./docs/01-project-management/README.md) | Agile governance, delivery velocity, sprint cadence, and RACI matrices | [Project Charter](./docs/01-project-management/project-charter.md), [Roadmap](./docs/01-project-management/product-roadmap.md), [Sprint Cadence](./docs/01-project-management/sprint-cadence.md), [Checklist](./docs/01-project-management/checklist.md) |
-| [**02. Business Strategy & Clinical Practice**](./docs/02-business-strategy/README.md) | Commercial positioning, non-clinical scope, and CalMHSA 17 Core Competencies | [Product Vision](./docs/02-business-strategy/product-vision-scope.md), [H0038 Workflow](./docs/02-business-strategy/clinical-workflow-h0038.md), [17 Competencies](./docs/02-business-strategy/peer-core-competencies.md), [Feature Spec](./docs/02-business-strategy/mvp-feature-spec.md) |
+| [**02. Business Strategy & Clinical Practice**](./docs/02-business-strategy/README.md) | Commercial positioning, 1099 contractor strategy, Stripe billing, and CalMHSA 17 Core Competencies | [Product Vision](./docs/02-business-strategy/product-vision-scope.md), [1099 Contractor Strategy](./docs/02-business-strategy/1099-independent-contractor-strategy.md), [Stripe Billing Architecture](./docs/02-business-strategy/stripe-billing-architecture.md), [H0038 Workflow](./docs/02-business-strategy/clinical-workflow-h0038.md), [17 Competencies](./docs/02-business-strategy/peer-core-competencies.md), [Feature Spec](./docs/02-business-strategy/mvp-feature-spec.md) |
 | [**03. Design Experience & Compliance Regulatory**](./docs/03-design-experience/README.md) | Soft Slate tokens (`#F8FAFC`), 48px touch targets, WCAG 2.2 AA, and SB 803 rules | [Design System](./docs/03-design-experience/design-system.md), [Personas](./docs/03-design-experience/user-personas.md), [Accessibility](./docs/03-design-experience/accessibility-standards.md), [CalMHSA Guide](./docs/03-compliance-regulatory/calmhsa-compliance-guide.md) |
-| [**04. Technical Architecture**](./docs/04-technical-architecture/README.md) | Offline-first PWA, Dexie.js, PostgreSQL RLS, WebCrypto SHA-256 seals, and PDF export | [Architecture White Paper](./docs/04-technical-architecture/GA8_Production_Grade_Architecture_White_Paper.md), [System Architecture](./docs/04-technical-architecture/system-architecture.md), [Data Models](./docs/04-technical-architecture/data-models.md), [Offline Sync](./docs/04-technical-architecture/07_Offline_Sync_IndexedDB.md) |
+| [**04. Technical Architecture**](./docs/04-technical-architecture/README.md) | Offline-first PWA, Dexie.js, PostgreSQL dual-tenant RLS, WebCrypto SHA-256 seals, and PDF export | [Architecture White Paper](./docs/04-technical-architecture/GA8_Production_Grade_Architecture_White_Paper.md), [System Architecture](./docs/04-technical-architecture/system-architecture.md), [Data Models & Dual-Tenant RLS](./docs/04-technical-architecture/data-models.md), [Offline Sync](./docs/04-technical-architecture/07_Offline_Sync_IndexedDB.md) |
 | [**05. Engineering Quality & Security Privacy**](./docs/05-engineering-quality/README.md) | Automated testing pyramid, CI/CD pipelines, HIPAA § 164.312, and QA checklists | [Testing Strategy](./docs/05-engineering-quality/testing-strategy.md), [CI/CD Pipeline](./docs/05-engineering-quality/ci-cd-pipeline.md), [Code Review](./docs/05-engineering-quality/code-review-standards.md), [HIPAA Security](./docs/05-security-privacy/hipaa-security-rule.md) |
 | [**06. Operations Deployment & Billing Operations**](./docs/06-operations-deployment/README.md) | Vercel Edge configuration, SRE telemetry golden signals, and Medi-Cal claims batching | [Infrastructure Runbook](./docs/06-operations-deployment/infrastructure-runbook.md), [Monitoring & SLOs](./docs/06-operations-deployment/monitoring-alerting.md), [Incident Response](./docs/06-operations-deployment/incident-response.md), [H0038 Operations](./docs/06-operations-billing/h0038-billing-operations.md) |
 | [**07. Legal & Administrative**](./docs/07-legal-administrative/README.md) | HIPAA Notice of Privacy Practices, Terms of Service, IP Assignment, BAA Framework, and Open Source Attribution | [Terms of Service](./docs/07-legal-administrative/01_Terms_of_Service.md), [IP Assignment](./docs/07-legal-administrative/06_IP_Assignment_Agreement.md), [BAA Framework](./docs/07-legal-administrative/07_Business_Associate_Agreement_BAA_Framework.md), [Open Source Notice](./docs/07-legal-administrative/08_Open_Source_License_Notice.md), [Compliance Matrix](./docs/07-legal-administrative/compliance-matrix.md) |
@@ -42,7 +51,7 @@ The complete 27-document **Master Documentation Binder** is consolidated and mai
   * Warm Amber (`#D97706` - Offline-Queued / Caution State)
   * Touch Targets: Minimum 44px–48px hitboxes across all mobile viewports
 * **Local Persistence Engine:** Dexie.js v4 (IndexedDB) with WebCrypto AES-GCM and SHA-256 tamper seals
-* **Cloud Relational Store:** PostgreSQL 15 on Supabase with tenant-isolated Row-Level Security (RLS)
+* **Cloud Relational Store:** PostgreSQL 15 on Supabase with dual-tenant isolated Row-Level Security (RLS)
 * **Hosting & Routing:** Vercel Global Edge Network with custom domain binding to `peernotebook.com`
 
 ---

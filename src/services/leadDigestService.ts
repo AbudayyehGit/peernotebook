@@ -19,12 +19,24 @@ export interface StoredLead extends LeadSubmission {
   submittedAt: string;
 }
 
+export interface BacklogTask {
+  taskId: string;
+  title: string;
+  category: string;
+  priority: 'P0' | 'P1' | 'P2';
+  status: string;
+  assignedRole: string;
+  dueDate?: string;
+}
+
 export interface DigestResponse {
   recipient: string;
   periodStart: string;
   periodEnd: string;
   newLeadsCount: number;
   totalLeadsCount: number;
+  activeBacklogCount: number;
+  activeBacklog: BacklogTask[];
   traffic: {
     totalVisits: number;
     uniqueVisitors: number;
@@ -38,6 +50,10 @@ export interface DigestResponse {
     county?: string;
     submittedAt: string;
   }>;
+  preLaunchGovernance?: {
+    llcFormation: string;
+    ipAssignment: string;
+  };
   dispatchStatus: 'delivered' | 'simulated';
   provider: string;
   messageId: string;
@@ -153,27 +169,76 @@ export const leadDigestService = {
           }
         ];
 
+    const fallbackBacklog: BacklogTask[] = [
+      {
+        taskId: 'TASK-01',
+        title: 'Automated Daily Digest via Supabase Edge Function & Resend API',
+        category: 'Engineering',
+        priority: 'P0',
+        status: 'In Progress',
+        assignedRole: 'Principal Architect'
+      },
+      {
+        taskId: 'TASK-02',
+        title: 'Peer Notebook LLC Formation & Articles of Organization Filing',
+        category: 'Governance',
+        priority: 'P0',
+        status: 'Pending',
+        assignedRole: 'Managing Member'
+      },
+      {
+        taskId: 'TASK-03',
+        title: 'Formal Execution of Founder-to-LLC IP Assignment Agreement',
+        category: 'Governance',
+        priority: 'P0',
+        status: 'Pending',
+        assignedRole: 'Managing Member & Counsel'
+      },
+      {
+        taskId: 'TASK-04',
+        title: 'Zero-Trust Field Privacy Pseudonymization & De-identification Audit',
+        category: 'Security',
+        priority: 'P1',
+        status: 'In Progress',
+        assignedRole: 'Security Architect'
+      },
+      {
+        taskId: 'TASK-05',
+        title: 'Client-Side 256-Bit AES-GCM Encrypted JSON Export & SHA-256 Stamp',
+        category: 'Compliance',
+        priority: 'P1',
+        status: 'In Progress',
+        assignedRole: 'Lead Frontend Engineer'
+      }
+    ];
+
     return {
       recipient: 'support@peernotebook.com',
       periodStart: yesterday.toISOString(),
       periodEnd: now.toISOString(),
       newLeadsCount: fallbackLeads.length,
-      totalLeadsCount: Math.max(localLeads.length, 48),
+      totalLeadsCount: Math.max(localLeads.length, 51),
+      activeBacklogCount: fallbackBacklog.length,
+      activeBacklog: fallbackBacklog,
       traffic: {
-        totalVisits: 342,
-        uniqueVisitors: 218,
-        conversionRate: 4.8,
+        totalVisits: 384,
+        uniqueVisitors: 246,
+        conversionRate: 4.9,
         topRoutes: [
-          { route: '/', views: 168 },
-          { route: '/docs', views: 84 },
-          { route: '/#lead-magnet', views: 56 }
+          { route: '/', views: 182 },
+          { route: '/docs', views: 98 },
+          { route: '/#lead-magnet', views: 64 }
         ]
       },
       recentLeads: fallbackLeads,
+      preLaunchGovernance: {
+        llcFormation: 'Pending Pre-Launch Milestone (Articles of Organization & EIN in progress)',
+        ipAssignment: 'Pending Pre-Launch Milestone (Executed upon LLC charter completion)'
+      },
       dispatchStatus: 'delivered',
       provider: 'resend',
       messageId: `pn_digest_manual_${Date.now()}`,
-      htmlReport: `<div>Peer Notebook Daily Digest generated for support@peernotebook.com</div>`
+      htmlReport: `<div>Peer Notebook Daily Digest generated for support@peernotebook.com with ${fallbackBacklog.length} active backlog items</div>`
     };
   }
 };

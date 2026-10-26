@@ -4,7 +4,8 @@
 **Category:** 07-legal-administrative  
 **Target Platform & Domain:** Peer Notebook ([peernotebook.com](https://peernotebook.com))  
 **Effective Date:** October 22, 2026  
-**Governing Law:** State of California
+**Governing Law:** State of California  
+**Execution Status:** **Pending Pre-Launch Milestone** (Peer Notebook LLC formation, Articles of Organization, and EIN issuance in progress; formal IP assignment executed upon charter completion)
 
 ---
 
@@ -18,9 +19,9 @@
 
 * **Assignee (Corporate Entity):**  
   **Peer Notebook LLC**  
-  A California Limited Liability Company  
+  A California Limited Liability Company (In Formation)  
   Principal Place of Business: State of California, United States  
-  Entity Status: Formed, Active, and in Good Standing (California Secretary of State)
+  Entity Status: **Pending Pre-Launch Milestone** (Articles of Organization filing with California Secretary of State & IRS EIN issuance in progress; formal IP assignment executed upon charter completion)
 
 ---
 

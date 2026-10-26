@@ -39,6 +39,10 @@ interface AuthContextType {
     mileageReimbursementRate?: number;
     contractAgencyName?: string;
   }) => Promise<void>;
+  updateUserBilling: (billing: Partial<Pick<User, 'subscriptionStatus' | 'subscriptionTier' | 'stripeCustomerId' | 'stripeSubscriptionId' | 'stripePriceId' | 'billingInterval' | 'trialEndsAt' | 'currentPeriodEnd' | 'cancelAtPeriodEnd'>>) => Promise<void>;
+  hasActiveAccess: boolean;
+  isTrialActive: boolean;
+  trialDaysRemaining: number;
   loginWithSupabase: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   registerWithSupabase: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>;
   canSignNotes: boolean;
@@ -80,7 +84,13 @@ export const DEFAULT_FALLBACK_USER: User = {
   contractorTaxId: 'EIN-94-3891029',
   contractAgencyName: 'Bay Area Peer Recovery Collaborative',
   hourlyContractRate: 48,
-  mileageReimbursementRate: 0.67
+  mileageReimbursementRate: 0.67,
+  trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+  subscriptionStatus: 'trialing',
+  subscriptionTier: 'founding_specialist',
+  billingInterval: 'monthly',
+  currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+  cancelAtPeriodEnd: false
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -442,6 +452,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const role: UserRole = currentUser?.role || 'peer_specialist';
+  const updateUserBilling = async (
+    billing: Partial<Pick<User, 'subscriptionStatus' | 'subscriptionTier' | 'stripeCustomerId' | 'stripeSubscriptionId' | 'stripePriceId' | 'billingInterval' | 'trialEndsAt' | 'currentPeriodEnd' | 'cancelAtPeriodEnd'>>
+  ) => {
+    if (!currentUser) return;
+    const updated = await peerNotebookDB.updateUserBilling(currentUser.id, billing);
+    if (updated) {
+      setCurrentUser(updated);
+      setAllUsers(prev => prev.map(u => (u.id === updated.id ? updated : u)));
+    }
+
+    await AuditLogger.log({
+      organizationId: currentUser.organizationId,
+      actorId: currentUser.id,
+      actorName: currentUser.fullName,
+      actorRole: currentUser.role,
+      action: 'UPDATE_CLIENT',
+      entityType: 'auth',
+      entityId: currentUser.id,
+      details: { action: 'UPDATE_BILLING_SUBSCRIPTION', status: billing.subscriptionStatus, tier: billing.subscriptionTier }
+    });
+  };
+
   const canSignNotes = role === 'peer_specialist' || role === 'supervisor';
   const canApproveNotes = role === 'supervisor' || role === 'admin';
   const canViewAuditLogs = role === 'admin' || role === 'supervisor' || role === 'compliance_officer';
@@ -449,6 +481,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isContractor1099 = Boolean(currentUser?.isContractor1099);
   // Peer Specialists are restricted to their personal clients and notes per HIPAA minimum necessary & RLS
   const isRestrictedToOwnData = role === 'peer_specialist';
+
+  // Stripe Subscription & 14-Day Free Trial Gating Calculations
+  const trialEndsTimestamp = currentUser?.trialEndsAt ? new Date(currentUser.trialEndsAt).getTime() : Date.now() + 14 * 24 * 60 * 60 * 1000;
+  const nowTimestamp = Date.now();
+  const trialDaysRemaining = Math.max(0, Math.ceil((trialEndsTimestamp - nowTimestamp) / (24 * 60 * 60 * 1000)));
+  const isTrialActive = (currentUser?.subscriptionStatus === 'trialing' || !currentUser?.subscriptionStatus) && trialDaysRemaining > 0;
+  const isSubscriptionActive = currentUser?.subscriptionStatus === 'active';
+  const hasActiveAccess = isTrialActive || isSubscriptionActive || role === 'admin';
 
   return (
     <AuthContext.Provider
@@ -469,6 +509,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateOrg,
         deleteOrg,
         updateContractorSettings,
+        updateUserBilling,
+        hasActiveAccess,
+        isTrialActive,
+        trialDaysRemaining,
         loginWithSupabase,
         registerWithSupabase,
         canSignNotes,
@@ -504,6 +548,10 @@ export const useAuth = (): AuthContextType => {
       updateOrg: async () => DEFAULT_FALLBACK_ORG,
       deleteOrg: async () => {},
       updateContractorSettings: async () => {},
+      updateUserBilling: async () => {},
+      hasActiveAccess: true,
+      isTrialActive: true,
+      trialDaysRemaining: 14,
       loginWithSupabase: async () => ({ success: false }),
       registerWithSupabase: async () => ({ success: false }),
       canSignNotes: true,

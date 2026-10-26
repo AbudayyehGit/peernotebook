@@ -50,17 +50,8 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onOpenDocs }) => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'register'>('signin');
-  // Lead Capture Form State
-  const [email, setEmail] = useState('');
-  const [specialistName, setSpecialistName] = useState('');
-  const [roleTitle, setRoleTitle] = useState('Certified Peer Support Specialist (CPSS-CA)');
-  const [county, setCounty] = useState('San Francisco');
-  const [wantsBetaCohort, setWantsBetaCohort] = useState(true);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
   // Image Loading & Fallback States
-  const [heroImageFailed, setHeroImageFailed] = useState(false);
   const [fieldTabletFailed, setFieldTabletFailed] = useState(false);
   const [checklistFailed, setChecklistFailed] = useState(false);
 
@@ -113,29 +104,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onOpenDoc
 
   const handleToggleChecklist = (idx: number) => {
     setCheckedItems((prev) => ({ ...prev, [idx]: !prev[idx] }));
-  };
-
-  React.useEffect(() => {
-    leadDigestService.recordPageView('/');
-  }, []);
-
-  const handleSubmitLeadCapture = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !email.includes('@') || !email.includes('.')) {
-      setFormError('Please enter a valid work or personal email address.');
-      return;
-    }
-    setFormError(null);
-    setIsSubmitted(true);
-
-    // Save lead to local storage and dispatch to daily digest lead queue
-    leadDigestService.submitLead({
-      email,
-      name: specialistName || 'Colleague',
-      roleTitle,
-      county,
-      wantsBetaCohort
-    });
   };
 
   const handleCopyChecklistText = async () => {
@@ -235,7 +203,7 @@ Built with trauma-informed care at peernotebook.com`;
               className="min-h-[48px] px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold text-[#1E3A8A] bg-slate-100 hover:bg-slate-200 rounded-full border border-slate-300 transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
             >
               <Lock className="w-3.5 h-3.5 text-[#0F766E]" />
-              <span>Sign In</span>
+              <span>Login</span>
             </button>
             <button
               onClick={onLaunchApp}
@@ -252,292 +220,14 @@ Built with trauma-informed care at peernotebook.com`;
       {/* =========================================================================
           HERO SECTION: High-Conversion Problem / Solution + Lead Capture Form
           ========================================================================= */}
-      <section id="overview" className="relative pt-10 pb-16 sm:pt-14 sm:pb-20 border-b border-slate-200/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-            {/* Left Column: Headline, Copy & Email Capture Form (Col Span 7) */}
-            <div className="lg:col-span-7 space-y-6">
-              {/* Category / Kicker (Clean unboxed text, no pills) */}
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#0F766E] uppercase tracking-wider">
-                <span>California Certified Peer Support (CPSS-CA)</span>
-                <span aria-hidden="true">·</span>
-                <span>CalAIM & Medi-Cal H0038</span>
-                <span aria-hidden="true">·</span>
-                <ZeroAiBadge variant="compact" />
-              </div>
-
-              {/* Main Headline */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1E3A8A] tracking-tight leading-[1.15] text-balance">
-                Stop wrestling with clinical paperwork. Start focusing on recovery.
-              </h1>
-
-              {/* Subheadline with quantified value & compliance */}
-              <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
-                Spend <strong>65% less time documenting</strong> and eliminate audit anxiety. Purpose-built for California Certified Peer Support Specialists with automated 4-part notes, exact 15-minute billing math, and zero-lost-data offline resilience.
-              </p>
-
-              {/* Proof / Benefit Bullet Points */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
-                <div className="p-3 bg-white rounded-xl border border-slate-200/90 shadow-xs flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-teal-50 text-[#0F766E] flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-4 h-4" />
-                  </div>
-                  <div className="text-xs">
-                    <strong className="text-slate-900 block font-bold">100% CalAIM Ready</strong>
-                    <span className="text-slate-500 text-[11px]">4-part note standard</span>
-                  </div>
-                </div>
-
-                <div className="p-3 bg-white rounded-xl border border-slate-200/90 shadow-xs flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#1E3A8A] flex items-center justify-center shrink-0">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <div className="text-xs">
-                    <strong className="text-slate-900 block font-bold">Auto H0038 Math</strong>
-                    <span className="text-slate-500 text-[11px]">15-min unit calculations</span>
-                  </div>
-                </div>
-
-                <div className="p-3 bg-white rounded-xl border border-slate-200/90 shadow-xs flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#16A34A] flex items-center justify-center shrink-0">
-                    <WifiOff className="w-4 h-4" />
-                  </div>
-                  <div className="text-xs">
-                    <strong className="text-slate-900 block font-bold">True Offline First</strong>
-                    <span className="text-slate-500 text-[11px]">IndexedDB + Dexie.js</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Lead Magnet Capture Form / Confirmation Box */}
-              <div className="p-5 sm:p-6 bg-white rounded-2xl border border-slate-200 shadow-md space-y-4">
-                {!isSubmitted ? (
-                  <>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-xs font-bold text-[#0F766E] uppercase tracking-wide">
-                        <Download className="w-4 h-4 text-[#0F766E]" />
-                        <span>Instant Lead Magnet Download + Beta Access</span>
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900">
-                        Get "The 10-Minute Medi-Cal H0038 Note Checklist"
-                      </h3>
-                      <p className="text-xs sm:text-sm text-slate-600">
-                        Join our 3–5 specialist solo beta cohort and receive the free printable California CalAIM audit checklist.
-                      </p>
-                    </div>
-
-                    <form onSubmit={handleSubmitLeadCapture} className="space-y-3 pt-1">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">
-                            Your Name
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="e.g. Maria Gonzalez, CPSS-CA"
-                            value={specialistName}
-                            onChange={(e) => setSpecialistName(e.target.value)}
-                            className="w-full min-h-[44px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">
-                            Email Address <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="email"
-                            required
-                            placeholder="maria@peeradvocate.org"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full min-h-[44px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">
-                            Specialist Role / Title
-                          </label>
-                          <select
-                            value={roleTitle}
-                            onChange={(e) => setRoleTitle(e.target.value)}
-                            className="w-full min-h-[44px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-                          >
-                            <option value="Certified Peer Support Specialist (CPSS-CA)">Certified Peer Specialist (CPSS-CA)</option>
-                            <option value="Peer Advocate / Navigator">Peer Advocate / Navigator</option>
-                            <option value="Community Health Worker (CHW)">Community Health Worker (CHW)</option>
-                            <option value="Peer Program Supervisor / Lead">Peer Program Supervisor / Lead</option>
-                            <option value="Independent Solo Contractor">Independent Solo Contractor</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">
-                            Primary California County
-                          </label>
-                          <select
-                            value={county}
-                            onChange={(e) => setCounty(e.target.value)}
-                            className="w-full min-h-[44px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-                          >
-                            <option value="San Francisco">38-San Francisco</option>
-                            <option value="Alameda">01-Alameda</option>
-                            <option value="Los Angeles">19-Los Angeles</option>
-                            <option value="Sacramento">34-Sacramento</option>
-                            <option value="San Diego">37-San Diego</option>
-                            <option value="Santa Clara">43-Santa Clara</option>
-                            <option value="Other California County">Other California County</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <label className="flex items-center gap-2.5 pt-1 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={wantsBetaCohort}
-                          onChange={(e) => setWantsBetaCohort(e.target.checked)}
-                          className="w-4 h-4 rounded text-[#0F766E] focus:ring-[#0F766E]"
-                        />
-                        <span className="text-xs text-slate-700 font-medium">
-                          Invite me to the 3–5 person Solo Beta Cohort for free lifetime solo tier
-                        </span>
-                      </label>
-
-                      {formError && (
-                        <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-1.5">
-                          <AlertCircle className="w-4 h-4 shrink-0" />
-                          <span>{formError}</span>
-                        </div>
-                      )}
-
-                      <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                        <span className="text-[11px] text-slate-500">
-                          🔒 Zero spam. HIPAA & CalAIM aligned. Unsubscribe anytime.
-                        </span>
-                        <button
-                          type="submit"
-                          className="min-h-[46px] px-6 py-2.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all hover:shadow-md cursor-pointer flex items-center justify-center gap-2 shrink-0"
-                        >
-                          <Download className="w-4 h-4" />
-                          <span>Get Free Checklist + Pilot Invite</span>
-                        </button>
-                      </div>
-                    </form>
-                  </>
-                ) : (
-                  <div className="p-4 sm:p-5 bg-emerald-50/90 rounded-xl border border-emerald-300 space-y-3 animate-in fade-in">
-                    <div className="flex items-center gap-2.5 text-[#16A34A]">
-                      <CheckCircle2 className="w-6 h-6 shrink-0" />
-                      <h4 className="font-bold text-slate-900 text-base">
-                        You’re In! Checklist Ready for Download
-                      </h4>
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
-                      Thank you, <strong>{specialistName || 'Colleague'}</strong>! We’ve reserved your spot in our 3–5 specialist pilot cohort for <strong>{county} County</strong>.
-                    </p>
-                    <div className="p-3 bg-white rounded-xl border border-emerald-200 text-xs space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-slate-700">Lead Magnet Asset:</span>
-                        <span className="text-[#0F766E] font-bold">The 10-Minute Medi-Cal H0038 Note Checklist</span>
-                      </div>
-                      <div className="flex items-center justify-between text-slate-500 text-[11px]">
-                        <span>Delivery Destination:</span>
-                        <span className="font-mono">{email}</span>
-                      </div>
-                    </div>
-                    <div className="pt-2 flex flex-wrap items-center gap-3">
-                      <a
-                        href="#lead-magnet"
-                        className="min-h-[44px] px-5 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-full text-xs font-bold shadow-xs flex items-center gap-2 transition-colors"
-                      >
-                        <FileCheck className="w-4 h-4" />
-                        <span>View Interactive Checklist Below</span>
-                      </a>
-                      <button
-                        onClick={onLaunchApp}
-                        className="min-h-[44px] px-5 py-2 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs font-bold shadow-xs flex items-center gap-2 transition-colors cursor-pointer"
-                      >
-                        <Zap className="w-4 h-4" />
-                        <span>Start Test Note in App</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column: Hero Visual Asset (Col Span 5) */}
-            <div className="lg:col-span-5 space-y-4">
-              <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-slate-900 group">
-                {!heroImageFailed ? (
-                  <img
-                    src={HERO_IMAGE_URL}
-                    alt="Certified Peer Support Specialist collaborating with client in a warm community setting"
-                    className="w-full max-w-full h-[360px] sm:h-[440px] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                    loading="eager"
-                    onError={() => setHeroImageFailed(true)}
-                  />
-                ) : (
-                  <div className="w-full h-[360px] sm:h-[440px] bg-gradient-to-br from-[#1E3A8A] via-slate-900 to-[#0F766E] p-8 flex flex-col justify-between text-white">
-                    <div className="space-y-2">
-                      <div className="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
-                        <HeartHandshake className="w-6 h-6" />
-                      </div>
-                      <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">
-                        California Peer Practice
-                      </span>
-                      <h3 className="text-xl font-bold text-white">
-                        Peer-Centered Documentation
-                      </h3>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm text-slate-200 italic leading-relaxed">
-                        "Documentation should never pull you away from authentic human connection."
-                      </p>
-                      <span className="text-xs text-teal-200 block">
-                        CalAIM Behavioral Health Payment Reform & Medi-Cal H0038
-                      </span>
-                    </div>
-                  </div>
-                )}
-                {/* Measured Scrim & Caption */}
-                {!heroImageFailed && (
-                  <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 bg-gradient-to-t from-slate-950/95 via-slate-950/70 to-transparent text-white">
-                    <span className="text-[11px] font-bold text-teal-300 uppercase tracking-wider block">
-                      Trauma-Informed Peer Practice
-                    </span>
-                    <p className="text-xs sm:text-sm font-medium text-slate-100 leading-snug mt-1">
-                      "Documentation should never pull you away from authentic human connection."
-                    </p>
-                    <span className="text-[11px] text-slate-300 block mt-1">
-                      CalAIM Behavioral Health Payment Reform Compliant
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Quick Action Badges Strip */}
-              <div className="flex items-center justify-between gap-2 p-3 bg-white rounded-xl border border-slate-200 text-xs">
-                <div className="flex items-center gap-1.5 text-slate-700">
-                  <Shield className="w-4 h-4 text-[#0F766E]" />
-                  <span className="font-semibold">HIPAA / CMIA Aligned</span>
-                </div>
-                <button
-                  onClick={() => setOnboardingModalOpen(true)}
-                  className="min-h-[44px] px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-bold text-xs transition-colors cursor-pointer flex items-center gap-1.5 border border-slate-200/80"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#0F766E]" />
-                  <span>2-Min Walkthrough</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSection
+        onLaunchApp={onLaunchApp}
+        onOpenDocs={onOpenDocs}
+        onOpenAuthModal={(mode) => {
+          setAuthModalMode(mode || 'signin');
+          setAuthModalOpen(true);
+        }}
+      />
 
       {/* =========================================================================
           VALUE PROPOSITION BENTO GRID (4 Marquee Capabilities)

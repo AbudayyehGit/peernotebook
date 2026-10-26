@@ -357,6 +357,102 @@ Peer Notebook resolves this systemic crisis through a dual-layer persistence arc
 * **Lifetime Value (LTV, 36-mo):** $1,044.00
 * **LTV : CAC Ratio:** 7.46x`
   },
+  {
+    id: '02-1099-strategy',
+    categoryNumber: '02',
+    categoryTitle: 'Business Strategy & Clinical Practice',
+    title: 'Product Strategy: 1099 Independent Recovery Coaches & Solo Practitioners',
+    slug: '02-business-strategy/1099-independent-contractor-strategy',
+    path: '/docs/02-business-strategy/1099-independent-contractor-strategy.md',
+    badge: 'Solo 1099 Model',
+    badgeColor: 'bg-amber-100 text-amber-800',
+    summary: 'Strategic positioning, zero-agency tenancy, 1099 tax ledger tracking, and dual-tenant isolation for California independent recovery coaches.',
+    content: `# Product Strategy: 1099 Independent Recovery Coaches & Solo Practitioners
+
+**Target Market:** Certified Peer Support Specialists (CPSS-CA), Recovery Coaches, and Solo Practitioners in California  
+**Regulatory Framework:** CalAIM Behavioral Health Payment Reform, Medi-Cal H0038, Place of Service 15 (Mobile Unit / Community Outreach)  
+**Document Class:** Business & Market Strategy  
+**Organization:** Peer Notebook LLC (peernotebook.com)
+
+---
+
+## 1. Executive Summary & Market Sizing
+
+While initial behavioral health tech solutions targeted enterprise CBOs and large clinic networks, California’s CalAIM implementation has created an unprecedented demand for agile, mobile, independent 1099 contractors. Under CalAIM Community Supports and Enhanced Care Management (ECM), Managed Care Plans (MCPs) and county behavioral health departments are actively contracting with individual Certified Peer Support Specialists (CPSS-CA) to deliver peer coaching in encampments, supportive housing facilities, and mobile harm reduction units.
+
+### Market Dynamics
+1. **The 1099 Shift:** Over 40% of newly certified California peer specialists operate as 1099 independent contractors, juggling multiple county contracts, CBO vendor agreements, or private client rosters.
+2. **The Documentation Friction:** Solo specialists lack back-office administrative staff. They carry the entire burden of CalAIM compliance, 15-minute billing unit conversions, travel time logs, and IRS mileage tracking.
+3. **The Solution:** Peer Notebook provides a self-contained, offline-first clinical workspace tailored specifically for solo practitioners. With zero-AI deterministic linting, automated H0038 unit calculations, and integrated 1099 tax classification ledgers, solo peers reduce administrative burden by 65%.
+
+---
+
+## 2. Product Positioning & Value Proposition for Solo Contractors
+
+| Capability | Legacy Enterprise EHRs | Spreadsheets / Word | Peer Notebook Solo Tier |
+|---|---|---|---|
+| **Account Overhead** | Mandatory enterprise agency tenant ID | None (Manual files) | Solo 1099 Tenant (Zero agency dependency) |
+| **Offline Reliability** | Requires active VPN / constant web connection | Manual local copy | 100% Offline Dexie.js with auto-sync |
+| **CalAIM H0038 Math** | Complex manual charge-capture entry | Error-prone calculations | Instant 15-min CMS 8-minute rounding |
+| **Field Privacy** | Full names visible on screen | Full names exposed | One-click Field Privacy Pseudonymization |
+| **1099 Billing Ledger** | Not supported | Disconnected spreadsheets | Automated hourly rate & mileage log ($0.67/mi) |
+| **Pricing** | $120–$250/seat/month + setup fees | Free but non-compliant | $29/month flat (or free beta cohort) |
+
+---
+
+## 3. Solo Tenant Architecture & Isolation Model
+
+Solo 1099 accounts do not require an agency tenant wrapper:
+- **Tenant Isolation:** Account records are partitioned with \`account_type = 'solo_1099'\` and \`organization_id IS NULL\`. Row-Level Security (RLS) dynamically scopes client records, session notes, and audit logs directly to \`author_id = auth.uid()\` / \`assigned_specialist_id = auth.uid()\`.
+- **Hybrid Agency Contracting:** A solo contractor can optionally link their 1099 billing profile to a CBO partner (\`contractAgencyName\`) while maintaining independent data sovereignty over their private client caseload.
+- **Portability & Export:** Solo specialists can generate encrypted JSON archives or printable PDF charts at any moment, satisfying independent client record retention mandates under California CMIA.`
+  },
+  {
+    id: '02-stripe-billing',
+    categoryNumber: '02',
+    categoryTitle: 'Business Strategy & Clinical Practice',
+    title: 'Stripe Subscription, Free Trial & Billing Architecture',
+    slug: '02-business-strategy/stripe-billing-architecture',
+    path: '/docs/02-business-strategy/stripe-billing-architecture.md',
+    badge: 'Stripe Checkout',
+    badgeColor: 'bg-emerald-100 text-emerald-800',
+    summary: '14-day zero-risk trial, Founding Member lock-in, Stripe webhooks, self-serve Customer Portal, and dynamic feature gating.',
+    content: `# Stripe Subscription, Free Trial & Self-Serve Billing Architecture
+
+**Document Version:** 1.0-GA  
+**Target Domain:** peernotebook.com  
+**Applicability:** Founding Member Tier, 1099 Solo Pro, CBO Agency Teams, Stripe Checkout & Customer Portal  
+**Regulatory Standards:** PCI-DSS Level 1 via Stripe, CalAIM Multi-Tenant RLS, HIPAA BAA Protection  
+
+---
+
+## 1. Executive Summary & Revenue Architecture
+Peer Notebook operates on a predictable, non-predatory SaaS subscription model designed specifically for Certified Peer Support Specialists (CPSS-CA), independent 1099 recovery navigators, and California Community-Based Organizations (CBOs).
+
+To ensure zero cognitive friction and eliminate barriers to clinical adoption, Peer Notebook provides an instant **14-Day Full-Access Free Trial** with no credit card required upfront. Users experience 100% offline note-taking, automated CalAIM H0038 billing unit conversion, tamper-evident SHA-256 PDF note exports, and encrypted local storage before committing to a paid plan.
+
+---
+
+## 2. Subscription Tiers & Unit Economics
+* **Founding Specialist ($19/mo or $190/yr):** 14-Day Free Trial, 100% Offline Dexie.js, 4-Part CalAIM DAP Notes, 15-Min Unit Math, SHA-256 PDF Export, AES-GCM Encrypted Backup.
+* **Solo 1099 Pro ($39/mo or $390/yr):** All Founding features + 1099 Contractor Tax Ledger, IRS Mileage Reimbursement ($0.67/mi), Contract Hourly Rate Math, Multi-Agency Routing.
+* **Agency / CBO Team ($149/mo or $1,490/yr):** All Pro features + Unlimited Peer Specialists, Supervisor Note Cosigning Queue, Agency RBAC Admin, County 837P EDI Preparation.
+
+---
+
+## 3. Stripe Integration Lifecycle & Webhooks
+Peer Notebook coordinates Stripe Checkout and the Stripe Customer Portal via secure HTTPS serverless routes and Supabase Edge Functions (\`supabase/functions/stripe-webhook\`).
+
+* \`checkout.session.completed\`: Resolves metadata, stores \`stripe_customer_id\` and \`stripe_subscription_id\`, and sets \`subscription_status = 'active'\`.
+* \`customer.subscription.updated\`: Syncs active/past-due/canceled states and auto-renewal intents.
+* \`customer.subscription.deleted\`: Marks canceled while safeguarding all offline notes locally in Dexie.js.
+* \`invoice.payment_succeeded\`: Records invoice receipts and reconfirms active subscriber status.
+
+---
+
+## 4. Self-Serve Customer Portal & Feature Gating
+Users access the self-serve Stripe Customer Portal directly from the Peer Notebook Settings Panel or Billing Modal to update payment cards, switch billing intervals, or download receipts for tax deductions.`
+  },
 
   // 03-design-experience & compliance
   {
@@ -477,6 +573,76 @@ Every button, input field, and pill selector strictly conforms to a minimum 44px
 1. **Zero-Latency Local Commits:** Every client interaction and note is written first to the client-side Dexie.js transactional datastore.
 2. **Deterministic Background Sync Worker:** An idempotent worker processes the local \`sync_queue\` when network connectivity resumes.
 3. **Multi-Tenant Row-Level Security (RLS):** Supabase PostgreSQL database policies strictly restrict visibility to authorized agency boundaries (\`org_id\`).`
+  },
+  {
+    id: '04-data-models',
+    categoryNumber: '04',
+    categoryTitle: 'Technical Architecture',
+    title: 'Data Models & Relational Schema Dictionary (Dual-Tenant RLS)',
+    slug: '04-technical-architecture/data-models',
+    path: '/docs/04-technical-architecture/data-models.md',
+    badge: 'Dual-Tenant RLS',
+    badgeColor: 'bg-emerald-100 text-emerald-800',
+    summary: 'Full PostgreSQL DDL, Dexie.js schemas, and dual-tenant Row-Level Security policies supporting CBO agencies and solo 1099 contractors.',
+    content: `# Data Models & Relational Schema Dictionary
+
+**Document Version:** 1.0-GA  
+**Target Domain:** peernotebook.com  
+**Persistence:** TypeScript Types, Dexie.js Schema & PostgreSQL DDL with RLS
+
+---
+
+## 1. Core Entity Relationship Diagram (ERD)
+
+\`\`\`
+[ organizations ] 1 ───< [ users ]
+       │                    │
+       ▼ 1                  ▼ 1
+  [ clients ] 1 ────────< [ session_notes ] 1 ───< [ audit_trail_logs ]
+                                │
+                                ▼ 1
+                          [ sync_queue ]
+\`\`\`
+
+---
+
+## 2. PostgreSQL DDL & Dual-Tenant Row-Level Security (RLS)
+
+\`\`\`sql
+-- Dual Tenant & Solo Practitioner RLS Isolation Policy
+-- Agency CBO: Scoped by matching organization_id
+-- Solo 1099 Practitioner: Scoped by specialist_id / author_id with organization_id IS NULL
+CREATE POLICY agency_or_solo_session_notes_policy ON session_notes
+    FOR ALL
+    TO authenticated
+    USING (
+        (org_id IS NOT NULL AND org_id = (auth.jwt() ->> 'org_id')::uuid)
+        OR (org_id IS NULL AND specialist_id = auth.uid())
+    )
+    WITH CHECK (
+        (org_id IS NOT NULL AND org_id = (auth.jwt() ->> 'org_id')::uuid)
+        OR (org_id IS NULL AND specialist_id = auth.uid())
+    );
+\`\`\`
+
+---
+
+## 3. Solo 1099 Independent Practitioner ERD Expansion
+
+\`\`\`
+[ Solo 1099 Practitioner ] (account_type = 'solo_1099', org_id = NULL)
+       │
+       ▼ 1:N
+   [ clients ] (org_id = NULL, assigned_specialist_id = specialist_id)
+       │
+       ▼ 1:N
+   [ session_notes ] (org_id = NULL, author_id = specialist_id)
+       │
+       ▼ 1:N
+   [ audit_trail_logs ] (org_id = NULL, user_id = specialist_id)
+\`\`\`
+
+Solo 1099 accounts do not require an organizational foreign key constraint, allowing self-employed recovery coaches and CPSS-CA specialists to own their clinical charts while preserving California CMIA and HIPAA audit compliance.`
   },
   {
     id: '04-offline-sync',
@@ -769,15 +935,16 @@ Users attest that Peer Notebook is a specialized documentation software platform
     title: 'Founder-to-LLC IP Assignment Agreement',
     slug: '07-legal-administrative/06_IP_Assignment_Agreement',
     path: '/docs/07-legal-administrative/06_IP_Assignment_Agreement.md',
-    badge: 'Executed IP Transfer',
-    badgeColor: 'bg-emerald-100 text-emerald-800',
-    summary: 'Executed agreement transferring 100% of source code, domain peernotebook.com, algorithms, and documentation from founder Hani Joe Abudayyeh to Peer Notebook LLC.',
+    badge: 'Pre-Launch Milestone',
+    badgeColor: 'bg-amber-100 text-amber-800',
+    summary: 'Founder-to-LLC IP transfer agreement. Peer Notebook LLC formation (Articles of Organization, EIN) and formal IP assignment execution are designated as Pending Pre-Launch Milestones.',
     content: `# Intellectual Property Assignment & Contribution Agreement
 
 **Document ID:** PN-LEGAL-2026-IP-001  
 **Category:** 07-legal-administrative  
 **Effective Date:** October 22, 2026  
-**Governing Law:** State of California
+**Governing Law:** State of California  
+**Status:** **Pending Pre-Launch Milestone** (Peer Notebook LLC formation, Articles of Organization, and EIN issuance in progress; formal IP assignment executed upon charter completion)
 
 ---
 
@@ -1114,7 +1281,7 @@ const CodeBlockComponent: React.FC<{ code: string; lang?: string }> = ({ code, l
   };
 
   return (
-    <div className="w-full overflow-x-auto my-4 rounded-xl border border-slate-700 bg-slate-900 shadow-sm text-left">
+    <div className="w-full max-w-full my-4 rounded-xl border border-slate-700 bg-slate-900 shadow-sm text-left overflow-hidden">
       <div className="flex items-center justify-between px-3.5 py-2 bg-slate-800/90 border-b border-slate-700/60 text-slate-300 text-[11px] font-mono">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-rose-500/80 inline-block"></span>
@@ -1126,7 +1293,7 @@ const CodeBlockComponent: React.FC<{ code: string; lang?: string }> = ({ code, l
         </div>
         <button
           onClick={handleCopy}
-          className="min-h-[44px] px-3.5 py-2 rounded-full bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer text-xs"
+          className="min-h-[44px] sm:min-h-[48px] px-3.5 py-2 rounded-full bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer text-xs"
           title="Copy snippet"
         >
           {copied ? (
@@ -1142,7 +1309,7 @@ const CodeBlockComponent: React.FC<{ code: string; lang?: string }> = ({ code, l
           )}
         </button>
       </div>
-      <pre className="p-4 text-xs font-mono text-emerald-300 whitespace-pre overflow-x-auto leading-relaxed">
+      <pre className="p-4 text-xs font-mono text-emerald-300 whitespace-pre overflow-x-auto leading-relaxed max-w-full">
         <code>{code}</code>
       </pre>
     </div>
@@ -1154,7 +1321,7 @@ const TableBlockComponent: React.FC<{ headers: string[]; rows: string[][] }> = (
   rows
 }) => {
   return (
-    <div className="w-full overflow-x-auto my-4 rounded-xl border border-slate-200 shadow-2xs bg-white">
+    <div className="w-full max-w-full overflow-x-auto my-4 rounded-xl border border-slate-200 shadow-2xs bg-white">
       <table className="min-w-full divide-y divide-slate-200 text-xs text-left">
         {headers.length > 0 && (
           <thead className="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
@@ -1697,17 +1864,17 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
         {/* Right Main Panel: Document Reader */}
         <main className="flex-1 min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 flex flex-col">
           {/* Breadcrumbs & Actions */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <span className="font-semibold text-[#0F766E]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3 w-full">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 min-w-0">
+              <span className="font-semibold text-[#0F766E] shrink-0">
                 Category {activeDoc.categoryNumber}
               </span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-              <span className="text-slate-600 font-medium">
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span className="text-slate-600 font-medium shrink-0">
                 {activeDoc.categoryTitle}
               </span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-              <span className="text-slate-900 font-bold truncate max-w-[130px] xs:max-w-[200px] sm:max-w-xs lg:max-w-sm">
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span className="text-slate-900 font-bold truncate max-w-[200px] xs:max-w-xs sm:max-w-sm">
                 {activeDoc.title}
               </span>
             </div>
@@ -1715,7 +1882,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
             <div className="flex flex-wrap items-center gap-2 shrink-0">
               <button
                 onClick={handleCopyMarkdown}
-                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="min-h-[44px] sm:min-h-[48px] px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                 title="Copy markdown text to clipboard"
               >
                 {copied ? (
@@ -1733,7 +1900,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
 
               <button
                 onClick={handleDownloadMarkdown}
-                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="min-h-[44px] sm:min-h-[48px] px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                 title="Download .md file"
               >
                 <Download className="w-3.5 h-3.5" />

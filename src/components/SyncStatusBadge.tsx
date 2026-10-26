@@ -7,9 +7,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { syncWorker, SyncStatusInfo } from '../services/syncWorker';
+import { useAuth } from '../context/AuthContext';
 import { Cloud, CloudOff, RefreshCw, ShieldCheck, X, CheckCircle2, HardDrive, Lock } from 'lucide-react';
 
 export const SyncStatusBadge: React.FC = () => {
+  const { hasActiveAccess } = useAuth();
   const [syncInfo, setSyncInfo] = useState<SyncStatusInfo>(syncWorker.getStatus());
   const [isOpen, setIsOpen] = useState(false);
 
@@ -22,6 +24,13 @@ export const SyncStatusBadge: React.FC = () => {
 
   const handleManualSync = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!hasActiveAccess) {
+      setIsOpen(false);
+      window.dispatchEvent(new CustomEvent('peernotebook:open-billing', {
+        detail: { notice: 'Real-time cloud sync requires an active 14-day free trial or Founding Member subscription.' }
+      }));
+      return;
+    }
     await syncWorker.triggerManualSync();
   };
 

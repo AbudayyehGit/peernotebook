@@ -41,3 +41,9 @@ Legacy Electronic Health Records (EHR) fail peer specialists in three ways:
 * **Offline Reliability:** 100% data retention during unexpected disconnections with zero primary key collisions.
 * **Audit Compliance:** 0% Medi-Cal H0038 note rejection rate due to missing 4-part elements or incorrect unit calculation.
 * **Field Specialist Usability:** System Usability Scale (SUS) score > 88 across mobile field tablet testing cohorts.
+
+---
+
+## 4. Pre-Launch Governance Milestones
+* **Corporate Entity Formation:** Peer Notebook LLC formation filing (Articles of Organization, State of California) and IRS EIN issuance are scheduled as mandatory Pre-Launch Milestones.
+* **IP Assignment Execution:** Execution and formal delivery of the Founder-to-LLC IP Assignment Agreement (`06_IP_Assignment_Agreement.md`) will finalize prior to commercial pilot licensing.

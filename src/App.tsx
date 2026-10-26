@@ -22,6 +22,8 @@ import { TrustCenterView } from './components/TrustCenterView';
 import { PrivacyConsentBanner } from './components/PrivacyConsentBanner';
 import { PrivacyModeProvider, usePrivacyMode } from './context/PrivacyModeContext';
 import { AuthModal } from './components/AuthModal';
+import { SubscriptionStatusBadge } from './components/SubscriptionStatusBadge';
+import { BillingModal } from './components/BillingModal';
 import { HeartHandshake, Sparkles, Globe, Mail, BookOpen, Eye, EyeOff, Lock, UserCheck } from 'lucide-react';
 import { safeStorage } from './utils/safeStorage';
 
@@ -73,6 +75,8 @@ function AppContent() {
   const [outreachOpen, setOutreachOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [billingModalOpen, setBillingModalOpen] = useState(false);
+  const [gatedFeatureNotice, setGatedFeatureNotice] = useState<string | null>(null);
   const { isPrivacyMode, togglePrivacyMode } = usePrivacyMode();
 
   useEffect(() => {
@@ -86,9 +90,17 @@ function AppContent() {
     const handleReplayTutorial = () => {
       setTutorialOpen(true);
     };
+    const handleOpenBilling = (e: Event) => {
+      const customEvent = e as CustomEvent<{ notice?: string }>;
+      setGatedFeatureNotice(customEvent.detail?.notice || null);
+      setBillingModalOpen(true);
+    };
+
     window.addEventListener('peernotebook:replay-tutorial', handleReplayTutorial);
+    window.addEventListener('peernotebook:open-billing', handleOpenBilling as EventListener);
     return () => {
       window.removeEventListener('peernotebook:replay-tutorial', handleReplayTutorial);
+      window.removeEventListener('peernotebook:open-billing', handleOpenBilling as EventListener);
     };
   }, []);
 
@@ -195,7 +207,7 @@ function AppContent() {
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans selection:bg-[#0F766E] selection:text-white max-w-full overflow-x-hidden">
       {/* Top Header Navbar - Deep Navy (#1E3A8A) with min 44px tap target height & zero mobile collision */}
       <header className="bg-[#1E3A8A] border-b border-blue-950 sticky top-0 z-40 shadow-sm text-white w-full max-w-full">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-14 sm:min-h-16 py-2 sm:py-0 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-4 w-full">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-14 sm:min-h-16 py-2.5 sm:py-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
           {/* Logo & Brand Identity (min-w-0 for guaranteed fluid mobile fit) */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
             <button
@@ -254,8 +266,8 @@ function AppContent() {
             </button>
           </div>
 
-          {/* Right Controls: Dual-Layer Sync Status, Quick Nav, Field Privacy, Sign In & Org Select */}
-          <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Right Controls: Dual-Layer Sync Status, Quick Nav, Field Privacy, Login & Org Select */}
+          <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2.5 shrink-0 w-full sm:w-auto">
             {/* Field Privacy Mode Toggle: Dynamic client de-identification */}
             <button
               type="button"
@@ -271,7 +283,7 @@ function AppContent() {
               <span className="hidden sm:inline">{isPrivacyMode ? 'Privacy: Masked' : 'Field Privacy'}</span>
             </button>
 
-            {/* Persistent Sign In / Role Switcher Button */}
+            {/* Persistent Login / Role Switcher Button - Explicitly displays 'Login' */}
             <button
               type="button"
               onClick={() => setAuthModalOpen(true)}
@@ -285,8 +297,8 @@ function AppContent() {
                     ? 'Admin'
                     : currentUser.role === 'supervisor'
                     ? 'Supervisor'
-                    : 'Specialist'
-                  : 'Sign In'}
+                    : 'Login'
+                  : 'Login'}
               </span>
             </button>
 
@@ -309,6 +321,8 @@ function AppContent() {
             <div className="hidden md:flex items-center">
               <ZeroAiBadge variant="header" />
             </div>
+            {/* Stripe 14-Day Free Trial & Subscription Status Badge */}
+            <SubscriptionStatusBadge onOpenBillingModal={() => setBillingModalOpen(true)} />
             <SyncStatusBadge />
             <div className="hidden sm:block h-6 w-px bg-blue-800/80 shrink-0" />
             <OrgSelect />
@@ -358,6 +372,16 @@ function AppContent() {
           }
           switchView('workspace');
         }}
+      />
+
+      {/* Stripe Billing & 14-Day Free Trial Modal */}
+      <BillingModal
+        isOpen={billingModalOpen}
+        onClose={() => {
+          setBillingModalOpen(false);
+          setGatedFeatureNotice(null);
+        }}
+        gatedFeatureNotice={gatedFeatureNotice}
       />
 
       {/* HIPAA & CMIA Privacy Consent Disclosure */}
