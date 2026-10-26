@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { peerNotebookDB, Client, SessionNote, ServiceModality } from '../db/peerNotebookDatabase';
 import { useAuth } from '../context/AuthContext';
+import { usePrivacyMode } from '../context/PrivacyModeContext';
 import { AuditLogger } from '../services/auditLogger';
 import { syncWorker } from '../services/syncWorker';
 import {
@@ -145,6 +146,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
   onCancel
 }) => {
   const { currentOrg, currentUser } = useAuth();
+  const { isPrivacyMode, maskName } = usePrivacyMode();
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>(
     existingNote?.clientId || initialClient?.id || ''
@@ -694,7 +696,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             <option value="">-- Select Active Client --</option>
             {clients.map(c => (
               <option key={c.id} value={c.id}>
-                {c.preferredName} ({c.clientIdentifier}) {c.mediCalCin ? `• CIN: ${c.mediCalCin}` : ''}
+                {maskName(c.preferredName, c.clientIdentifier, c.id)} ({c.clientIdentifier}) {c.mediCalCin ? `• CIN: ${c.mediCalCin}` : ''}
               </option>
             ))}
           </select>

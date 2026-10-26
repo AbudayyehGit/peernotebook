@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { peerNotebookDB, SessionNote } from '../db/peerNotebookDatabase';
 import { useAuth } from '../context/AuthContext';
+import { usePrivacyMode } from '../context/PrivacyModeContext';
 import { AuditLogger } from '../services/auditLogger';
 import { syncWorker } from '../services/syncWorker';
 import {
@@ -51,6 +52,7 @@ export interface CBOTeamMember {
 
 export const SupervisorDashboard: React.FC = () => {
   const { currentOrg, currentUser, allUsers } = useAuth();
+  const { isPrivacyMode, maskName } = usePrivacyMode();
   const [notes, setNotes] = useState<SessionNote[]>([]);
   const [selectedNote, setSelectedNote] = useState<SessionNote | null>(null);
   const [activeTab, setActiveTab] = useState<'queue' | 'team' | 'compliance'>('queue');
@@ -745,7 +747,9 @@ export const SupervisorDashboard: React.FC = () => {
               notes.filter(n => n.safetyConcerns).map(n => (
                 <div key={n.id} className="p-4 bg-rose-50/60 border border-rose-200 rounded-xl text-xs space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-rose-900">{n.clientName} ({n.clientIdentifier})</span>
+                    <span className="font-bold text-rose-900">
+                      {maskName(n.clientName, n.clientIdentifier, n.clientId)} ({n.clientIdentifier})
+                    </span>
                     <span className="font-mono text-slate-500">{n.encounterDate}</span>
                   </div>
                   <p className="text-rose-800 leading-relaxed">{n.safetyNotes || 'Safety plan documented by specialist.'}</p>
@@ -815,7 +819,7 @@ export const SupervisorDashboard: React.FC = () => {
                   Clinical Cosignature &amp; QA Review
                 </h3>
                 <p className="text-xs text-slate-500 truncate mt-0.5">
-                  Peer: {selectedNote.clientName} ({selectedNote.clientIdentifier}) · Date: {selectedNote.encounterDate}
+                  Peer: {maskName(selectedNote.clientName, selectedNote.clientIdentifier, selectedNote.clientId)} ({selectedNote.clientIdentifier}) · Date: {selectedNote.encounterDate}
                 </p>
               </div>
             </div>

@@ -93,12 +93,44 @@ CREATE TABLE audit_trail_logs (
 );
 
 -- Enable RLS
-ALTER TABLE session_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE session_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_trail_logs ENABLE ROW LEVEL SECURITY;
 
--- Tenant Isolation Policy Example
-CREATE POLICY org_session_notes_isolation ON session_notes
+-- Dual Tenant & Solo Practitioner RLS Isolation Policy
+-- Agency CBO: Scoped by matching organization_id
+-- Solo 1099 Practitioner: Scoped by specialist_id / author_id with organization_id IS NULL
+CREATE POLICY agency_or_solo_session_notes_policy ON session_notes
     FOR ALL
-    USING (org_id = (auth.jwt() ->> 'org_id')::uuid);
+    TO authenticated
+    USING (
+        (org_id IS NOT NULL AND org_id = (auth.jwt() ->> 'org_id')::uuid)
+        OR (org_id IS NULL AND specialist_id = auth.uid())
+    )
+    WITH CHECK (
+        (org_id IS NOT NULL AND org_id = (auth.jwt() ->> 'org_id')::uuid)
+        OR (org_id IS NULL AND specialist_id = auth.uid())
+    );
 ```
+
+---
+
+## 3. Solo 1099 Independent Practitioner ERD Expansion
+
+```
+[ Solo 1099 Practitioner ] (account_type = 'solo_1099', org_id = NULL)
+       │
+       ▼ 1:N
+   [ clients ] (org_id = NULL, assigned_specialist_id = specialist_id)
+       │
+       ▼ 1:N
+   [ session_notes ] (org_id = NULL, author_id = specialist_id)
+       │
+       ▼ 1:N
+   [ audit_trail_logs ] (org_id = NULL, user_id = specialist_id)
+```
+
+Solo 1099 accounts do not require an organizational foreign key constraint, allowing self-employed recovery coaches and CPSS-CA specialists to own their clinical charts while preserving California CMIA and HIPAA audit compliance.
+

@@ -22,10 +22,12 @@ export interface Organization {
 }
 
 export type UserRole = 'peer_specialist' | 'supervisor' | 'admin' | 'compliance_officer';
+export type AccountType = 'agency_cbo' | 'solo_1099';
 
 export interface User {
   id: string;
-  organizationId: string;
+  organizationId?: string; // Optional for solo 1099 independent practitioners
+  accountType?: AccountType; // 'agency_cbo' or 'solo_1099'
   email: string;
   fullName: string;
   credentialTitle: string; // e.g. Medi-Cal Certified Peer Support Specialist (CPSS-CA)
@@ -43,7 +45,7 @@ export interface User {
 
 export interface Client {
   id: string;
-  organizationId: string;
+  organizationId?: string; // Optional for solo 1099 independent practitioners
   clientIdentifier: string; // MRN Code (e.g. PN-4091)
   mediCalCin?: string; // Medi-Cal Client Index Number (e.g. 98234120A)
   preferredName: string;
@@ -66,7 +68,7 @@ export type ServiceModality = 'community_field' | 'face_to_face' | 'telehealth_v
 
 export interface SessionNote {
   id: string;
-  organizationId: string;
+  organizationId?: string; // Optional for solo 1099 independent practitioners
   clientId: string;
   clientName: string;
   clientIdentifier: string;
@@ -126,7 +128,7 @@ export interface SessionNote {
 
 export interface AuditLogEntry {
   id: string;
-  organizationId: string;
+  organizationId?: string;
   actorId: string;
   actorName: string;
   actorRole: UserRole;

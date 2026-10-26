@@ -20,6 +20,7 @@ import { syncWorker, SyncStatusInfo } from '../services/syncWorker';
 import { safeStorage } from '../utils/safeStorage';
 import { EmptyState, Button } from './ui';
 import { AdminUserManagement } from './AdminUserManagement';
+import { usePrivacyMode } from '../context/PrivacyModeContext';
 import {
   Users,
   FileText,
@@ -61,6 +62,7 @@ interface PeerNotebookWorkspaceProps {
 
 export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ onReplayTutorial }) => {
   const { currentOrg, currentUser, canApproveNotes, canManageAgency, role } = useAuth();
+  const { isPrivacyMode, maskName } = usePrivacyMode();
 
   // Parse route from window.location.pathname, search query, hash, or localStorage
   const parseRoute = (): { tab: WorkspaceTab; slug?: string } => {
@@ -1246,7 +1248,9 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                   <div className="flex flex-col xs:flex-row xs:items-start justify-between gap-2">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="font-bold text-[#1E3A8A] text-base">{note.clientName}</h4>
+                        <h4 className="font-bold text-[#1E3A8A] text-base">
+                          {maskName(note.clientName, note.clientIdentifier, note.clientId)}
+                        </h4>
                         <span className="font-mono text-xs text-[#0F766E] font-semibold">
                           {note.clientIdentifier}
                         </span>

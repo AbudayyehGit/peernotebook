@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { peerNotebookDB, Client } from '../db/peerNotebookDatabase';
 import { useAuth } from '../context/AuthContext';
 import { AuditLogger } from '../services/auditLogger';
+import { usePrivacyMode } from '../context/PrivacyModeContext';
 import { Users, Search, Plus, ShieldCheck, HeartHandshake, Calendar, FileText, X } from 'lucide-react';
 import { EmptyState, Button } from './ui';
 
@@ -17,6 +18,7 @@ interface ClientManagerProps {
 
 export const ClientManager: React.FC<ClientManagerProps> = ({ onSelectClientForNote }) => {
   const { currentOrg, currentUser, role } = useAuth();
+  const { isPrivacyMode, maskName } = usePrivacyMode();
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPathway, setFilterPathway] = useState<string>('ALL');
@@ -193,7 +195,9 @@ export const ClientManager: React.FC<ClientManagerProps> = ({ onSelectClientForN
                 <div className="flex flex-col xs:flex-row xs:items-start justify-between gap-2">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-bold text-[#1E3A8A] text-base">{client.preferredName}</h3>
+                      <h3 className="font-bold text-[#1E3A8A] text-base">
+                        {maskName(client.preferredName, client.clientIdentifier, client.id)}
+                      </h3>
                       <span className="font-mono text-xs text-[#0F766E] font-semibold">
                         {client.clientIdentifier}
                       </span>

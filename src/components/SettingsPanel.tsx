@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { usePrivacyMode } from '../context/PrivacyModeContext';
 import { peerNotebookDB, StorageMetrics } from '../db/peerNotebookDatabase';
 import { AuditLogger } from '../services/auditLogger';
 import { syncWorker, SyncStatusInfo, SyncResult } from '../services/syncWorker';
@@ -23,6 +24,7 @@ import {
   ExternalLink,
   AlertTriangle,
   RefreshCw,
+  EyeOff,
   HardDrive,
   Clock,
   CheckCircle2,
@@ -127,6 +129,7 @@ interface SettingsPanelProps {
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }) => {
   const { currentOrg, currentUser, updateContractorSettings } = useAuth();
+  const { isPrivacyMode, togglePrivacyMode } = usePrivacyMode();
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseKey, setSupabaseKey] = useState('');
   const [isSupabaseSaved, setIsSupabaseSaved] = useState(false);
@@ -648,6 +651,46 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 max-w-full overflow-hidden">
+      {/* Zero-Trust Field Privacy & Client De-Identification Card */}
+      <div className="p-5 sm:p-7 bg-white border border-slate-200/90 rounded-2xl shadow-xs space-y-4 max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-3">
+          <div className="flex items-center gap-3">
+            <div className={`p-3 rounded-xl border shrink-0 ${isPrivacyMode ? 'bg-amber-50 text-[#D97706] border-amber-200' : 'bg-teal-50 text-[#0F766E] border-teal-200'}`}>
+              {isPrivacyMode ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[#1E3A8A]">Zero-Trust Field Privacy & Client De-Identification</h3>
+              <p className="text-xs text-slate-500 mt-0.5">California CMIA § 56.10 & HIPAA Safe Harbor (45 CFR § 164.514)</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={togglePrivacyMode}
+            className={`min-h-[48px] px-4 py-2.5 rounded-full text-xs font-bold border transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 ${
+              isPrivacyMode
+                ? 'bg-amber-500 text-white border-amber-600 shadow-xs hover:bg-amber-600'
+                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+            }`}
+          >
+            {isPrivacyMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            <span>{isPrivacyMode ? 'Field Privacy ACTIVE (Masked)' : 'Enable Field Privacy'}</span>
+          </button>
+        </div>
+
+        <p className="text-xs text-slate-600 leading-relaxed">
+          When working in public shelters, community drop-in centers, coffee shops, or shared spaces, Field Privacy dynamically masks all client real names into secure pseudonyms (e.g. <code>Client #A849</code>) across active session notes, client rosters, and on-screen charts to prevent accidental visual exposure of Protected Health Information (PHI).
+        </p>
+
+        <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <span className="text-slate-600">
+            Current Display Mode: <strong className={isPrivacyMode ? 'text-[#D97706]' : 'text-[#0F766E]'}>{isPrivacyMode ? '🔒 Client Names Masked as Pseudonyms' : '👁️ Standard Display (Real Client Names)'}</strong>
+          </span>
+          <span className="text-[11px] text-slate-500 font-mono">
+            {isPrivacyMode ? 'Format: Client #[MRN/Hash]' : 'Format: Preferred Full Name'}
+          </span>
+        </div>
+      </div>
+
       {/* HIPAA Compliance & BAA Card */}
       <div className="p-5 sm:p-7 bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-5 max-w-full overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">

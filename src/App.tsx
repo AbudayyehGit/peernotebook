@@ -20,7 +20,9 @@ import { InteractiveTutorialWizard } from './components/InteractiveTutorialWizar
 import { ZeroAiBadge } from './components/ZeroAiBadge';
 import { TrustCenterView } from './components/TrustCenterView';
 import { PrivacyConsentBanner } from './components/PrivacyConsentBanner';
-import { HeartHandshake, Sparkles, Globe, Mail, BookOpen } from 'lucide-react';
+import { PrivacyModeProvider, usePrivacyMode } from './context/PrivacyModeContext';
+import { AuthModal } from './components/AuthModal';
+import { HeartHandshake, Sparkles, Globe, Mail, BookOpen, Eye, EyeOff, Lock, UserCheck } from 'lucide-react';
 import { safeStorage } from './utils/safeStorage';
 
 function AppContent() {
@@ -70,6 +72,8 @@ function AppContent() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [outreachOpen, setOutreachOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const { isPrivacyMode, togglePrivacyMode } = usePrivacyMode();
 
   useEffect(() => {
     // Check if user has completed the interactive tutorial
@@ -250,12 +254,46 @@ function AppContent() {
             </button>
           </div>
 
-          {/* Right Controls: Dual-Layer Sync Status, Quick Nav & Org Select */}
+          {/* Right Controls: Dual-Layer Sync Status, Quick Nav, Field Privacy, Sign In & Org Select */}
           <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 shrink-0">
+            {/* Field Privacy Mode Toggle: Dynamic client de-identification */}
+            <button
+              type="button"
+              onClick={togglePrivacyMode}
+              className={`min-h-[48px] px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                isPrivacyMode
+                  ? 'bg-amber-500/25 text-amber-200 border-amber-400/60 hover:bg-amber-500/35'
+                  : 'bg-blue-900/60 text-blue-200 border-blue-700 hover:bg-blue-800'
+              }`}
+              title="Zero-Trust Field Privacy: Dynamically de-identifies and masks client names in public spaces"
+            >
+              {isPrivacyMode ? <EyeOff className="w-4 h-4 text-amber-300" /> : <Eye className="w-4 h-4 text-blue-300" />}
+              <span className="hidden sm:inline">{isPrivacyMode ? 'Privacy: Masked' : 'Field Privacy'}</span>
+            </button>
+
+            {/* Persistent Sign In / Role Switcher Button */}
+            <button
+              type="button"
+              onClick={() => setAuthModalOpen(true)}
+              className="min-h-[48px] px-3.5 py-1.5 text-xs font-bold bg-[#0F766E] hover:bg-teal-700 text-white rounded-full border border-teal-500/60 transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Sign In with Credentials or Switch Active Role"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>
+                {currentUser
+                  ? currentUser.role === 'admin'
+                    ? 'Admin'
+                    : currentUser.role === 'supervisor'
+                    ? 'Supervisor'
+                    : 'Specialist'
+                  : 'Sign In'}
+              </span>
+            </button>
+
             {/* Tablet/Mobile Quick Nav: Compact icon or pill to prevent header overlap */}
             <button
               onClick={() => switchView('docs')}
-              className="lg:hidden min-h-[44px] px-3 py-2 text-xs font-semibold bg-blue-900/80 hover:bg-blue-800 text-teal-200 rounded-full border border-blue-700 transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
+              className="lg:hidden min-h-[48px] px-3 py-2 text-xs font-semibold bg-blue-900/80 hover:bg-blue-800 text-teal-200 rounded-full border border-blue-700 transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
               title="Documentation Hub"
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -263,7 +301,7 @@ function AppContent() {
             </button>
             <button
               onClick={() => switchView('landing')}
-              className="hidden sm:inline-flex lg:hidden min-h-[44px] px-3 py-2 text-xs font-semibold bg-blue-800 hover:bg-blue-700 text-white rounded-full border border-blue-700 transition-colors shrink-0 cursor-pointer"
+              className="hidden sm:inline-flex lg:hidden min-h-[48px] px-3 py-2 text-xs font-semibold bg-blue-800 hover:bg-blue-700 text-white rounded-full border border-blue-700 transition-colors shrink-0 cursor-pointer"
               title="Return to Landing Page"
             >
               Landing
@@ -305,6 +343,23 @@ function AppContent() {
         onClose={() => setOutreachOpen(false)}
       />
 
+      {/* Header Authentication Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onSuccessRedirect={(targetRole) => {
+          setAuthModalOpen(false);
+          if (targetRole === 'admin') {
+            window.location.hash = '#admin';
+          } else if (targetRole === 'supervisor') {
+            window.location.hash = '#supervisor';
+          } else {
+            window.location.hash = '#workspace';
+          }
+          switchView('workspace');
+        }}
+      />
+
       {/* HIPAA & CMIA Privacy Consent Disclosure */}
       <PrivacyConsentBanner />
     </div>
@@ -315,7 +370,9 @@ export default function App() {
   return (
     <FieldErrorBoundary>
       <AuthProvider>
-        <AppContent />
+        <PrivacyModeProvider>
+          <AppContent />
+        </PrivacyModeProvider>
       </AuthProvider>
     </FieldErrorBoundary>
   );

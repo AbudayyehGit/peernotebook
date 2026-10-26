@@ -32,6 +32,8 @@ import { BetaOnboardingModal } from './BetaOnboardingModal';
 import { OutreachTemplatesModal } from './OutreachTemplatesModal';
 import { TrustComplianceFooter } from './TrustComplianceFooter';
 import { ZeroAiBadge } from './ZeroAiBadge';
+import { HeroSection } from './HeroSection';
+import { AuthModal } from './AuthModal';
 import { safeStorage } from '../utils/safeStorage';
 import { leadDigestService } from '../services/leadDigestService';
 
@@ -46,6 +48,8 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onOpenDocs }) => {
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'register'>('signin');
   // Lead Capture Form State
   const [email, setEmail] = useState('');
   const [specialistName, setSpecialistName] = useState('');
@@ -224,8 +228,18 @@ Built with trauma-informed care at peernotebook.com`;
               Docs
             </button>
             <button
+              onClick={() => {
+                setAuthModalMode('signin');
+                setAuthModalOpen(true);
+              }}
+              className="min-h-[48px] px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold text-[#1E3A8A] bg-slate-100 hover:bg-slate-200 rounded-full border border-slate-300 transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
+            >
+              <Lock className="w-3.5 h-3.5 text-[#0F766E]" />
+              <span>Sign In</span>
+            </button>
+            <button
               onClick={onLaunchApp}
-              className="min-h-[44px] px-3.5 sm:px-5 py-2 sm:py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all hover:shadow-md cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 sm:gap-2"
+              className="min-h-[48px] px-3.5 sm:px-5 py-2 sm:py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all hover:shadow-md cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 sm:gap-2"
             >
               <span className="hidden xs:inline">Launch Beta Workspace</span>
               <span className="xs:hidden">Launch App</span>
@@ -980,6 +994,16 @@ Built with trauma-informed care at peernotebook.com`;
       <OutreachTemplatesModal
         isOpen={outreachModalOpen}
         onClose={() => setOutreachModalOpen(false)}
+      />
+
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialMode={authModalMode}
+        onSuccessRedirect={() => {
+          setAuthModalOpen(false);
+          onLaunchApp();
+        }}
       />
     </div>
   );

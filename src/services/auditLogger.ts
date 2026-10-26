@@ -28,7 +28,7 @@ async function computeSha256(str: string): Promise<string> {
 
 export class AuditLogger {
   public static async log(params: {
-    organizationId: string;
+    organizationId?: string;
     actorId: string;
     actorName: string;
     actorRole: UserRole;
@@ -37,8 +37,9 @@ export class AuditLogger {
     entityId: string;
     details?: Record<string, unknown>;
   }): Promise<AuditLogEntry> {
+    const orgId = params.organizationId || 'solo-practitioner';
     const timestamp = new Date().toISOString();
-    const payloadForChecksum = `${params.organizationId}:${params.actorId}:${params.action}:${params.entityType}:${params.entityId}:${timestamp}`;
+    const payloadForChecksum = `${orgId}:${params.actorId}:${params.action}:${params.entityType}:${params.entityId}:${timestamp}`;
     const tamperProofChecksum = await computeSha256(payloadForChecksum);
 
     const entry: AuditLogEntry = {

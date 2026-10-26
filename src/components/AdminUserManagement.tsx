@@ -102,7 +102,7 @@ export const AdminUserManagement: React.FC = () => {
     setUserFullName(user.fullName);
     setUserEmail(user.email);
     setUserRole(user.role);
-    setUserOrgId(user.organizationId);
+    setUserOrgId(user.organizationId || '');
     setUserCredential(user.credentialTitle);
     setUserLicense(user.licenseNumber);
     setUserNpi(user.npi || '');
