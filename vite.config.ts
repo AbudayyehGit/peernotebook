@@ -7,9 +7,9 @@ import { defineConfig } from 'vite';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-import { executeDailyDigest } from './api/daily-digest';
-import { executeLeadCapture } from './api/lead-capture';
-import { executeTestEmail } from './api/test-email';
+import { executeDailyDigest } from './api/daily-digest.ts';
+import { executeLeadCapture } from './api/lead-capture.ts';
+import { executeTestEmail } from './api/test-email.ts';
 
 function getRequestBody(req: IncomingMessage): Promise<any> {
   return new Promise((resolve) => {

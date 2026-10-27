@@ -5,8 +5,8 @@
  * GA #8 Standard • HIPAA / CMIA Compliant
  */
 
-import { executeDailyDigest } from './daily-digest';
-import { generateUserChecklistHtml, generateSupportAlertHtml } from './lead-capture';
+import { executeDailyDigest } from './daily-digest.ts';
+import { generateUserChecklistHtml, generateSupportAlertHtml } from './lead-capture.ts';
 
 export const config = {
   runtime: 'nodejs'

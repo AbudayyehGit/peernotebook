@@ -5,9 +5,22 @@
  * customer.subscription.deleted, invoice.payment_succeeded
  */
 
+function sendResponse(res: any, status: number, data?: any) {
+  if (typeof res.status === 'function') {
+    if (data !== undefined) return res.status(status).json(data);
+    return res.status(status).end();
+  }
+  res.statusCode = status;
+  if (data !== undefined) {
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify(data));
+  }
+  return res.end();
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed. Use POST.' });
+    return sendResponse(res, 405, { error: 'Method not allowed. Use POST.' });
   }
 
   const stripeSig = req.headers['stripe-signature'];
@@ -171,9 +184,9 @@ export default async function handler(req: any, res: any) {
         console.log(`[Stripe Webhook] Unhandled event type: ${eventType}`);
     }
 
-    return res.status(200).json({ received: true, eventType });
+    return sendResponse(res, 200, { received: true, eventType });
   } catch (err: any) {
     console.error('[Stripe Webhook] Handler error:', err);
-    return res.status(400).json({ error: err.message || 'Webhook error' });
+    return sendResponse(res, 400, { error: err.message || 'Webhook error' });
   }
 }
