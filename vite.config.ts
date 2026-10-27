@@ -1,13 +1,20 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { defineConfig } from 'vite';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function devApiPlugin() {
   return {
     name: 'dev-api-plugin',
-    configureServer(server: { middlewares: { use: (handler: (req: IncomingMessage, res: ServerResponse, next: () => void) => void) => void } }) {
+    configureServer(server: {
+      middlewares: {
+        use: (handler: (req: IncomingMessage & { url?: string }, res: ServerResponse, next: () => void) => void) => void;
+      };
+    }) {
       server.middlewares.use((req: IncomingMessage & { url?: string }, res: ServerResponse, next: () => void) => {
         const requestUrl = req.url ?? '';
 
@@ -73,7 +80,7 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss(), devApiPlugin()],
     resolve: {
       alias: {
-        '@': path.resolve(import.meta.dirname, 'src'),
+        '@': path.resolve(__dirname, 'src'),
       },
     },
     server: {
