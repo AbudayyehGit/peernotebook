@@ -1,14 +1,17 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
+import path from 'node:path';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { defineConfig } from 'vite';
 
 function devApiPlugin() {
   return {
     name: 'dev-api-plugin',
-    configureServer(server: any) {
-      server.middlewares.use((req: any, res: any, next: any) => {
-        if (req.url?.startsWith('/api/daily-digest')) {
+    configureServer(server: { middlewares: { use: (handler: (req: IncomingMessage, res: ServerResponse, next: () => void) => void) => void } }) {
+      server.middlewares.use((req: IncomingMessage & { url?: string }, res: ServerResponse, next: () => void) => {
+        const requestUrl = req.url ?? '';
+
+        if (requestUrl.startsWith('/api/daily-digest')) {
           res.setHeader('Content-Type', 'application/json');
           res.end(
             JSON.stringify({
@@ -46,16 +49,18 @@ function devApiPlugin() {
               dispatchStatus: 'delivered',
               provider: 'resend',
               messageId: `pn_digest_dev_${Date.now()}`,
-              htmlReport: `<!DOCTYPE html><html><body style="font-family:sans-serif;color:#1e293b;padding:20px;"><h2>Peer Notebook Daily Telemetry & Lead Digest</h2><p>Recipient: support@peernotebook.com</p><p>New Beta Cohort Leads: 5 | 24h Site Visits: 342 | Conversion: 4.8%</p></body></html>`,
+              htmlReport: `<!DOCTYPE html><html><body style="font-family:sans-serif;color:#1e293b;padding:20px;"><h2>Peer Notebook Daily Telemetry & Lead Digest</h2><p>Recipient: support@peernotebook.com</p><p>Period: ${new Date(Date.now() - 86400000).toISOString()} to ${new Date().toISOString()}</p></body></html>`,
             })
           );
           return;
         }
-        if (req.url?.startsWith('/api/lead-capture')) {
+
+        if (requestUrl.startsWith('/api/lead-capture')) {
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify({ ok: true, message: 'Lead captured successfully' }));
           return;
         }
+
         next();
       });
     },
