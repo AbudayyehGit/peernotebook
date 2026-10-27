@@ -26,6 +26,7 @@ import { SubscriptionStatusBadge } from './components/SubscriptionStatusBadge';
 import { BillingModal } from './components/BillingModal';
 import { HeartHandshake, Sparkles, Globe, Mail, BookOpen, Eye, EyeOff, Lock, UserCheck } from 'lucide-react';
 import { safeStorage } from './utils/safeStorage';
+import { Analytics } from '@vercel/analytics/react';
 
 function AppContent() {
   const { currentOrg, currentUser, isLoading } = useAuth();
@@ -386,6 +387,9 @@ function AppContent() {
 
       {/* HIPAA & CMIA Privacy Consent Disclosure */}
       <PrivacyConsentBanner />
+      
+      {/* Vercel Web Analytics */}
+      <Analytics />
     </div>
   );
 }
