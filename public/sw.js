@@ -1,10 +1,10 @@
 /**
  * Peer Notebook - Progressive Web Application Service Worker
- * GA #8 Production Standards • Offline-First Field Cache
- * Domain: peernotebook.com
+ * GA #8 Production Standards • Network-First for Navigation • Offline-First for Assets
+ * Domain: peernotebook.com & peernotebook.ai.studio
  */
 
-const CACHE_NAME = 'peernotebook-v1.2.1-ga8';
+const CACHE_NAME = 'peernotebook-v1.3.0-live';
 const OFFLINE_URLS = [
   '/',
   '/index.html',
@@ -13,7 +13,9 @@ const OFFLINE_URLS = [
 
 const isProductionDomain =
   self.location.hostname === 'peernotebook.com' ||
-  self.location.hostname === 'www.peernotebook.com';
+  self.location.hostname === 'www.peernotebook.com' ||
+  self.location.hostname === 'peernotebook.ai.studio' ||
+  self.location.hostname.endsWith('.ai.studio');
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -26,26 +28,29 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  if (!isProductionDomain) {
-    event.waitUntil(
-      caches.keys().then((cacheNames) => {
-        return Promise.all(cacheNames.map((name) => caches.delete(name)));
-      }).then(() => {
-        return self.registration.unregister();
-      })
-    );
-    return;
-  }
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
           .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+          .map((name) => {
+            console.log(`[SW] Purging outdated cache: ${name}`);
+            return caches.delete(name);
+          })
       );
+    }).then(() => {
+      return self.clients.claim();
     })
   );
-  self.clients.claim();
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data && event.data.type === 'PURGE_CACHE') {
+    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
+  }
 });
 
 self.addEventListener('fetch', (event) => {
@@ -69,43 +74,59 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch from network in background to update cache (Stale-While-Revalidate)
-        fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, networkResponse);
-              });
-            }
-          })
-          .catch(() => {
-            // Field offline mode - cached response already returned
-          });
-        return cachedResponse;
-      }
+  const isNavigation =
+    event.request.mode === 'navigate' ||
+    (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'));
 
-      // Network first with cache fallback
-      return fetch(event.request)
-        .then((response) => {
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
+  // 1. NAVIGATION REQUESTS: Always Network-First so updates deploy instantly to peernotebook.com
+  if (isNavigation) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
           }
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-          return response;
+          return networkResponse;
         })
         .catch(() => {
-          // If offline and navigating to a page, return cached root/index.html
-          if (event.request.mode === 'navigate') {
-            return caches.match('/');
+          // If field network is offline, seamlessly fall back to cached index.html
+          return caches.match('/index.html').then((cached) => {
+            return (
+              cached ||
+              caches.match('/') ||
+              new Response(
+                '<!DOCTYPE html><html><head><title>Peer Notebook - Offline</title></head><body><h1>Field Offline Mode</h1><p>Peer Notebook is available offline. Please reload or check your local notes.</p></body></html>',
+                { headers: { 'Content-Type': 'text/html' } }
+              )
+            );
+          });
+        })
+    );
+    return;
+  }
+
+  // 2. STATIC ASSETS & FILES: Stale-While-Revalidate with Cache Fallback
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
           }
-          return new Response('Network offline', { status: 503, statusText: 'Service Unavailable' });
+          return networkResponse;
+        })
+        .catch(() => {
+          // Network failure is expected in offline field mode
+          return cachedResponse;
         });
+
+      return cachedResponse || fetchPromise;
     })
   );
 });

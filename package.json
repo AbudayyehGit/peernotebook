@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "audit:compliance": "node scripts/audit-compliance.js"
+    "audit:compliance": "node scripts/audit-compliance.js",
+    "git:sync": "bash scripts/sync-to-github.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
