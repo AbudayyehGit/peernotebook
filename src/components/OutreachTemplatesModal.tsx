@@ -14,8 +14,10 @@ import {
   Users,
   Send,
   Sparkles,
-  FileText
+  FileText,
+  ExternalLink
 } from 'lucide-react';
+import { leadDigestService } from '../services/leadDigestService';
 
 interface OutreachTemplatesModalProps {
   isOpen: boolean;
@@ -28,6 +30,8 @@ export const OutreachTemplatesModal: React.FC<OutreachTemplatesModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'peer' | 'supervisor' | 'contractor'>('peer');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isSendingPreview, setIsSendingPreview] = useState(false);
+  const [previewSentNotice, setPreviewSentNotice] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -38,6 +42,30 @@ export const OutreachTemplatesModal: React.FC<OutreachTemplatesModalProps> = ({
       setTimeout(() => setCopiedId(null), 2500);
     } catch {
       // Fallback
+    }
+  };
+
+  const openInEmailClient = (subject: string, body: string) => {
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
+  };
+
+  const handleSendTestPreview = async (subject: string, body: string) => {
+    setIsSendingPreview(true);
+    setPreviewSentNotice(null);
+    try {
+      const res = await leadDigestService.testEmailDispatcher({
+        to: 'support@peernotebook.com',
+        templateType: 'outreach-preview',
+        subject: `[Outreach Preview] ${subject}`,
+        customMessage: body
+      });
+      setPreviewSentNotice(`Preview dispatched to support@peernotebook.com (${res.deliveryStatus.toUpperCase()} via ${res.provider})`);
+      setTimeout(() => setPreviewSentNotice(null), 4000);
+    } catch {
+      setPreviewSentNotice('Failed to send preview email.');
+    } finally {
+      setIsSendingPreview(false);
     }
   };
 
@@ -185,28 +213,57 @@ In solidarity,
               <h3 className="text-sm font-bold text-[#1E3A8A]">{activeTemplate.title}</h3>
               <span className="text-xs text-slate-500">Target: {activeTemplate.audience}</span>
             </div>
-            <button
-              onClick={() =>
-                copyToClipboard(
-                  `Subject: ${activeTemplate.subject}\n\n${activeTemplate.body}`,
-                  activeTemplate.id
-                )
-              }
-              className="min-h-[40px] px-3.5 py-1.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-lg text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
-            >
-              {copiedId === activeTemplate.id ? (
-                <>
-                  <CheckCheck className="w-3.5 h-3.5" />
-                  <span>Copied Entire Message!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Copy Subject & Body</span>
-                </>
-              )}
-            </button>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => openInEmailClient(activeTemplate.subject, activeTemplate.body)}
+                className="min-h-[40px] px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#1E3A8A] border border-blue-200 rounded-lg text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                title="Open directly in your default email client"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open in Mail Client</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendTestPreview(activeTemplate.subject, activeTemplate.body)}
+                disabled={isSendingPreview}
+                className="min-h-[40px] px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-[#D97706] border border-amber-200 rounded-lg text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+                title="Dispatch a test preview copy to support@peernotebook.com"
+              >
+                <Send className={`w-3.5 h-3.5 ${isSendingPreview ? 'animate-bounce' : ''}`} />
+                <span>{isSendingPreview ? 'Sending...' : 'Send Preview to Support'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  copyToClipboard(
+                    `Subject: ${activeTemplate.subject}\n\n${activeTemplate.body}`,
+                    activeTemplate.id
+                  )
+                }
+                className="min-h-[40px] px-3.5 py-1.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-lg text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              >
+                {copiedId === activeTemplate.id ? (
+                  <>
+                    <CheckCheck className="w-3.5 h-3.5" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Text</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
+
+          {previewSentNotice && (
+            <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-[#16A34A] font-semibold flex items-center gap-2 animate-in fade-in">
+              <CheckCheck className="w-4 h-4 shrink-0 text-[#16A34A]" />
+              <span>{previewSentNotice}</span>
+            </div>
+          )}
 
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">

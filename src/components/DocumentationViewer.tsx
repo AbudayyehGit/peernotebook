@@ -1695,52 +1695,52 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans selection:bg-[#0F766E] selection:text-white">
       {/* Top Navigation Bar */}
-      <header className="bg-[#1E3A8A] border-b border-blue-950 sticky top-0 z-40 shadow-sm text-white">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-16 py-2.5 sm:py-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+      <header className="bg-[#1E3A8A] border-b border-blue-950 sticky top-0 z-40 shadow-sm text-white w-full max-w-full overflow-x-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-18 sm:min-h-20 py-3 sm:py-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 w-full">
+          <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={onReturnToLanding || onReturnToWorkspace}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0F766E] flex items-center justify-center text-white shadow-sm ring-1 ring-white/20 hover:opacity-90 transition-opacity shrink-0"
+              className="w-10 h-10 rounded-xl bg-[#0F766E] flex items-center justify-center text-white shadow-sm ring-1 ring-white/20 hover:opacity-90 transition-opacity shrink-0 cursor-pointer"
               title="Return to App"
             >
-              <HeartHandshake className="w-4 h-4 sm:w-5 sm:h-5" />
+              <HeartHandshake className="w-5 h-5" />
             </button>
             <div className="min-w-0">
               <div className="flex items-center gap-2 min-w-0">
                 <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
                   Peer Notebook Documentation Hub
                 </h1>
-                <span className="hidden xs:inline-flex text-xs font-mono px-2 py-0.5 rounded-md bg-blue-800/90 border border-blue-700/80 text-blue-100 font-semibold shrink-0">
+                <span className="hidden xs:inline-flex text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-800/90 border border-blue-700/80 text-blue-100 font-semibold shrink-0">
                   GA #8 Standard
                 </span>
               </div>
-              <p className="text-xs text-blue-200 truncate">
+              <p className="text-xs text-blue-200 truncate mt-0.5">
                 27-Document Master Binder &amp; 6-ADR Suite • CalAIM, Medi-Cal H0038 &amp; CalMHSA
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <a
               href="#trust"
-              className="min-h-[44px] px-3 sm:px-3.5 py-2 bg-blue-900/70 hover:bg-blue-800 text-blue-100 border border-blue-700/60 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="min-h-[48px] px-5 py-3 bg-blue-900/70 hover:bg-blue-800 text-blue-100 border border-blue-700/60 rounded-full text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Trust Center</span>
             </a>
             {onReturnToWorkspace && (
               <button
                 onClick={onReturnToWorkspace}
-                className="min-h-[44px] px-3.5 sm:px-4 py-2 bg-[#0F766E] hover:bg-teal-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                className="min-h-[48px] px-5 py-3 bg-[#0F766E] hover:bg-teal-700 text-white rounded-full text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer border border-teal-500/60 active:scale-95"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
+                <ArrowLeft className="w-4 h-4" />
                 <span>Launch Clinical Workspace</span>
               </button>
             )}
             {onReturnToLanding && (
               <button
                 onClick={onReturnToLanding}
-                className="min-h-[44px] px-3 sm:px-3.5 py-2 bg-blue-900/70 hover:bg-blue-800 text-blue-100 border border-blue-700/60 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                className="min-h-[48px] px-5 py-3 bg-blue-900/70 hover:bg-blue-800 text-blue-100 border border-blue-700/60 rounded-full text-xs sm:text-sm font-bold transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-2"
               >
                 Landing &amp; Checklist
               </button>

@@ -71,6 +71,19 @@ export interface DigestResponse {
   htmlReport: string;
 }
 
+export interface TestEmailResult {
+  ok: boolean;
+  recipient: string;
+  subject: string;
+  templateType: string;
+  deliveryStatus: 'delivered' | 'simulated';
+  provider: string;
+  messageId: string;
+  dispatchedAt: string;
+  htmlPreview: string;
+  error?: string;
+}
+
 const LEADS_STORAGE_KEY = 'peernotebook_pilot_leads';
 const TRAFFIC_STORAGE_KEY = 'peernotebook_traffic_pings';
 
@@ -474,5 +487,42 @@ export const leadDigestService = {
       messageId: `pn_digest_manual_${Date.now()}`,
       htmlReport
     };
+  },
+
+  /**
+   * Dedicated manual test email dispatcher for settings and verification tools
+   */
+  async testEmailDispatcher(options: {
+    to?: string;
+    templateType: 'daily-digest' | 'welcome-checklist' | 'lead-alert' | 'ping-verification' | 'outreach-preview';
+    customMessage?: string;
+    subject?: string;
+  }): Promise<TestEmailResult> {
+    try {
+      const res = await fetch('/api/test-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(options)
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.details || errData.error || 'Server error');
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      return {
+        ok: true,
+        recipient: options.to || 'support@peernotebook.com',
+        subject: options.subject || `[Simulated] ${options.templateType}`,
+        templateType: options.templateType,
+        deliveryStatus: 'simulated',
+        provider: 'simulated-resend',
+        messageId: `msg_dev_${Date.now()}`,
+        dispatchedAt: new Date().toISOString(),
+        htmlPreview: `<div style="font-family:sans-serif;padding:20px;"><h3>Offline Simulation</h3><p>Template: ${options.templateType}</p><p>Recipient: ${options.to || 'support@peernotebook.com'}</p></div>`,
+        error: errMsg
+      };
+    }
   }
 };

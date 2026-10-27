@@ -52,7 +52,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { opfsStorage, StorageQuotaInfo, OPFSSnapshotMeta } from '../services/opfsStorageService';
-import { leadDigestService, DigestResponse } from '../services/leadDigestService';
+import { leadDigestService, DigestResponse, TestEmailResult } from '../services/leadDigestService';
 import { StripeBillingService, SUBSCRIPTION_TIERS } from '../services/stripeBillingService';
 import { safeStorage } from '../utils/safeStorage';
 
@@ -260,6 +260,52 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
       setTimeout(() => setDigestHtmlCopied(false), 2000);
     } catch {
       // ignore
+    }
+  };
+
+  // Manual Transactional Email Dispatcher & Verification State
+  const [testEmailRecipient, setTestEmailRecipient] = useState(currentUser?.email || 'support@peernotebook.com');
+  const [testEmailType, setTestEmailType] = useState<'daily-digest' | 'welcome-checklist' | 'lead-alert' | 'ping-verification' | 'outreach-preview'>('daily-digest');
+  const [testEmailNote, setTestEmailNote] = useState('');
+  const [testEmailLoading, setTestEmailLoading] = useState(false);
+  const [testEmailResult, setTestEmailResult] = useState<TestEmailResult | null>(null);
+  const [testEmailModalOpen, setTestEmailModalOpen] = useState(false);
+  const [testEmailNotice, setTestEmailNotice] = useState<string | null>(null);
+
+  const handleSendTestEmail = async () => {
+    setTestEmailLoading(true);
+    setTestEmailNotice(null);
+    try {
+      const res = await leadDigestService.testEmailDispatcher({
+        to: testEmailRecipient.trim() || 'support@peernotebook.com',
+        templateType: testEmailType,
+        customMessage: testEmailNote.trim() || undefined
+      });
+      setTestEmailResult(res);
+      setTestEmailNotice(`Dispatched [${res.templateType}] to ${res.recipient} (${res.deliveryStatus.toUpperCase()} via ${res.provider})`);
+
+      if (currentUser && currentOrg) {
+        await AuditLogger.log({
+          organizationId: currentOrg.id,
+          actorId: currentUser.id,
+          actorName: currentUser.fullName,
+          actorRole: currentUser.role,
+          action: 'MANUAL_SYNC',
+          entityType: 'system',
+          entityId: 'test_email_dispatch',
+          details: {
+            recipient: res.recipient,
+            templateType: res.templateType,
+            deliveryStatus: res.deliveryStatus,
+            messageId: res.messageId
+          }
+        });
+      }
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      setTestEmailNotice(`Failed to dispatch test email: ${errMsg}`);
+    } finally {
+      setTestEmailLoading(false);
     }
   };
 
@@ -1727,6 +1773,123 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
         )}
       </div>
 
+      {/* Part 6: Manual Email Trigger & Delivery Verification (Resend API) */}
+      <div className="p-5 sm:p-7 bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-5 max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200/80 shrink-0">
+              <Mail className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-[#1E3A8A]">Transactional Email Trigger &amp; Delivery Verification</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-100 text-[#1E3A8A] font-bold">
+                  Resend Engine
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">Test, troubleshoot, and dispatch all automatic and manual transactional email templates on demand.</p>
+            </div>
+          </div>
+          <span className="self-start sm:self-auto text-xs font-mono text-[#16A34A] bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl font-bold shrink-0 flex items-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4 text-[#16A34A]" /> All Triggers Active
+          </span>
+        </div>
+
+        {/* Trigger Selection and Target Recipient Form */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-700">
+              Select Transactional Email Trigger:
+            </label>
+            <select
+              value={testEmailType}
+              onChange={(e) => setTestEmailType(e.target.value as any)}
+              className="w-full min-h-[44px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F766E]"
+            >
+              <option value="daily-digest">00:00 UTC Daily Executive Digest (Backlog + Leads + Telemetry)</option>
+              <option value="welcome-checklist">10-Minute CalAIM H0038 Note Checklist &amp; Beta Welcome</option>
+              <option value="lead-alert">Immediate Lead Pilot Alert to support@peernotebook.com</option>
+              <option value="outreach-preview">Beta Specialist Outreach Script Preview</option>
+              <option value="ping-verification">Resend API Round-Trip Connectivity Ping</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-700">
+              Target Recipient Address:
+            </label>
+            <input
+              type="email"
+              value={testEmailRecipient}
+              onChange={(e) => setTestEmailRecipient(e.target.value)}
+              placeholder="support@peernotebook.com or custom email"
+              className="w-full min-h-[44px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F766E]"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold text-slate-700">
+            Optional Custom Verification Note / Parameter:
+          </label>
+          <input
+            type="text"
+            value={testEmailNote}
+            onChange={(e) => setTestEmailNote(e.target.value)}
+            placeholder="e.g. Verification test for QA sprint"
+            className="w-full min-h-[44px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F766E]"
+          />
+        </div>
+
+        {/* Action Row */}
+        <div className="p-4 bg-slate-50/90 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="text-xs text-slate-600">
+            <span>Dispatches formatted email using Resend API (or safe simulated sandbox if key is offline).</span>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {testEmailResult && (
+              <button
+                type="button"
+                onClick={() => setTestEmailModalOpen(true)}
+                className="min-h-[44px] px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                title="View preview of last sent test email"
+              >
+                <Eye className="w-4 h-4 text-slate-500" />
+                <span>View Email Preview</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleSendTestEmail}
+              disabled={testEmailLoading}
+              className="min-h-[44px] px-5 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 disabled:opacity-60 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 shrink-0"
+            >
+              <Send className={`w-4 h-4 shrink-0 ${testEmailLoading ? 'animate-bounce' : ''}`} />
+              <span>{testEmailLoading ? 'Dispatching Test Email...' : 'Send Test Email Now'}</span>
+            </button>
+          </div>
+        </div>
+
+        {testEmailNotice && (
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-[#16A34A] font-semibold flex items-center gap-2 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{testEmailNotice}</span>
+          </div>
+        )}
+
+        {testEmailResult && (
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1 font-mono text-slate-700">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span>Status: <strong className="text-[#16A34A]">{testEmailResult.deliveryStatus.toUpperCase()}</strong> ({testEmailResult.provider})</span>
+              <span>Message ID: <strong className="text-slate-900">{testEmailResult.messageId}</strong></span>
+              <span>Dispatched At: {new Date(testEmailResult.dispatchedAt).toLocaleTimeString()}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Restore Confirmation Modal */}
       {restoreConfirmOpen && pendingRestoreData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/25 backdrop-blur-sm transition-opacity">
@@ -2082,6 +2245,63 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
               <button
                 type="button"
                 onClick={() => setDigestModalOpen(false)}
+                className="min-h-[44px] px-6 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs font-bold transition-colors cursor-pointer"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Test Email Preview Modal */}
+      {testEmailModalOpen && testEmailResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/25 backdrop-blur-sm transition-opacity overflow-y-auto">
+          <div className="bg-white border border-slate-200/90 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto my-auto space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-blue-50 text-[#1E3A8A] rounded-xl border border-blue-200">
+                  <Mail className="w-5 h-5 text-[#1E3A8A]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#1E3A8A]">Dispatched Test Email Preview</h3>
+                  <p className="text-xs text-slate-500 font-mono">
+                    To: {testEmailResult.recipient} · Subject: {testEmailResult.subject}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTestEmailModalOpen(false)}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex flex-wrap items-center justify-between gap-2 font-mono">
+              <span>Status: <strong className="text-[#16A34A]">{testEmailResult.deliveryStatus.toUpperCase()}</strong></span>
+              <span>Provider: <strong>{testEmailResult.provider}</strong></span>
+              <span>Message ID: <strong className="text-slate-800">{testEmailResult.messageId}</strong></span>
+            </div>
+
+            <div className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+              <div className="p-2 bg-slate-200/70 border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider flex justify-between items-center">
+                <span>Rendered HTML Output</span>
+                <span className="text-[10px] text-slate-500 font-mono">preview</span>
+              </div>
+              <iframe
+                title="Email Preview"
+                srcDoc={testEmailResult.htmlPreview}
+                className="w-full h-96 border-0 bg-white"
+                sandbox="allow-same-origin"
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setTestEmailModalOpen(false)}
                 className="min-h-[44px] px-6 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs font-bold transition-colors cursor-pointer"
               >
                 Close Preview
