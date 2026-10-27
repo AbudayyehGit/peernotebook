@@ -638,7 +638,7 @@ Built with trauma-informed care at peernotebook.com`;
               <button
                 type="button"
                 onClick={() => setOutreachModalOpen(true)}
-                className="min-h-[46px] px-5 py-2.5 bg-blue-800/80 hover:bg-blue-700 text-white rounded-full text-xs font-bold transition-colors border border-blue-600 cursor-pointer flex items-center gap-2"
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 bg-blue-800/80 hover:bg-blue-700 text-white rounded-full text-xs sm:text-sm font-bold transition-colors border border-blue-600 cursor-pointer flex items-center justify-center gap-2"
               >
                 <Mail className="w-4 h-4" />
                 <span>Outreach Email Scripts</span>
@@ -647,7 +647,7 @@ Built with trauma-informed care at peernotebook.com`;
               <button
                 type="button"
                 onClick={() => setOnboardingModalOpen(true)}
-                className="min-h-[46px] px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-full text-xs font-bold transition-colors cursor-pointer flex items-center gap-2"
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 bg-teal-600 hover:bg-teal-500 text-white rounded-full text-xs sm:text-sm font-bold transition-colors cursor-pointer flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>2-Min Walkthrough</span>
@@ -656,7 +656,7 @@ Built with trauma-informed care at peernotebook.com`;
               <button
                 type="button"
                 onClick={onLaunchApp}
-                className="min-h-[46px] px-6 py-2.5 bg-white hover:bg-slate-100 text-[#1E3A8A] rounded-full text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer flex items-center gap-2"
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 bg-white hover:bg-slate-100 text-[#1E3A8A] rounded-full text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <Zap className="w-4 h-4 text-[#0F766E]" />
                 <span>Launch Workspace Now</span>

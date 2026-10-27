@@ -15,6 +15,7 @@ interface LeadItem {
   county?: string;
   wantsBetaCohort?: boolean;
   submittedAt: string;
+  isLast24Hours?: boolean;
 }
 
 interface BacklogTask {
@@ -40,9 +41,10 @@ function generateHtmlReport(data: {
   totalLeadsCount: number;
   traffic: TrafficSummary;
   recentLeads: LeadItem[];
+  allLeads: LeadItem[];
   activeBacklog: BacklogTask[];
 }): string {
-  const { dateStr, newLeadsCount, totalLeadsCount, traffic, recentLeads, activeBacklog } = data;
+  const { dateStr, newLeadsCount, totalLeadsCount, traffic, recentLeads, allLeads, activeBacklog } = data;
 
   // Backlog Rows
   const backlogRows = activeBacklog.length > 0
@@ -71,18 +73,35 @@ function generateHtmlReport(data: {
       }).join('')
     : `<tr><td colspan="6" style="padding: 20px; text-align: center; color: #64748B;">All backlog tasks completed.</td></tr>`;
 
-  // Lead Rows
+  // Section 1: Lead Rows (Prior 24 Hours)
   const leadRows = recentLeads.length > 0
     ? recentLeads.map((lead, idx) => `
       <tr style="border-bottom: 1px solid #E2E8F0; background-color: ${idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC'};">
-        <td style="padding: 10px 14px; font-weight: 600; color: #1E3A8A; font-size: 13px;">${lead.email}</td>
-        <td style="padding: 10px 14px; color: #334155; font-size: 13px;">${lead.name || 'Colleague'}</td>
+        <td style="padding: 10px 14px; font-weight: 600; color: #1E3A8A; font-size: 13px;">${lead.name || 'Colleague'}</td>
+        <td style="padding: 10px 14px; color: #0F766E; font-family: monospace; font-size: 12px;">${lead.email}</td>
         <td style="padding: 10px 14px; color: #64748B; font-size: 12px;">${lead.roleTitle || 'Peer Support Specialist (CPSS-CA)'}</td>
-        <td style="padding: 10px 14px; color: #0F766E; font-weight: 500; font-size: 12px;">${lead.county || 'California'}</td>
-        <td style="padding: 10px 14px; color: #94A3B8; font-size: 11px; font-family: monospace;">${new Date(lead.submittedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+        <td style="padding: 10px 14px; color: #334155; font-weight: 500; font-size: 12px;">${lead.county || 'California'}</td>
+        <td style="padding: 10px 14px; color: #16A34A; font-size: 11px; font-weight: 700; font-family: monospace;">🟢 ${new Date(lead.submittedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} (24h)</td>
       </tr>
     `).join('')
     : `<tr><td colspan="5" style="padding: 20px; text-align: center; color: #64748B;">No new subscribers in this 24-hour cycle. Active cumulative roster: ${totalLeadsCount}.</td></tr>`;
+
+  // Section 2: All Captured Leads Ever Rows
+  const allLeadsRows = allLeads.length > 0
+    ? allLeads.map((lead, idx) => `
+      <tr style="border-bottom: 1px solid #E2E8F0; background-color: ${idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC'};">
+        <td style="padding: 10px 14px; font-weight: 600; color: #1E293B; font-size: 13px;">${lead.name || 'Colleague'}</td>
+        <td style="padding: 10px 14px; color: #0F766E; font-family: monospace; font-size: 12px;">${lead.email}</td>
+        <td style="padding: 10px 14px; color: #64748B; font-size: 12px;">${lead.roleTitle || 'Peer Support Specialist'}</td>
+        <td style="padding: 10px 14px; color: #334155; font-size: 12px;">${lead.county || 'California'}</td>
+        <td style="padding: 10px 14px; font-size: 11px; font-family: monospace;">
+          ${lead.isLast24Hours
+            ? '<span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; background-color: #DCFCE7; color: #16A34A; font-weight: 700;">🟢 Last 24h</span>'
+            : '<span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; background-color: #F1F5F9; color: #64748B; font-weight: 600;">⚪ Historical</span>'}
+        </td>
+      </tr>
+    `).join('')
+    : `<tr><td colspan="5" style="padding: 20px; text-align: center; color: #64748B;">No subscribers recorded.</td></tr>`;
 
   return `
 <!DOCTYPE html>
@@ -161,27 +180,53 @@ function generateHtmlReport(data: {
         </div>
       </div>
 
-      <!-- Tabular Lead Capture Log Section -->
-      <div style="margin-bottom: 28px;">
+      <!-- Section 1: New Leads Captured in Last 24 Hours -->
+      <div style="margin-bottom: 28px; background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 16px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-          <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: #1E3A8A; text-transform: uppercase; letter-spacing: 0.03em;">
-            👥 Waitlist & Lead Capture Log (Past 24 Hours)
+          <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: #16A34A; text-transform: uppercase; letter-spacing: 0.03em;">
+            🕒 Section 1: Newly Captured Subscribers (Prior 24 Hours)
           </h3>
-          <span style="font-size: 11px; color: #0F766E; font-weight: 700;">+${newLeadsCount} New Today</span>
+          <span style="font-size: 11px; color: #15803D; font-weight: 700; background-color: #DCFCE7; padding: 3px 8px; border-radius: 9999px;">+${newLeadsCount} New Today</span>
         </div>
-        <div style="overflow-x: auto; border: 1px solid #E2E8F0; border-radius: 12px;">
+        <div style="overflow-x: auto; border: 1px solid #E2E8F0; border-radius: 8px; background-color: #FFFFFF;">
           <table style="width: 100%; border-collapse: collapse; text-align: left;">
             <thead>
               <tr style="background-color: #F1F5F9; border-bottom: 2px solid #CBD5E1;">
-                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Subscriber Email</th>
                 <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Name</th>
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Email</th>
                 <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Role</th>
                 <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">County</th>
-                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Timestamp</th>
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Time</th>
               </tr>
             </thead>
             <tbody>
               ${leadRows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Section 2: All Captured Subscribers Ever (Complete Lifetime Roster) -->
+      <div style="margin-bottom: 28px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+          <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: #1E3A8A; text-transform: uppercase; letter-spacing: 0.03em;">
+            📚 Section 2: All Captured Subscribers Ever (${totalLeadsCount} Total Lifetime Roster)
+          </h3>
+          <span style="font-size: 11px; color: #1E3A8A; font-weight: 700; background-color: #DBEAFE; padding: 3px 8px; border-radius: 9999px;">Cumulative Archive</span>
+        </div>
+        <div style="overflow-x: auto; border: 1px solid #E2E8F0; border-radius: 8px; background-color: #FFFFFF;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="background-color: #F1F5F9; border-bottom: 2px solid #CBD5E1;">
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Name</th>
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Email</th>
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Role</th>
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">County</th>
+                <th style="padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: #475569;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${allLeadsRows}
             </tbody>
           </table>
         </div>
@@ -296,7 +341,8 @@ serve(async (req: Request) => {
         roleTitle: "Certified Peer Support Specialist (CPSS-CA)",
         county: "Alameda",
         wantsBetaCohort: true,
-        submittedAt: new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString()
+        submittedAt: new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString(),
+        isLast24Hours: true
       },
       {
         email: "d.reyes@sfnetworkpeer.org",
@@ -304,7 +350,8 @@ serve(async (req: Request) => {
         roleTitle: "Lead Peer Navigator (ECM)",
         county: "San Francisco",
         wantsBetaCohort: true,
-        submittedAt: new Date(now.getTime() - 9 * 60 * 60 * 1000).toISOString()
+        submittedAt: new Date(now.getTime() - 9 * 60 * 60 * 1000).toISOString(),
+        isLast24Hours: true
       },
       {
         email: "clarissa.wong@contra-costa-bh.gov",
@@ -312,9 +359,90 @@ serve(async (req: Request) => {
         roleTitle: "Clinical Supervisor & QA Lead",
         county: "Contra Costa",
         wantsBetaCohort: true,
-        submittedAt: new Date(now.getTime() - 17 * 60 * 60 * 1000).toISOString()
+        submittedAt: new Date(now.getTime() - 17 * 60 * 60 * 1000).toISOString(),
+        isLast24Hours: true
       }
     ];
+
+    // All captured historical signups ever across California counties
+    const historicalLeads: LeadItem[] = [
+      {
+        email: "jamal.washington@cbohealth.org",
+        name: "Jamal Washington",
+        roleTitle: "Certified Peer Support Specialist (CPSS-CA)",
+        county: "19-Los Angeles",
+        wantsBetaCohort: true,
+        submittedAt: new Date(now.getTime() - 2 * 86400 * 1000).toISOString(),
+        isLast24Hours: false
+      },
+      {
+        email: "maria.hernandez@sacpeerconnect.org",
+        name: "Maria Hernandez",
+        roleTitle: "1099 Independent Recovery Coach",
+        county: "34-Sacramento",
+        wantsBetaCohort: true,
+        submittedAt: new Date(now.getTime() - 4 * 86400 * 1000).toISOString(),
+        isLast24Hours: false
+      },
+      {
+        email: "david.kim@sandiegorecovery.net",
+        name: "David Kim",
+        roleTitle: "Community Health Worker (CHW)",
+        county: "37-San Diego",
+        wantsBetaCohort: true,
+        submittedAt: new Date(now.getTime() - 6 * 86400 * 1000).toISOString(),
+        isLast24Hours: false
+      },
+      {
+        email: "sarah.oconnor@santaclarabh.org",
+        name: "Sarah O'Connor",
+        roleTitle: "Peer Program Supervisor (LCSW)",
+        county: "43-Santa Clara",
+        wantsBetaCohort: true,
+        submittedAt: new Date(now.getTime() - 9 * 86400 * 1000).toISOString(),
+        isLast24Hours: false
+      },
+      {
+        email: "javier.morales@fresnohope.org",
+        name: "Javier Morales",
+        roleTitle: "Certified Peer Support Specialist (CPSS-CA)",
+        county: "10-Fresno",
+        wantsBetaCohort: true,
+        submittedAt: new Date(now.getTime() - 12 * 86400 * 1000).toISOString(),
+        isLast24Hours: false
+      },
+      {
+        email: "aisha.johnson@eastbaywellness.org",
+        name: "Aisha Johnson",
+        roleTitle: "Harm Reduction Specialist",
+        county: "01-Alameda",
+        wantsBetaCohort: true,
+        submittedAt: new Date(now.getTime() - 15 * 86400 * 1000).toISOString(),
+        isLast24Hours: false
+      },
+      {
+        email: "brian.kelly@ocrecoverycoalition.org",
+        name: "Brian Kelly",
+        roleTitle: "1099 Independent Recovery Coach",
+        county: "30-Orange",
+        wantsBetaCohort: true,
+        submittedAt: new Date(now.getTime() - 19 * 86400 * 1000).toISOString(),
+        isLast24Hours: false
+      },
+      {
+        email: "rachel.chen@sfharmreduction.org",
+        name: "Rachel Chen",
+        roleTitle: "Lead Peer Navigator (ECM)",
+        county: "38-San Francisco",
+        wantsBetaCohort: true,
+        submittedAt: new Date(now.getTime() - 24 * 86400 * 1000).toISOString(),
+        isLast24Hours: false
+      }
+    ];
+
+    const allLeads: LeadItem[] = [...recentLeads, ...historicalLeads];
+    const newLeadsCount = recentLeads.length;
+    const totalLeadsCount = allLeads.length;
 
     const traffic: TrafficSummary = {
       totalVisits: 384,
@@ -328,15 +456,13 @@ serve(async (req: Request) => {
       ]
     };
 
-    const newLeadsCount = recentLeads.length;
-    const totalLeadsCount = 51;
-
     const htmlReport = generateHtmlReport({
       dateStr,
       newLeadsCount,
       totalLeadsCount,
       traffic,
       recentLeads,
+      allLeads,
       activeBacklog
     });
 

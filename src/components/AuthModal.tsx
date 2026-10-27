@@ -304,7 +304,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full min-h-[48px] py-2.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all hover:shadow-md cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
+                  className="w-full min-h-[48px] px-6 py-3.5 bg-[#0F766E] hover:bg-teal-700 text-white rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all hover:shadow-md cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
                 >
                   <UserCheck className="w-4 h-4" />
                   <span>{isSubmitting ? 'Authenticating...' : 'Sign In to Workspace'}</span>
@@ -438,7 +438,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting || !allConsentGiven}
-                className={`w-full min-h-[48px] py-2.5 rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                className={`w-full min-h-[48px] px-6 py-3.5 rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
                   allConsentGiven && !isSubmitting
                     ? 'bg-[#1E3A8A] hover:bg-blue-900 text-white hover:shadow-md'
                     : 'bg-slate-200 text-slate-400 cursor-not-allowed'

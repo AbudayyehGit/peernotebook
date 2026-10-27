@@ -1100,7 +1100,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
           <button
             type="button"
             onClick={handleReplayTutorial}
-            className="min-h-[44px] px-4 py-2 bg-[#0F766E] hover:bg-teal-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs cursor-pointer shrink-0"
+            className="min-h-[48px] px-4 py-2.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-xs cursor-pointer shrink-0"
             title="Relaunch the interactive 3-step tutorial wizard"
           >
             <Sparkles className="w-4 h-4" />
@@ -1901,28 +1901,92 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
               </div>
             </div>
 
-            {/* Recent Leads Table */}
-            {digestResult.recentLeads && digestResult.recentLeads.length > 0 && (
-              <div className="space-y-1.5">
-                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Recent Beta Cohort Signups (Last 24 Hours)
-                </h4>
-                <div className="border border-slate-200 rounded-xl overflow-hidden bg-white text-xs divide-y divide-slate-100">
+            {/* Section 1: Signups in the Last 24 Hours */}
+            <div className="space-y-2 bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-200/80">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A] animate-pulse" />
+                  <h4 className="text-xs font-bold text-[#16A34A] uppercase tracking-wider">
+                    Section 1: Signups in the Last 24 Hours (+{digestResult.newLeadsCount} New)
+                  </h4>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                  Prior 24-Hour Cycle
+                </span>
+              </div>
+              {digestResult.recentLeads && digestResult.recentLeads.length > 0 ? (
+                <div className="border border-emerald-200/90 rounded-xl overflow-hidden bg-white text-xs divide-y divide-slate-100">
                   {digestResult.recentLeads.map((lead, i) => (
-                    <div key={i} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50">
+                    <div key={i} className="p-3 flex items-center justify-between gap-3 hover:bg-emerald-50/40">
                       <div>
-                        <span className="font-bold text-[#1E3A8A] block">{lead.name || 'Colleague'}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#1E3A8A] block">{lead.name || 'Colleague'}</span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            New 24h
+                          </span>
+                        </div>
                         <span className="text-slate-500 text-[11px] font-mono">{lead.email}</span>
                       </div>
                       <div className="text-right">
                         <span className="text-[#0F766E] font-medium block">{lead.roleTitle || 'Peer Specialist'}</span>
-                        <span className="text-[10px] text-slate-400">{lead.county || 'California'}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          {lead.county || 'California'} • {new Date(lead.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
                     </div>
                   ))}
                 </div>
+              ) : (
+                <div className="p-4 bg-white rounded-xl text-center text-xs text-slate-500 border border-emerald-100">
+                  No new signups registered in the last 24 hours.
+                </div>
+              )}
+            </div>
+
+            {/* Section 2: All Captured Signups Ever (Complete Lifetime Roster) */}
+            <div className="space-y-2 bg-slate-50/90 p-3.5 rounded-xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#1E3A8A]" />
+                  <h4 className="text-xs font-bold text-[#1E3A8A] uppercase tracking-wider">
+                    Section 2: All Captured Signups Ever ({digestResult.totalLeadsCount} Total Lifetime Roster)
+                  </h4>
+                </div>
+                <span className="text-[10px] font-bold text-blue-900 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200 font-mono">
+                  Cumulative Archive
+                </span>
               </div>
-            )}
+              <p className="text-[11px] text-slate-600">
+                Complete roster of all peer specialists, recovery coaches, and supervisors captured across the entire platform lifecycle:
+              </p>
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white text-xs divide-y divide-slate-100 max-h-60 overflow-y-auto">
+                {(digestResult.allLeads && digestResult.allLeads.length > 0 ? digestResult.allLeads : digestResult.recentLeads || []).map((lead, i) => (
+                  <div key={i} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 block">{lead.name || 'Colleague'}</span>
+                        {lead.isLast24Hours ? (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            🟢 Last 24h
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                            Historical
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-slate-500 text-[11px] font-mono">{lead.email}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[#0F766E] font-medium block">{lead.roleTitle || 'Peer Specialist'}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {lead.county || 'California'} • {new Date(lead.submittedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* Active Project Backlog Checklist */}
             {digestResult.activeBacklog && digestResult.activeBacklog.length > 0 && (

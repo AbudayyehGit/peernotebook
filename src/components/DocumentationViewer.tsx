@@ -1715,7 +1715,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
                 </span>
               </div>
               <p className="text-xs text-blue-200 truncate">
-                33-Document Master Binder &amp; ADR Suite • CalAIM, Medi-Cal H0038 &amp; CalMHSA
+                27-Document Master Binder &amp; 6-ADR Suite • CalAIM, Medi-Cal H0038 &amp; CalMHSA
               </p>
             </div>
           </div>

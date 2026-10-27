@@ -493,6 +493,18 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               <span>Log Interaction</span>
             </button>
 
+            {onReplayTutorial && (
+              <button
+                type="button"
+                onClick={onReplayTutorial}
+                className="min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold text-[#0F766E] bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-all shrink-0 cursor-pointer shadow-2xs"
+                title="Launch the Semi-Structured Flex Wizard for rapid CalAIM note drafting"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#0F766E]" />
+                <span>Flex Wizard</span>
+              </button>
+            )}
+
             <div className="h-6 w-px bg-slate-200 shrink-0 mx-1" />
 
             {/* Core Clinical Segmented Track */}

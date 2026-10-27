@@ -185,7 +185,7 @@ export const BillingModal: React.FC<BillingModalProps> = ({
                   type="button"
                   onClick={handleOpenStripePortal}
                   disabled={isProcessing}
-                  className="min-h-[44px] px-4 py-2 bg-white hover:bg-slate-100 text-[#1E3A8A] border border-slate-300 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                  className="min-h-[48px] px-6 py-3.5 bg-white hover:bg-slate-100 text-[#1E3A8A] border border-slate-300 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                 >
                   <CreditCard className="w-3.5 h-3.5 text-[#0F766E]" />
                   <span>Stripe Billing Portal</span>
@@ -215,7 +215,7 @@ export const BillingModal: React.FC<BillingModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedInterval('monthly')}
-                className={`min-h-[44px] px-5 py-2 rounded-full transition-all cursor-pointer ${
+                className={`min-h-[48px] px-6 py-3.5 rounded-full transition-all cursor-pointer ${
                   selectedInterval === 'monthly'
                     ? 'bg-white text-[#1E3A8A] font-bold shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -226,7 +226,7 @@ export const BillingModal: React.FC<BillingModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedInterval('annual')}
-                className={`min-h-[44px] px-5 py-2 rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`min-h-[48px] px-6 py-3.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
                   selectedInterval === 'annual'
                     ? 'bg-white text-[#1E3A8A] font-bold shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -308,7 +308,7 @@ export const BillingModal: React.FC<BillingModalProps> = ({
                       type="button"
                       disabled={isProcessing || isCurrent}
                       onClick={() => handleInitiateCheckout(tierKey)}
-                      className={`w-full min-h-[48px] px-4 py-2.5 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      className={`w-full min-h-[48px] px-6 py-3.5 rounded-full text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                         isCurrent
                           ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                           : tierKey === 'founding_specialist'
@@ -354,28 +354,28 @@ export const BillingModal: React.FC<BillingModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleSimulateTrialDays(14)}
-                className="min-h-[44px] px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 rounded-lg border border-slate-300 font-semibold cursor-pointer"
+                className="min-h-[48px] px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-300 font-semibold cursor-pointer"
               >
                 Reset 14 Days Trial
               </button>
               <button
                 type="button"
                 onClick={() => handleSimulateTrialDays(2)}
-                className="min-h-[44px] px-3.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg border border-amber-300 font-semibold cursor-pointer"
+                className="min-h-[48px] px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl border border-amber-300 font-semibold cursor-pointer"
               >
                 Simulate 2 Days Left (Amber Alert)
               </button>
               <button
                 type="button"
                 onClick={() => handleSimulateTrialDays(0)}
-                className="min-h-[44px] px-3.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-800 rounded-lg border border-red-300 font-semibold cursor-pointer"
+                className="min-h-[48px] px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-800 rounded-xl border border-red-300 font-semibold cursor-pointer"
               >
                 Simulate Trial Expired (Gating)
               </button>
               <button
                 type="button"
                 onClick={() => handleInitiateCheckout('founding_specialist')}
-                className="min-h-[44px] px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg border border-emerald-300 font-semibold cursor-pointer"
+                className="min-h-[48px] px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-300 font-semibold cursor-pointer"
               >
                 Simulate Active Founding ($19/mo)
               </button>
@@ -393,7 +393,7 @@ export const BillingModal: React.FC<BillingModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto min-h-[44px] px-6 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full font-bold transition-colors cursor-pointer"
+            className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full font-bold transition-colors cursor-pointer shadow-xs"
           >
             Close
           </button>

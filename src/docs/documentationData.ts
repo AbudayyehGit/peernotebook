@@ -704,5 +704,98 @@ Because Peer Notebook is offline-first, client devices continue documenting with
 * Client names pseudonymized into MRNs (\`PN-XXXX\`).
 * Zero commercial telemetry or third-party advertising cookies.
 * **Official Compliance Contact:** For county BAA execution, audit disclosures, or clinical inquiries, contact \`support@peernotebook.com\` at \`peernotebook.com\`.`
+  },
+  {
+    slug: 'Live_Dexie_Supabase_Sync_Protocol',
+    category: '04 Technical Architecture',
+    title: 'Live Dexie.js ⇄ Supabase Real-Time Sync Protocols',
+    subtitle: 'Transactional Micro-Latency, Offline Queue Buffering, and PostgreSQL Conflict Resolution',
+    specCode: 'GA8-ARCH-08',
+    lastUpdated: '2026-10-27',
+    author: 'Principal Systems Architect',
+    readTime: '11 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/Live_Dexie_Supabase_Sync_Protocol',
+    content: `# Live Dexie.js ⇄ Supabase Real-Time Sync Protocols
+**Target Ecosystem:** Peer Notebook Field Workspace & Mobile Outreach Units (POS 15)  
+**Regulatory Standards:** CalAIM Enhanced Care Management (ECM), HIPAA § 164.312(a)(2)(iv)
+
+---
+
+## 1. Sync Architecture Overview
+In intermittent network zones (street camps, shelters, locked facilities), peer documentation must function with zero network reliance:
+* **Write-First Principle:** All mutations write to Dexie.js (IndexedDB) with deterministic sub-15ms latency.
+* **Mutation Queue:** When network transitions to offline (\`navigator.onLine === false\` or failed heartbeat), write mutations are buffered in \`offline_sync_queue\` table.
+* **Reconciliation Engine:** Upon network resumption, the \`syncWorker\` executes sequential batch flush to Supabase PostgreSQL with optimistic conflict handling.
+* **Plain-English UX:** Zero raw technology names in user alerts; the UI renders clear statuses: *"Cloud Sync Active"* or *"Notes Saved Locally"*.`
+  },
+  {
+    slug: 'CBO_1099_Solo_Contractor_Tracking_Model',
+    category: '02 Business Strategy',
+    title: 'CBO vs. 1099 Independent Contractor Multi-Tenant Architecture',
+    subtitle: 'Segregated Row-Level Security, Encounters Ledger, and CalAIM Claim Attribution',
+    specCode: 'GA8-BIZ-04',
+    lastUpdated: '2026-10-27',
+    author: 'Lead Business Analyst & Healthcare Counsel',
+    readTime: '10 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/02-business-strategy/CBO_1099_Solo_Contractor_Tracking_Model',
+    content: `# CBO vs. 1099 Independent Contractor Multi-Tenant Architecture
+**Classification:** Dual-Tenant Tenancy Model  
+**Legal Framework:** California AB 5 / SB 803 / CalAIM Community Supports
+
+---
+
+## 1. Tenancy Model Segregation
+Peer Notebook natively serves two distinct operational cohorts within the same database schema:
+1. **CBO Agency Tenants:** Multi-specialist agencies with clinical supervisors (LCSW/LMFT), QA auditors, and assigned specialists. Supervised notes require supervisor sign-off before Medi-Cal claims export.
+2. **Solo 1099 Independent Contractors:** Solo practitioners contracting directly with managed care plans (MCPs) or county behavioral health.
+   * \`account_type = 'solo_1099'\`
+   * Direct RLS ownership: \`auth.uid() = specialist_id\`
+   * Integrated mileage tracking ledger and CMS 1500 box 24 formatting.`
+  },
+  {
+    slug: 'UI_Symmetrization_and_Accessibility_Standards',
+    category: '03 Design Experience',
+    title: 'UI Symmetrization, Zero-Pill Discipline & Touch Target Standards',
+    subtitle: 'Trauma-Informed Design Tokens, 48px Hitboxes, and Visual Straightening Contract',
+    specCode: 'GA8-DES-03',
+    lastUpdated: '2026-10-27',
+    author: 'Staff Frontend Design Architect',
+    readTime: '8 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/03-design-experience/UI_Symmetrization_and_Accessibility_Standards',
+    content: `# UI Symmetrization, Zero-Pill Discipline & Touch Target Standards
+**Design Standard:** Anti-AI Slop Constitution & Trauma-Informed Clinical UI  
+**Target Viewports:** 375px mobile, 768px tablet, 1280px+ desktop
+
+---
+
+## 1. Visual Straightening & Alignment Contract
+To prevent chaotic or asymmetrical button arrangements across mobile and desktop headers:
+* **Equal Vertical Baselines:** All interactive header items share identical vertical centering and height (\`min-h-[44px]\` mobile, \`min-h-[48px]\` desktop).
+* **Balanced Horizontal Padding:** \`px-3.5 sm:px-4\` on all pill and rounded action buttons.
+* **Zero Pill-Sandwich Clutter:** Kicker text and subtitles remain unboxed; pills are reserved exclusively for interactive actions and discrete status states.
+* **Strict Fluid Containment:** All containers utilize \`w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8\` with zero horizontal overflow (\`overflow-x-hidden\`).`
+  },
+  {
+    slug: 'Pre_Launch_Corporate_Milestones_LLC_IP',
+    category: '07 Legal & Administrative',
+    title: 'Pre-Launch Governance & Corporate Milestones (LLC & IP Assignment)',
+    subtitle: 'State Filings, Entity Formation, and Founder Intellectual Property Ownership Governance',
+    specCode: 'GA8-LEGAL-03',
+    lastUpdated: '2026-10-27',
+    author: 'Corporate Governance & Regulatory Counsel',
+    readTime: '6 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/07-legal-administrative/Pre_Launch_Corporate_Milestones_LLC_IP',
+    content: `# Pre-Launch Governance & Corporate Milestones
+**Entity Name:** Peer Notebook LLC  
+**Jurisdiction:** California / Delaware  
+**Regulatory Status:** Pending Pre-Launch Milestone
+
+---
+
+## 1. Corporate Milestone Disclosure
+In accordance with optimum enterprise governance standards:
+* **Peer Notebook LLC Formation:** The formal filing of Articles of Organization and procurement of the Employer Identification Number (EIN) are currently scheduled as **Pending Pre-Launch Milestones**.
+* **Founder-to-LLC IP Assignment:** Formal execution of the comprehensive IP Assignment Agreement covering all trade secrets, source code, and trademarks is scheduled for immediate execution upon LLC charter completion.
+* **Pre-Launch Operations:** All prototyping, cohort waitlists, and documentation specifications are maintained under strict copyright attribution to Peer Notebook LLC.`
   }
 ];

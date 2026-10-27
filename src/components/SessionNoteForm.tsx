@@ -1147,23 +1147,23 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
         </div>
       </div>
 
-      {/* Action Buttons with 44px+ tap target */}
+      {/* Action Buttons with 48px touch target and uniform sizing */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3">
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-bold order-last sm:order-first transition-colors cursor-pointer"
+            className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs sm:text-sm font-bold order-last sm:order-first transition-colors cursor-pointer"
           >
             Cancel
           </button>
         )}
 
-        <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2.5 w-full sm:w-auto justify-end">
+        <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-3 w-full sm:w-auto justify-end">
           <button
             type="button"
             onClick={() => handleSave(false)}
-            className="w-full xs:w-auto min-h-[44px] flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 rounded-full text-xs font-bold transition-all shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
+            className="w-full xs:w-auto min-h-[48px] flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 rounded-full text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
           >
             <Save className="w-4 h-4 text-slate-500 shrink-0" />
             <span>Save to Dexie.js (Offline Draft)</span>
@@ -1172,7 +1172,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           <button
             type="button"
             onClick={() => handleSave(true)}
-            className="w-full xs:w-auto min-h-[44px] flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
+            className="w-full xs:w-auto min-h-[48px] flex items-center justify-center gap-2 px-6 py-3.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-full text-xs sm:text-sm font-bold transition-all shadow-sm cursor-pointer"
           >
             <Send className="w-4 h-4 shrink-0" />
             <span>Submit for Supervisor Cosign</span>

@@ -92,6 +92,14 @@ In the Vercel Dashboard:
 
 ---
 
+## Pre-Launch Governance & Corporate Milestones
+In full alignment with pre-launch transparency and optimum primer standards:
+* **Peer Notebook LLC Formation:** State filing of Articles of Organization and procurement of the Employer Identification Number (EIN) are formally designated as **Pending Pre-Launch Milestones**.
+* **Founder-to-LLC IP Assignment:** Formal execution of the Founder-to-LLC Intellectual Property Assignment Agreement will be consummated upon LLC charter finalization.
+* **Pre-Launch Ownership:** Prior to formation closure, all intellectual property, source code, and trademarks remain protected and managed in trust for Peer Notebook LLC.
+
+---
+
 ## License
 Copyright © 2026 Optimum Primers & Peer Notebook Contributors. All Rights Reserved.
 Open specification components published under the Apache License 2.0.

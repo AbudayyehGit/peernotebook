@@ -75,12 +75,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* Left Column: Headline, Proof Points & Action Group (Col Span 7) */}
           <div className="lg:col-span-7 space-y-6">
-            {/* Category / Kicker (Clean unboxed text, no pill sandwich) */}
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#0F766E] uppercase tracking-wider">
-              <span>California Certified Peer Support (CPSS-CA)</span>
-              <span aria-hidden="true">·</span>
-              <span>CalAIM & Medi-Cal H0038</span>
-              <span aria-hidden="true">·</span>
+            {/* Symmetrized Trust Status Pill */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-[#0F766E] border border-teal-200 text-xs font-semibold shadow-2xs">
+                <ShieldCheck className="w-4 h-4 text-[#0F766E] shrink-0" />
+                <span>California Certified Peer Support (CPSS-CA)</span>
+                <span className="text-teal-300" aria-hidden="true">•</span>
+                <span>CalAIM &amp; Medi-Cal H0038</span>
+              </div>
               <ZeroAiBadge variant="compact" />
             </div>
 
@@ -127,12 +129,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
             </div>
 
-            {/* Action Group with Minimum 48px Touch Targets */}
+            {/* Symmetrized Action Group with Uniform 48px Dimensions & px-6 py-3.5 */}
             <div className="pt-2 flex flex-wrap items-center gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={onLaunchApp}
-                className="w-full sm:w-auto min-h-[48px] px-6 py-3 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-sm font-bold shadow-sm transition-all hover:shadow-md cursor-pointer flex items-center justify-center gap-2"
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-sm font-bold shadow-sm transition-all hover:shadow-md cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>Launch Beta Workspace</span>
                 <ArrowRight className="w-4 h-4" />
@@ -141,18 +143,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenAuthModal ? onOpenAuthModal('signin') : onLaunchApp()}
-                className="w-full sm:w-auto min-h-[48px] px-6 py-3 bg-white hover:bg-slate-50 text-[#1E3A8A] rounded-full text-sm font-bold border border-slate-300 shadow-2xs transition-colors cursor-pointer flex items-center justify-center gap-2"
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 bg-white hover:bg-slate-50 text-[#1E3A8A] rounded-full text-sm font-bold border border-slate-300 shadow-2xs transition-colors cursor-pointer flex items-center justify-center gap-2"
               >
                 <Lock className="w-4 h-4 text-[#0F766E]" />
-                <span>Specialist Sign In</span>
+                <span>Login</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => onOpenDocs ? onOpenDocs('04-technical-architecture/05_Compliance_Engine_PDF_Export') : (window.location.hash = '#docs')}
-                className="w-full sm:w-auto min-h-[48px] px-5 py-3 text-xs sm:text-sm font-semibold text-[#0F766E] hover:text-teal-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 text-xs sm:text-sm font-bold text-[#0F766E] hover:text-teal-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer rounded-full bg-teal-50/70 hover:bg-teal-100 border border-teal-200/80"
               >
-                <span>Read CalAIM Architecture Spec</span>
+                <span>Read CalAIM Spec</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -311,7 +313,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                       <button
                         type="submit"
                         disabled={!allConsentGiven}
-                        className={`w-full min-h-[48px] px-6 py-3 rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 ${
+                        className={`w-full min-h-[48px] px-6 py-3.5 rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 ${
                           allConsentGiven
                             ? 'bg-[#0F766E] hover:bg-teal-800 text-white cursor-pointer hover:shadow-md'
                             : 'bg-slate-200 text-slate-400 cursor-not-allowed'
@@ -355,7 +357,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                     <a
                       href="#lead-magnet"
-                      className="min-h-[48px] px-5 py-2.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-full text-xs font-bold shadow-xs flex items-center justify-center gap-2 transition-colors text-center"
+                      className="min-h-[48px] px-6 py-3.5 bg-[#0F766E] hover:bg-teal-800 text-white rounded-full text-xs sm:text-sm font-bold shadow-xs flex items-center justify-center gap-2 transition-colors text-center"
                     >
                       <FileCheck className="w-4 h-4" />
                       <span>View Interactive Checklist Below</span>
@@ -363,7 +365,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     <button
                       type="button"
                       onClick={onLaunchApp}
-                      className="min-h-[48px] px-5 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs font-bold shadow-xs flex items-center justify-center gap-2 transition-colors cursor-pointer text-center"
+                      className="min-h-[48px] px-6 py-3.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs sm:text-sm font-bold shadow-xs flex items-center justify-center gap-2 transition-colors cursor-pointer text-center"
                     >
                       <span>Launch App</span>
                       <ArrowRight className="w-4 h-4" />
