@@ -10,6 +10,8 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "audit:compliance": "node scripts/audit-compliance.js",
+    "test:emails": "npx tsx scripts/test-email-triggers.ts",
+    "audit:resend": "npx tsx scripts/audit-resend-emails.ts",
     "git:sync": "bash scripts/sync-to-github.sh"
   },
   "dependencies": {

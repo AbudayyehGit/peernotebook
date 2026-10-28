@@ -55,6 +55,7 @@ import { opfsStorage, StorageQuotaInfo, OPFSSnapshotMeta } from '../services/opf
 import { leadDigestService, DigestResponse, TestEmailResult } from '../services/leadDigestService';
 import { StripeBillingService, SUBSCRIPTION_TIERS } from '../services/stripeBillingService';
 import { safeStorage } from '../utils/safeStorage';
+import { VerifyEmailModal } from './VerifyEmailModal';
 
 const HARDENED_RLS_SQL = `-- ==============================================================================
 -- Peer Notebook: Supabase Row-Level Security (RLS) Hardening Migration
@@ -218,6 +219,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
   const [digestModalOpen, setDigestModalOpen] = useState(false);
   const [digestHtmlCopied, setDigestHtmlCopied] = useState(false);
   const [digestNotice, setDigestNotice] = useState<string | null>(null);
+  const [testVerifyEmailOpen, setTestVerifyEmailOpen] = useState(false);
+  const [verifyEmailNotice, setVerifyEmailNotice] = useState<string | null>(null);
 
   const handleTriggerDailyDigest = async () => {
     setDigestLoading(true);
@@ -1744,7 +1747,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
               <button
                 type="button"
                 onClick={() => setDigestModalOpen(true)}
-                className="min-h-[44px] px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                className="min-h-[48px] px-6 py-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-full text-xs sm:text-sm font-bold transition-all shadow-2xs flex items-center gap-2 cursor-pointer"
                 title="View latest generated HTML digest"
               >
                 <Eye className="w-4 h-4 text-slate-500" />
@@ -1754,9 +1757,19 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
 
             <button
               type="button"
+              onClick={() => setTestVerifyEmailOpen(true)}
+              className="min-h-[48px] px-6 py-3.5 bg-white hover:bg-slate-50 text-[#1E3A8A] border border-blue-200 rounded-full text-xs sm:text-sm font-bold shadow-2xs transition-colors cursor-pointer flex items-center justify-center gap-2 shrink-0"
+              title="Test the 6-digit email verification dispatch pipeline"
+            >
+              <Mail className="w-4 h-4 text-[#0F766E]" />
+              <span>Test Email Verification</span>
+            </button>
+
+            <button
+              type="button"
               onClick={handleTriggerDailyDigest}
               disabled={digestLoading}
-              className="min-h-[44px] px-5 py-2.5 bg-[#0F766E] hover:bg-teal-800 disabled:opacity-60 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 shrink-0"
+              className="min-h-[48px] px-6 py-3.5 bg-[#0F766E] hover:bg-teal-800 disabled:opacity-60 text-white rounded-full text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 shrink-0"
               title="Manually generate and dispatch 24h summary email to support@peernotebook.com"
             >
               <Send className={`w-4 h-4 shrink-0 ${digestLoading ? 'animate-bounce' : ''}`} />
@@ -1770,6 +1783,29 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{digestNotice}</span>
           </div>
+        )}
+
+        {verifyEmailNotice && (
+          <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-[#0F766E] font-semibold flex items-center gap-2 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{verifyEmailNotice}</span>
+          </div>
+        )}
+
+        {/* Test Email Verification Modal */}
+        {testVerifyEmailOpen && (
+          <VerifyEmailModal
+            isOpen={testVerifyEmailOpen}
+            email={currentUser?.email || 'specialist@peernotebook.com'}
+            userName={currentUser?.fullName || 'Certified Specialist'}
+            roleTitle={currentUser?.credentialTitle || 'Certified Peer Support Specialist (CPSS-CA)'}
+            targetRole={currentUser?.role || 'peer_specialist'}
+            onVerified={() => {
+              setTestVerifyEmailOpen(false);
+              setVerifyEmailNotice(`Email verification successfully authenticated for ${currentUser?.email || 'specialist@peernotebook.com'}`);
+            }}
+            onClose={() => setTestVerifyEmailOpen(false)}
+          />
         )}
       </div>
 

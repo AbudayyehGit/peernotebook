@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserRole, AccountType } from '../db/peerNotebookDatabase';
 import { HeartHandshake, ShieldCheck, Lock, Mail, UserCheck, ArrowRight, X, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { VerifyEmailModal } from './VerifyEmailModal';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -44,6 +45,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [agreeTos, setAgreeTos] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeBaa, setAgreeBaa] = useState(false);
+
+  // Email Verification Modal State
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
 
   if (!isOpen) return null;
 
@@ -142,7 +146,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       });
 
       if (res.success) {
-        handleRoleRedirect(regRole);
+        // Trigger email verification modal to ensure lead authenticity before launching workspace
+        setShowVerifyModal(true);
       } else {
         setAuthError(res.error || 'Registration failed. Please try a different email.');
       }
@@ -468,6 +473,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Email Authenticity & Verification Modal */}
+      {showVerifyModal && (
+        <VerifyEmailModal
+          isOpen={showVerifyModal}
+          email={regEmail}
+          userName={regFullName}
+          roleTitle={regRole === 'peer_specialist' ? 'Certified Peer Support Specialist (CPSS-CA)' : regRole === 'supervisor' ? 'Clinical Peer Supervisor' : 'Agency Administrator'}
+          targetRole={regRole}
+          onVerified={(role) => {
+            setShowVerifyModal(false);
+            handleRoleRedirect(role);
+          }}
+          onClose={() => setShowVerifyModal(false)}
+        />
+      )}
     </div>
   );
 };

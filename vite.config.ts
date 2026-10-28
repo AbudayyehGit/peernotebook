@@ -73,6 +73,73 @@ function devApiPlugin() {
           }
         }
 
+        if (requestUrl.startsWith('/api/verify-email')) {
+          res.setHeader('Content-Type', 'application/json');
+          let requestBody = '';
+          req.on('data', (chunk) => {
+            requestBody += chunk;
+          });
+          req.on('end', () => {
+            try {
+              const body = requestBody ? JSON.parse(requestBody) : {};
+              const action = body.action || 'send';
+              const email = body.email || 'specialist@peernotebook.com';
+              const code = body.code || '';
+
+              if (action === 'send') {
+                const otp = Math.floor(100000 + Math.random() * 900000).toString();
+                res.end(
+                  JSON.stringify({
+                    ok: true,
+                    message: 'Verification code dispatched to your email address.',
+                    email,
+                    emailDeliveryStatus: 'simulated',
+                    simulatedCode: otp,
+                    expiresInMinutes: 15,
+                  })
+                );
+              } else if (action === 'verify') {
+                const isMatch = code === '123456' || (code && code.length === 6);
+                if (isMatch) {
+                  res.end(
+                    JSON.stringify({
+                      ok: true,
+                      verified: true,
+                      message: 'Email address verified successfully!',
+                      email,
+                      verifiedAt: new Date().toISOString(),
+                    })
+                  );
+                } else {
+                  res.statusCode = 400;
+                  res.end(
+                    JSON.stringify({
+                      error: 'Invalid 6-digit verification code. Please try again.',
+                    })
+                  );
+                }
+              } else {
+                res.end(
+                  JSON.stringify({
+                    ok: true,
+                    email,
+                    isVerified: true,
+                  })
+                );
+              }
+            } catch {
+              res.end(
+                JSON.stringify({
+                  ok: true,
+                  message: 'Verification code dispatched.',
+                  simulatedCode: '492817',
+                })
+              );
+            }
+          });
+          return;
+        }
+
         if (requestUrl.startsWith('/api/lead-capture')) {
           try {
             const body = await getRequestBody(req);
