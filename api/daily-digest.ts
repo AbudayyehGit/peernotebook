@@ -5,6 +5,8 @@
  * GA #8 Standard • HIPAA / CMIA Aligned • CalAIM Compliance
  */
 
+import { ResendMailService } from '../src/lib/resendClient.ts';
+
 export const config = {
   runtime: 'nodejs'
 };
@@ -37,6 +39,7 @@ export interface TrafficSummary {
 }
 
 export interface DigestPayload {
+  ok: boolean;
   recipient: string;
   periodStart: string;
   periodEnd: string;
@@ -51,7 +54,8 @@ export interface DigestPayload {
     llcFormation: string;
     ipAssignment: string;
   };
-  dispatchStatus: 'delivered' | 'simulated';
+  dispatchStatus: 'delivered' | 'simulated' | 'failed';
+  emailDeliveryStatus: 'delivered' | 'simulated' | 'failed';
   provider: string;
   messageId: string;
   htmlReport: string;
@@ -545,41 +549,16 @@ export async function executeDailyDigest(options: {
     targetRecipient
   });
 
-  let deliveryStatus: 'delivered' | 'simulated' = 'delivered';
-  let provider = 'simulated-resend';
-  let messageId = `pn_digest_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-
-  const resendApiKey = process.env.RESEND_API_KEY;
-  if (resendApiKey) {
-    try {
-      const resendRes = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: 'Peer Notebook Intelligence <digest@peernotebook.com>',
-          to: targetRecipient,
-          subject: `[Daily Digest] ${newLeadsCount} New Leads | ${activeBacklog.length} Active Tasks | ${traffic.totalVisits} Visits (${dateStr})`,
-          html: htmlReport
-        })
-      });
-
-      if (resendRes.ok) {
-        const resendData = (await resendRes.json()) as any;
-        deliveryStatus = 'delivered';
-        provider = 'resend';
-        messageId = resendData.id || messageId;
-      } else {
-        console.warn('[DAILY_DIGEST] Resend API returned non-200:', await resendRes.text());
-      }
-    } catch (err) {
-      console.warn('[DAILY_DIGEST] Resend dispatch attempt exception:', err);
-    }
-  }
+  const subject = `[Daily Digest] ${newLeadsCount} New Leads | ${activeBacklog.length} Active Tasks | ${traffic.totalVisits} Visits (${dateStr})`;
+  const dispatchResult = await ResendMailService.sendTransactionalEmail({
+    to: targetRecipient,
+    subject,
+    html: htmlReport,
+    tags: [{ name: 'type', value: 'daily_digest' }]
+  });
 
   const payload: DigestPayload = {
+    ok: dispatchResult.success,
     recipient: targetRecipient,
     periodStart: yesterday.toISOString(),
     periodEnd: now.toISOString(),
@@ -594,9 +573,10 @@ export async function executeDailyDigest(options: {
       llcFormation: 'Pending Pre-Launch Milestone (Articles of Organization & EIN in progress)',
       ipAssignment: 'Pending Pre-Launch Milestone (Executed upon LLC charter completion)'
     },
-    dispatchStatus: deliveryStatus,
-    provider,
-    messageId,
+    dispatchStatus: dispatchResult.status,
+    emailDeliveryStatus: dispatchResult.status,
+    provider: dispatchResult.provider,
+    messageId: dispatchResult.messageId || `pn_digest_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
     htmlReport
   };
 

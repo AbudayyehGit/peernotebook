@@ -57,6 +57,7 @@ try {
     'ADR-003_SHA256_Tamper_Evident_Audit_Trails.md',
     'ADR-004_WCAG_2_1_AA_Trauma_Informed_Design_Tokens.md',
     'ADR-005_Medi_Cal_H0038_15_Minute_Billing_Calculations.md',
+    'ADR-006_BiDirectional_Sync_And_EDI_837P_Pipeline.md',
     'README.md'
   ];
   

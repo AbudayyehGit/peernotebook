@@ -64,6 +64,7 @@ export interface Client {
   mediCalCin?: string; // Medi-Cal Client Index Number (e.g. 98234120A)
   preferredName: string;
   dateOfBirth?: string;
+  gender?: string;
   assignedSpecialistId: string;
   recoveryGoals: string[];
   currentStatus: 'Active Recovery' | 'Maintenance' | 'Intensive Support' | 'Completed Program';

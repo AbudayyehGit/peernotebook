@@ -7,6 +7,8 @@
  * GA #8 Standard • HIPAA / CMIA Aligned • Resend API Delivery
  */
 
+import { ResendMailService } from '../src/lib/resendClient.ts';
+
 export const config = {
   runtime: 'nodejs'
 };
@@ -187,11 +189,6 @@ export async function executeLeadCapture(leadData: LeadCapturePayload) {
   const isBeta = Boolean(wantsBetaCohort);
 
   const resendApiKey = process.env.RESEND_API_KEY;
-  let emailDeliveryStatus: 'delivered' | 'simulated' = 'delivered';
-  let supportNotificationId = `msg_support_${Date.now()}`;
-  let checklistEmailId = `msg_checklist_${Date.now()}`;
-  let provider = 'simulated-resend';
-
   const supportAlertHtml = generateSupportAlertHtml({
     name: cleanedName,
     email: cleanedEmail,
@@ -206,69 +203,40 @@ export async function executeLeadCapture(leadData: LeadCapturePayload) {
     role: cleanedRole
   });
 
-  if (resendApiKey) {
-    try {
-      // 1. Send alert to support@peernotebook.com
-      const resendSupportRes = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: 'Peer Notebook Notifications <notifications@peernotebook.com>',
-          to: 'support@peernotebook.com',
-          subject: `[New Lead] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
-          html: supportAlertHtml
-        })
-      });
+  // 1. Dispatch support alert to support@peernotebook.com
+  const supportDispatch = await ResendMailService.sendTransactionalEmail({
+    to: 'support@peernotebook.com',
+    subject: `[New Lead] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
+    html: supportAlertHtml,
+    tags: [{ name: 'flow', value: 'lead_alert' }]
+  });
 
-      if (resendSupportRes.ok) {
-        const supportData = (await resendSupportRes.json()) as any;
-        supportNotificationId = supportData.id || supportNotificationId;
-        provider = 'resend';
-      } else {
-        console.warn('[LEAD_CAPTURE] Resend support notification non-200:', await resendSupportRes.text());
-      }
+  // 2. Dispatch onboarding checklist to registrant
+  const userDispatch = await ResendMailService.sendTransactionalEmail({
+    to: cleanedEmail,
+    subject: 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome',
+    html: userChecklistHtml,
+    tags: [{ name: 'flow', value: 'lead_checklist' }]
+  });
 
-      // 2. Send welcome checklist email to the registrant
-      const resendUserRes = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: 'Peer Notebook Team <support@peernotebook.com>',
-          to: cleanedEmail,
-          subject: 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome',
-          html: userChecklistHtml
-        })
-      });
-
-      if (resendUserRes.ok) {
-        const userData = (await resendUserRes.json()) as any;
-        checklistEmailId = userData.id || checklistEmailId;
-        provider = 'resend';
-      } else {
-        console.warn('[LEAD_CAPTURE] Resend user checklist email non-200:', await resendUserRes.text());
-      }
-    } catch (err) {
-      console.warn('[LEAD_CAPTURE] Resend dispatch exception:', err);
-    }
-  }
+  const emailDeliveryStatus = (supportDispatch.status === 'failed' || userDispatch.status === 'failed')
+    ? 'failed'
+    : (supportDispatch.status === 'delivered' || userDispatch.status === 'delivered')
+      ? 'delivered'
+      : 'simulated';
 
   return {
-    ok: true,
+    ok: supportDispatch.success && userDispatch.success,
     message: 'Lead registration captured and CalAIM H0038 Checklist dispatched successfully.',
     leadId,
     capturedAt: nowIso,
     emailDeliveryStatus,
-    provider,
-    supportNotificationId,
-    checklistEmailId,
+    provider: supportDispatch.provider,
+    supportNotificationId: supportDispatch.messageId || `msg_support_${Date.now()}`,
+    checklistEmailId: userDispatch.messageId || `msg_checklist_${Date.now()}`,
     targetRecipient: 'support@peernotebook.com',
-    userRecipient: cleanedEmail
+    userRecipient: cleanedEmail,
+    ...(supportDispatch.error || userDispatch.error ? { emailError: supportDispatch.error || userDispatch.error } : {})
   };
 }
 

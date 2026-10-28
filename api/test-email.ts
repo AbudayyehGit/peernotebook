@@ -1,22 +1,78 @@
 /**
- * Peer Notebook - Universal Email Testing & Manual Dispatch Endpoint
- * Tests delivery of all automatic and manual transactional emails via Resend API
- * Target default: support@peernotebook.com
- * GA #8 Standard • HIPAA / CMIA Compliant
+ * Peer Notebook - Universal Email Testing & Simulation Script
+ * Simulates and verifies Resend API dispatch for:
+ * 1. User Registration Flow (Welcome & CalAIM H0038 Checklist)
+ * 2. Lead Capture Flow (Support Notification & Lead Welcome Kit)
+ * 3. Email Verification Flow (6-digit OTP Identity PIN & Validation)
+ * 4. Daily Telemetry Digest Flow (24h signups + cumulative waitlist)
+ * 
+ * GA #8 Standard • Zero Silent Failures • Resend API / Simulated Gateway
  */
 
 import { executeDailyDigest } from './daily-digest.ts';
-import { generateUserChecklistHtml, generateSupportAlertHtml } from './lead-capture.ts';
+import { executeLeadCapture, generateUserChecklistHtml, generateSupportAlertHtml } from './lead-capture.ts';
+import { executeVerifyEmail, generateVerificationEmailHtml } from './verify-email.ts';
+import { ResendMailService, type ResendDispatchResult } from '../src/lib/resendClient.ts';
 
 export const config = {
   runtime: 'nodejs'
 };
 
+export type EmailFlowType =
+  | 'registration'
+  | 'lead-capture'
+  | 'verification'
+  | 'daily-digest'
+  | 'ping-verification'
+  | 'outreach-preview'
+  | 'welcome-checklist'
+  | 'lead-alert'
+  | 'all'
+  | 'suite';
+
 export interface TestEmailRequest {
+  flow?: EmailFlowType;
+  templateType?: EmailFlowType;
   to?: string;
-  templateType: 'daily-digest' | 'welcome-checklist' | 'lead-alert' | 'ping-verification' | 'outreach-preview';
   customMessage?: string;
   subject?: string;
+  name?: string;
+  roleTitle?: string;
+  county?: string;
+}
+
+export interface SingleFlowResult {
+  flow: string;
+  targetRecipient: string;
+  subject: string;
+  success: boolean;
+  deliveryStatus: 'delivered' | 'simulated' | 'failed';
+  provider: string;
+  messageId?: string;
+  error?: {
+    statusCode?: number;
+    name?: string;
+    message: string;
+    suggestion?: string;
+  };
+  details?: Record<string, any>;
+  previewHtml?: string;
+}
+
+export interface TestEmailSuiteResponse {
+  ok: boolean;
+  mode: 'live' | 'simulation';
+  targetRecipient: string;
+  summary: {
+    totalFlows: number;
+    passed: number;
+    failed: number;
+    delivered: number;
+    simulated: number;
+  };
+  flows: Record<string, SingleFlowResult>;
+  auditReport: ReturnType<typeof ResendMailService.auditConfiguration>;
+  executedAt: string;
 }
 
 export function generatePingVerificationHtml(data: {
@@ -49,7 +105,7 @@ export function generatePingVerificationHtml(data: {
       </table>
 
       <div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 12px; font-size: 12px; color: #15803D;">
-        ✓ SMTP / Resend headers, DKIM alignment, and CalAIM compliance tokens verified.
+        ✓ SMTP / Resend headers, DKIM alignment, and CalAIM compliance tokens verified. Zero silent failures enabled.
       </div>
     </div>
     <div style="background-color: #F1F5F9; border-top: 1px solid #E2E8F0; padding: 12px 24px; text-align: center; font-size: 11px; color: #64748B;">
@@ -65,15 +121,7 @@ export function generateOutreachPreviewHtml(data: {
   to: string;
   customMessage?: string;
 }): string {
-  const defaultBody = data.customMessage || `Hi Colleague,
-
-Hope you're doing well! I've been collaborating on Peer Notebook (peernotebook.com)—a lightweight offline documentation tool built specifically for California Certified Peer Support Specialists (CPSS-CA) to handle CalAIM Medi-Cal H0038 15-minute billing units without EHR headaches.
-
-We have 3 to 5 complimentary spots open in our initial California field cohort. Would you be open to testing a sample note this week?
-
-Warmly,
-The Peer Notebook Team
-support@peernotebook.com`;
+  const defaultBody = data.customMessage || `Hi Colleague,\n\nHope you're doing well! I've been collaborating on Peer Notebook (peernotebook.com)—a lightweight offline documentation tool built specifically for California Certified Peer Support Specialists (CPSS-CA) to handle CalAIM Medi-Cal H0038 15-minute billing units without EHR headaches.\n\nWe have complimentary spots open in our California field cohort. Would you be open to testing a sample note this week?\n\nWarmly,\nThe Peer Notebook Team\nsupport@peernotebook.com`;
 
   return `
 <!DOCTYPE html>
@@ -101,147 +149,308 @@ ${defaultBody}
   `.trim();
 }
 
-export async function executeTestEmail(requestData: TestEmailRequest) {
-  const targetRecipient = (requestData.to || 'support@peernotebook.com').trim().toLowerCase();
-  const templateType = requestData.templateType || 'ping-verification';
-  const nowIso = new Date().toISOString();
+/**
+ * Execute simulation and delivery testing for registration flow
+ */
+export async function testRegistrationFlow(options: {
+  to: string;
+  name?: string;
+  roleTitle?: string;
+}): Promise<SingleFlowResult> {
+  const recipient = options.to;
+  const name = options.name || 'Alex Rivera';
+  const role = options.roleTitle || 'Certified Peer Support Specialist (CPSS-CA)';
+  const subject = 'Welcome to Peer Notebook - Your 10-Minute CalAIM H0038 Checklist';
 
-  let subject = requestData.subject || '';
-  let html = '';
-
-  switch (templateType) {
-    case 'daily-digest': {
-      const digestResult = await executeDailyDigest({
-        isManual: true,
-        customRecipient: targetRecipient
-      });
-      subject = subject || `[TEST DAILY DIGEST] ${digestResult.payload.newLeadsCount} Leads | ${digestResult.payload.activeBacklogCount} Tasks`;
-      html = digestResult.htmlReport;
-      break;
-    }
-    case 'welcome-checklist': {
-      subject = subject || 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome';
-      html = generateUserChecklistHtml({
-        name: 'Peer Colleague',
-        role: 'Certified Peer Support Specialist (CPSS-CA)'
-      });
-      break;
-    }
-    case 'lead-alert': {
-      subject = subject || '[TEST LEAD ALERT] Marcus Vance (CPSS-CA, Alameda County)';
-      html = generateSupportAlertHtml({
-        name: 'Marcus Vance',
-        email: 'marcus.vance@alamedahealth.org',
-        role: 'Certified Peer Support Specialist (CPSS-CA)',
-        county: '01-Alameda',
-        isBeta: true,
-        timestamp: nowIso
-      });
-      break;
-    }
-    case 'outreach-preview': {
-      subject = subject || 'Quick question about CalAIM peer notes (sample invite preview)';
-      html = generateOutreachPreviewHtml({
-        to: targetRecipient,
-        customMessage: requestData.customMessage
-      });
-      break;
-    }
-    case 'ping-verification':
-    default: {
-      subject = subject || '[VERIFICATION] Peer Notebook Transactional Email Engine Ping';
-      html = generatePingVerificationHtml({
-        to: targetRecipient,
-        timestamp: nowIso,
-        customMessage: requestData.customMessage
-      });
-      break;
-    }
-  }
-
-  const resendApiKey = process.env.RESEND_API_KEY;
-  let deliveryStatus: 'delivered' | 'simulated' = 'delivered';
-  let provider = 'simulated-resend';
-  let messageId = `msg_test_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-
-  if (resendApiKey) {
-    try {
-      const resendRes = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: 'Peer Notebook QA Engine <support@peernotebook.com>',
-          to: targetRecipient,
-          subject,
-          html
-        })
-      });
-
-      if (resendRes.ok) {
-        const resendData = (await resendRes.json()) as any;
-        deliveryStatus = 'delivered';
-        provider = 'resend';
-        messageId = resendData.id || messageId;
-      } else {
-        console.warn('[TEST_EMAIL] Resend returned non-200:', await resendRes.text());
-      }
-    } catch (err) {
-      console.warn('[TEST_EMAIL] Resend error:', err);
-    }
-  }
+  const html = generateUserChecklistHtml({ name, role });
+  const dispatch: ResendDispatchResult = await ResendMailService.sendTransactionalEmail({
+    to: recipient,
+    subject,
+    html,
+    tags: [{ name: 'flow', value: 'registration_welcome' }]
+  });
 
   return {
-    ok: true,
-    recipient: targetRecipient,
+    flow: 'registration',
+    targetRecipient: recipient,
     subject,
-    templateType,
-    deliveryStatus,
-    provider,
-    messageId,
-    dispatchedAt: nowIso,
-    htmlPreview: html
+    success: dispatch.success,
+    deliveryStatus: dispatch.status,
+    provider: dispatch.provider,
+    messageId: dispatch.messageId,
+    error: dispatch.error,
+    details: {
+      registeredName: name,
+      registeredRole: role
+    },
+    previewHtml: html
+  };
+}
+
+/**
+ * Execute simulation and delivery testing for lead capture flow
+ */
+export async function testLeadCaptureFlow(options: {
+  to?: string;
+  name?: string;
+  roleTitle?: string;
+  county?: string;
+}): Promise<SingleFlowResult> {
+  const leadEmail = options.to || 'marcus.vance@alamedahealth.org';
+  const name = options.name || 'Marcus Vance';
+  const role = options.roleTitle || 'Certified Peer Support Specialist (CPSS-CA)';
+  const county = options.county || '01-Alameda';
+
+  const leadCaptureResult = await executeLeadCapture({
+    email: leadEmail,
+    name,
+    roleTitle: role,
+    county,
+    wantsBetaCohort: true
+  });
+
+  return {
+    flow: 'lead-capture',
+    targetRecipient: `${leadCaptureResult.targetRecipient} & ${leadCaptureResult.userRecipient}`,
+    subject: `[LEAD ALERT] ${name} (${role}, ${county})`,
+    success: Boolean(leadCaptureResult.ok),
+    deliveryStatus: (leadCaptureResult.emailDeliveryStatus as 'delivered' | 'simulated' | 'failed') || 'simulated',
+    provider: leadCaptureResult.provider || 'simulated-resend',
+    messageId: leadCaptureResult.supportNotificationId || leadCaptureResult.checklistEmailId,
+    details: {
+      leadId: leadCaptureResult.leadId,
+      supportNotificationId: leadCaptureResult.supportNotificationId,
+      checklistEmailId: leadCaptureResult.checklistEmailId
+    }
+  };
+}
+
+/**
+ * Execute simulation and delivery testing for verification flow (6-digit OTP)
+ */
+export async function testVerificationFlow(options: {
+  to: string;
+  name?: string;
+  roleTitle?: string;
+}): Promise<SingleFlowResult> {
+  const recipient = options.to;
+  const name = options.name || 'Elena Rostova';
+  const role = options.roleTitle || 'Certified Peer Support Specialist (CPSS-CA)';
+
+  // 1. Dispatch OTP
+  const sendResult = await executeVerifyEmail({
+    action: 'send',
+    email: recipient,
+    name,
+    roleTitle: role
+  });
+
+  const otpCode = sendResult.data.simulatedCode || '123456';
+
+  // 2. Validate OTP to verify complete loop
+  const verifyValidation = await executeVerifyEmail({
+    action: 'verify',
+    email: recipient,
+    code: otpCode
+  });
+
+  return {
+    flow: 'verification',
+    targetRecipient: recipient,
+    subject: `Peer Notebook Verification PIN: ${otpCode}`,
+    success: Boolean(sendResult.data.ok && verifyValidation.data.verified),
+    deliveryStatus: sendResult.data.emailDeliveryStatus || 'simulated',
+    provider: sendResult.data.provider || 'simulated-resend',
+    messageId: sendResult.data.resendMessageId,
+    error: sendResult.data.emailError,
+    details: {
+      generatedOtp: otpCode,
+      codeValidationPassed: Boolean(verifyValidation.data.verified),
+      validationMessage: verifyValidation.data.message
+    }
+  };
+}
+
+/**
+ * Main execution hub for test email API & CLI runner
+ */
+export async function executeTestEmail(requestData: TestEmailRequest): Promise<TestEmailSuiteResponse | SingleFlowResult> {
+  const targetRecipient = (requestData.to || 'support@peernotebook.com').trim().toLowerCase();
+  const flowType = requestData.flow || requestData.templateType || 'ping-verification';
+  const nowIso = new Date().toISOString();
+  const auditReport = ResendMailService.auditConfiguration();
+  const isLiveConfigured = auditReport.configured;
+
+  // Single flow handlers
+  if (flowType === 'registration' || flowType === 'welcome-checklist') {
+    return await testRegistrationFlow({
+      to: targetRecipient,
+      name: requestData.name,
+      roleTitle: requestData.roleTitle
+    });
+  }
+
+  if (flowType === 'lead-capture' || flowType === 'lead-alert') {
+    return await testLeadCaptureFlow({
+      to: targetRecipient,
+      name: requestData.name,
+      roleTitle: requestData.roleTitle,
+      county: requestData.county
+    });
+  }
+
+  if (flowType === 'verification') {
+    return await testVerificationFlow({
+      to: targetRecipient,
+      name: requestData.name,
+      roleTitle: requestData.roleTitle
+    });
+  }
+
+  if (flowType === 'daily-digest') {
+    const digestResult = await executeDailyDigest({
+      isManual: true,
+      customRecipient: targetRecipient
+    });
+
+    return {
+      flow: 'daily-digest',
+      targetRecipient,
+      subject: `[DAILY DIGEST] ${digestResult.payload.newLeadsCount} Leads | ${digestResult.payload.activeBacklogCount} Tasks`,
+      success: Boolean(digestResult.payload.ok),
+      deliveryStatus: (digestResult.payload.emailDeliveryStatus as any) || 'simulated',
+      provider: digestResult.payload.provider || 'simulated-resend',
+      details: {
+        newLeadsCount: digestResult.payload.newLeadsCount,
+        allTimeLeadsCount: digestResult.payload.totalLeadsCount,
+        activeBacklogCount: digestResult.payload.activeBacklogCount
+      },
+      previewHtml: digestResult.htmlReport
+    };
+  }
+
+  if (flowType === 'ping-verification') {
+    const subject = requestData.subject || '[VERIFICATION] Peer Notebook Transactional Email Engine Ping';
+    const html = generatePingVerificationHtml({
+      to: targetRecipient,
+      timestamp: nowIso,
+      customMessage: requestData.customMessage
+    });
+
+    const dispatch = await ResendMailService.sendTransactionalEmail({
+      to: targetRecipient,
+      subject,
+      html,
+      tags: [{ name: 'flow', value: 'ping_test' }]
+    });
+
+    return {
+      flow: 'ping-verification',
+      targetRecipient,
+      subject,
+      success: dispatch.success,
+      deliveryStatus: dispatch.status,
+      provider: dispatch.provider,
+      messageId: dispatch.messageId,
+      error: dispatch.error,
+      previewHtml: html
+    };
+  }
+
+  // ALL FLOWS SUITE (registration, lead capture, verification, daily digest)
+  const regResult = await testRegistrationFlow({ to: targetRecipient, name: requestData.name, roleTitle: requestData.roleTitle });
+  const leadResult = await testLeadCaptureFlow({ to: targetRecipient, name: requestData.name, county: requestData.county });
+  const verifResult = await testVerificationFlow({ to: targetRecipient, name: requestData.name, roleTitle: requestData.roleTitle });
+  const digestFlow = await executeTestEmail({ flow: 'daily-digest', to: targetRecipient }) as SingleFlowResult;
+
+  const flowsMap: Record<string, SingleFlowResult> = {
+    registration: regResult,
+    leadCapture: leadResult,
+    verification: verifResult,
+    dailyDigest: digestFlow
+  };
+
+  const flowList = Object.values(flowsMap);
+  const totalFlows = flowList.length;
+  const passed = flowList.filter(f => f.success).length;
+  const failed = flowList.filter(f => !f.success || f.deliveryStatus === 'failed').length;
+  const delivered = flowList.filter(f => f.deliveryStatus === 'delivered').length;
+  const simulated = flowList.filter(f => f.deliveryStatus === 'simulated').length;
+
+  return {
+    ok: failed === 0,
+    mode: isLiveConfigured ? 'live' : 'simulation',
+    targetRecipient,
+    summary: {
+      totalFlows,
+      passed,
+      failed,
+      delivered,
+      simulated
+    },
+    flows: flowsMap,
+    auditReport,
+    executedAt: nowIso
   };
 }
 
 export default async function handler(req: any, res?: any) {
+  const isExpress = Boolean(res && typeof res.status === 'function' && typeof res.json === 'function');
   const isNode = Boolean(res && typeof res.setHeader === 'function');
 
-  let method = 'POST';
+  let method = 'GET';
   let body: any = {};
+  let queryParams: URLSearchParams = new URLSearchParams();
 
   if (isNode) {
-    method = (req.method || 'POST').toUpperCase();
+    method = (req.method || 'GET').toUpperCase();
     body = req.body || {};
-  } else if (req instanceof Request || (req && req.url && typeof req.headers?.get === 'function')) {
-    method = (req.method || 'POST').toUpperCase();
     try {
-      body = await req.json();
+      const parsedUrl = new URL(req.url || '/api/test-email', 'https://peernotebook.com');
+      queryParams = parsedUrl.searchParams;
     } catch {
-      body = {};
+      // Ignore
+    }
+  } else if (req instanceof Request || (req && req.url && typeof req.headers?.get === 'function')) {
+    method = (req.method || 'GET').toUpperCase();
+    try {
+      const parsedUrl = new URL(req.url, 'https://peernotebook.com');
+      queryParams = parsedUrl.searchParams;
+    } catch {
+      // Ignore
+    }
+    if (method === 'POST') {
+      try {
+        body = await req.json();
+      } catch {
+        body = {};
+      }
     }
   }
 
-  if (method !== 'POST') {
-    if (isNode) {
-      res.statusCode = 405;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Method not allowed. Use POST.' }));
-      return;
-    }
-    return new Response(JSON.stringify({ error: 'Method not allowed. Use POST.' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+  const flowParam = (body?.flow || body?.templateType || queryParams.get('flow') || queryParams.get('templateType') || 'all') as EmailFlowType;
+  const toParam = body?.to || queryParams.get('to') || 'support@peernotebook.com';
+  const customMessage = body?.customMessage || queryParams.get('customMessage') || undefined;
+  const subject = body?.subject || queryParams.get('subject') || undefined;
 
   try {
-    const result = await executeTestEmail(body);
+    const result = await executeTestEmail({
+      flow: flowParam,
+      to: toParam,
+      customMessage,
+      subject,
+      name: body?.name || queryParams.get('name') || undefined,
+      roleTitle: body?.roleTitle || queryParams.get('roleTitle') || undefined,
+      county: body?.county || queryParams.get('county') || undefined
+    });
 
+    const statusCode = (result as any).ok === false || (result as any).deliveryStatus === 'failed' ? 502 : 200;
+
+    if (isExpress) {
+      return res.status(statusCode).json(result);
+    }
     if (isNode) {
-      res.statusCode = 200;
+      res.statusCode = statusCode;
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 'no-store');
       res.end(JSON.stringify(result));
@@ -249,7 +458,7 @@ export default async function handler(req: any, res?: any) {
     }
 
     return new Response(JSON.stringify(result), {
-      status: 200,
+      status: statusCode,
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-store'
@@ -258,15 +467,62 @@ export default async function handler(req: any, res?: any) {
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error('[TEST_EMAIL_ERROR]', errorMsg);
+    const errPayload = { error: 'Failed to dispatch test email flow', details: errorMsg };
+
+    if (isExpress) {
+      return res.status(500).json(errPayload);
+    }
     if (isNode) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Failed to dispatch test email', details: errorMsg }));
+      res.end(JSON.stringify(errPayload));
       return;
     }
-    return new Response(JSON.stringify({ error: 'Failed to dispatch test email', details: errorMsg }), {
+    return new Response(JSON.stringify(errPayload), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
   }
+}
+
+// Support direct command-line execution (e.g. `npx tsx api/test-email.ts`)
+if (
+  typeof process !== 'undefined' &&
+  process.argv &&
+  process.argv[1] &&
+  (process.argv[1].endsWith('test-email.ts') || process.argv[1].endsWith('test-email.js'))
+) {
+  (async () => {
+    console.log('================================================================');
+    console.log('  PEER NOTEBOOK RESEND EMAIL DISPATCH & FLOW SIMULATION SCRIPT');
+    console.log('  Testing: Registration, Lead Capture, Verification & Telemetry');
+    console.log('================================================================\n');
+
+    const suite = (await executeTestEmail({ flow: 'all', to: 'support@peernotebook.com' })) as TestEmailSuiteResponse;
+
+    console.log(`Mode: ${suite.mode.toUpperCase()}`);
+    console.log(`Target: ${suite.targetRecipient}`);
+    console.log(`Summary: ${suite.summary.passed}/${suite.summary.totalFlows} passed (${suite.summary.delivered} delivered, ${suite.summary.simulated} simulated, ${suite.summary.failed} failed)\n`);
+
+    for (const [key, flow] of Object.entries(suite.flows)) {
+      const statusIcon = flow.success ? '🟢 PASS' : '🔴 FAIL';
+      console.log(`[${statusIcon}] Flow: ${flow.flow.toUpperCase()} (${key})`);
+      console.log(`       -> Status: ${flow.deliveryStatus} | Provider: ${flow.provider}`);
+      console.log(`       -> Subject: ${flow.subject}`);
+      if (flow.messageId) console.log(`       -> Message ID: ${flow.messageId}`);
+      if (flow.error) {
+        console.error(`       -> ERROR [${flow.error.statusCode || 'N/A'}]: ${flow.error.message}`);
+        if (flow.error.suggestion) console.log(`       -> Suggestion: ${flow.error.suggestion}`);
+      }
+      console.log('');
+    }
+
+    if (!suite.ok) {
+      console.error('❌ EMAIL FLOW VERIFICATION FAILED: Silent or explicit failures detected.');
+      process.exit(1);
+    } else {
+      console.log('✅ ALL EMAIL FLOWS VERIFIED SUCCESSFULLY (Zero Silent Failures).');
+      process.exit(0);
+    }
+  })();
 }

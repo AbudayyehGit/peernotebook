@@ -10,8 +10,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { executeDailyDigest } from './api/daily-digest.ts';
 import { executeLeadCapture } from './api/lead-capture.ts';
 import { executeTestEmail } from './api/test-email.ts';
+import { executeVerifyEmail } from './api/verify-email.ts';
 
 function getRequestBody(req: IncomingMessage): Promise<any> {
+  const method = (req.method || 'GET').toUpperCase();
+  if (method === 'GET' || method === 'HEAD') {
+    return Promise.resolve({});
+  }
   return new Promise((resolve) => {
     let data = '';
     req.on('data', chunk => {
@@ -74,70 +79,29 @@ function devApiPlugin() {
         }
 
         if (requestUrl.startsWith('/api/verify-email')) {
-          res.setHeader('Content-Type', 'application/json');
-          let requestBody = '';
-          req.on('data', (chunk) => {
-            requestBody += chunk;
-          });
-          req.on('end', () => {
-            try {
-              const body = requestBody ? JSON.parse(requestBody) : {};
-              const action = body.action || 'send';
-              const email = body.email || 'specialist@peernotebook.com';
-              const code = body.code || '';
-
-              if (action === 'send') {
-                const otp = Math.floor(100000 + Math.random() * 900000).toString();
-                res.end(
-                  JSON.stringify({
-                    ok: true,
-                    message: 'Verification code dispatched to your email address.',
-                    email,
-                    emailDeliveryStatus: 'simulated',
-                    simulatedCode: otp,
-                    expiresInMinutes: 15,
-                  })
-                );
-              } else if (action === 'verify') {
-                const isMatch = code === '123456' || (code && code.length === 6);
-                if (isMatch) {
-                  res.end(
-                    JSON.stringify({
-                      ok: true,
-                      verified: true,
-                      message: 'Email address verified successfully!',
-                      email,
-                      verifiedAt: new Date().toISOString(),
-                    })
-                  );
-                } else {
-                  res.statusCode = 400;
-                  res.end(
-                    JSON.stringify({
-                      error: 'Invalid 6-digit verification code. Please try again.',
-                    })
-                  );
-                }
-              } else {
-                res.end(
-                  JSON.stringify({
-                    ok: true,
-                    email,
-                    isVerified: true,
-                  })
-                );
-              }
-            } catch {
-              res.end(
-                JSON.stringify({
-                  ok: true,
-                  message: 'Verification code dispatched.',
-                  simulatedCode: '492817',
-                })
-              );
-            }
-          });
-          return;
+          try {
+            const body = await getRequestBody(req);
+            const parsedUrl = new URL(requestUrl, 'http://localhost:3000');
+            const payload = {
+              action: (body?.action || parsedUrl.searchParams.get('action') || (req.method === 'GET' ? 'status' : 'send')) as any,
+              email: body?.email || parsedUrl.searchParams.get('email') || '',
+              code: body?.code || parsedUrl.searchParams.get('code') || '',
+              name: body?.name || parsedUrl.searchParams.get('name') || undefined,
+              roleTitle: body?.roleTitle || parsedUrl.searchParams.get('roleTitle') || undefined,
+            };
+            const { status, data } = await executeVerifyEmail(payload);
+            res.statusCode = status;
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'no-store');
+            res.end(JSON.stringify(data));
+            return;
+          } catch (err: unknown) {
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: 'Failed to process email verification', details: errorMsg }));
+            return;
+          }
         }
 
         if (requestUrl.startsWith('/api/lead-capture')) {
@@ -161,8 +125,26 @@ function devApiPlugin() {
         if (requestUrl.startsWith('/api/test-email')) {
           try {
             const body = await getRequestBody(req);
-            const result = await executeTestEmail(body);
-            res.statusCode = 200;
+            const parsedUrl = new URL(requestUrl, 'http://localhost:3000');
+            const flow = body?.flow || body?.templateType || parsedUrl.searchParams.get('flow') || parsedUrl.searchParams.get('templateType') || 'all';
+            const to = body?.to || parsedUrl.searchParams.get('to') || undefined;
+            const customMessage = body?.customMessage || parsedUrl.searchParams.get('customMessage') || undefined;
+            const subject = body?.subject || parsedUrl.searchParams.get('subject') || undefined;
+            const name = body?.name || parsedUrl.searchParams.get('name') || undefined;
+            const roleTitle = body?.roleTitle || parsedUrl.searchParams.get('roleTitle') || undefined;
+            const county = body?.county || parsedUrl.searchParams.get('county') || undefined;
+
+            const result = await executeTestEmail({
+              flow: flow as any,
+              to,
+              customMessage,
+              subject,
+              name,
+              roleTitle,
+              county
+            });
+            const statusCode = (result as any).ok === false || (result as any).deliveryStatus === 'failed' ? 502 : 200;
+            res.statusCode = statusCode;
             res.setHeader('Content-Type', 'application/json');
             res.setHeader('Cache-Control', 'no-store');
             res.end(JSON.stringify(result));

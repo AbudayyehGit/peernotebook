@@ -11,7 +11,8 @@ export const config = {
 };
 
 // In-memory token store for verification codes (persists during container/edge instance lifetime)
-interface PendingVerification {
+// In-memory token store for verification codes (persists during container/edge instance lifetime)
+export interface PendingVerification {
   code: string;
   name?: string;
   roleTitle?: string;
@@ -20,85 +21,48 @@ interface PendingVerification {
   createdAt: string;
 }
 
-const verificationStore = new Map<string, PendingVerification>();
+export const verificationStore = new Map<string, PendingVerification>();
 
-function generateNumericOtp(): string {
+export function generateNumericOtp(): string {
   // 6-digit secure numeric PIN
   const num = Math.floor(100000 + Math.random() * 900000);
   return num.toString();
 }
 
-export default async function handler(request: any, response?: any) {
-  // Enable CORS
-  const headers: Record<string, string> = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Content-Type': 'application/json'
+export interface VerifyEmailPayload {
+  action?: 'send' | 'verify' | 'status';
+  email: string;
+  code?: string | number;
+  name?: string;
+  roleTitle?: string;
+}
+
+export interface VerifyEmailResult {
+  status: number;
+  data: {
+    ok: boolean;
+    message?: string;
+    email?: string;
+    emailDeliveryStatus?: 'delivered' | 'simulated' | 'failed';
+    resendMessageId?: string;
+    provider?: string;
+    emailError?: any;
+    simulatedCode?: string;
+    expiresInMinutes?: number;
+    verified?: boolean;
+    verifiedAt?: string;
+    isPending?: boolean;
+    isVerified?: boolean;
+    error?: string;
+    details?: string;
   };
+}
 
-  const method = request.method || 'GET';
-
-  if (method === 'OPTIONS') {
-    if (response && typeof response.status === 'function') {
-      return response.status(200).end();
-    }
-    return new Response(null, { status: 200, headers });
-  }
-
-  try {
-    let body: any = {};
-    if (method === 'POST') {
-      if (typeof request.json === 'function') {
-        body = await request.json();
-      } else if (typeof request.body === 'string') {
-        body = JSON.parse(request.body);
-      } else if (request.body) {
-        body = request.body;
-      }
-    } else {
-      // GET method query params
-      const rawUrl = request.url || '/api/verify-email';
-      const parsedUrl = new URL(rawUrl, 'https://peernotebook.com');
-      body = {
-        action: parsedUrl.searchParams.get('action') || 'status',
-        email: parsedUrl.searchParams.get('email') || '',
-        code: parsedUrl.searchParams.get('code') || ''
-      };
-    }
-
-    const { action = 'send', email, code, name, roleTitle } = body || {};
-
-    if (!email || !email.includes('@') || !email.includes('.')) {
-      const errRes = { error: 'A valid email address is required.' };
-      if (response && typeof response.status === 'function') {
-        return response.status(400).json(errRes);
-      }
-      return new Response(JSON.stringify(errRes), { status: 400, headers });
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-
-    // ACTION 1: SEND VERIFICATION CODE
-    if (action === 'send') {
-      const otpCode = generateNumericOtp();
-      const expiresAt = Date.now() + 15 * 60 * 1000; // 15-minute validity window
-      const specialistName = (name || 'Colleague').trim();
-      const specialistRole = roleTitle || 'Certified Peer Support Specialist (CPSS-CA)';
-
-      verificationStore.set(normalizedEmail, {
-        code: otpCode,
-        name: specialistName,
-        roleTitle: specialistRole,
-        expiresAt,
-        verified: false,
-        createdAt: new Date().toISOString()
-      });
-
-      console.log(`[VERIFY_EMAIL_DISPATCH] Generated OTP for ${normalizedEmail}: ${otpCode}`);
-
-      // Compose professional HIPAA / CalAIM verification email
-      const emailHtml = `
+export function generateVerificationEmailHtml(data: {
+  specialistName: string;
+  otpCode: string;
+}): string {
+  return `
 <!DOCTYPE html>
 <html>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #F8FAFC; padding: 28px 16px; margin: 0; color: #1E293B;">
@@ -120,7 +84,7 @@ export default async function handler(request: any, response?: any) {
     <!-- Body -->
     <div style="padding: 28px;">
       <p style="font-size: 15px; line-height: 1.5; margin-top: 0; color: #334155;">
-        Hello <strong>${specialistName}</strong>,
+        Hello <strong>${data.specialistName}</strong>,
       </p>
       <p style="font-size: 14px; line-height: 1.6; color: #475569;">
         Thank you for registering with Peer Notebook. To guarantee lead authenticity and ensure HIPAA &amp; California CMIA compliance for peer support encounter documentation, please enter the following 6-digit verification code:
@@ -132,7 +96,7 @@ export default async function handler(request: any, response?: any) {
           Your 6-Digit Verification PIN
         </div>
         <div style="font-family: monospace; font-size: 36px; font-weight: 900; color: #1E3A8A; letter-spacing: 8px;">
-          ${otpCode}
+          ${data.otpCode}
         </div>
         <div style="font-size: 12px; color: #64748B; margin-top: 8px;">
           Expires in <strong>15 minutes</strong> · Single-use secure token
@@ -155,103 +119,211 @@ export default async function handler(request: any, response?: any) {
   </div>
 </body>
 </html>
-      `.trim();
+  `.trim();
+}
 
-      // Send verification email via Resend API
-      const dispatchResult = await ResendMailService.sendTransactionalEmail({
-        to: normalizedEmail,
-        subject: `Peer Notebook Verification PIN: ${otpCode}`,
-        html: emailHtml,
-        tags: [{ name: 'type', value: 'email_verification' }]
-      });
+export async function executeVerifyEmail(payload: VerifyEmailPayload): Promise<VerifyEmailResult> {
+  const { action = 'send', email, code, name, roleTitle } = payload || {};
 
-      const resPayload = {
-        ok: true,
-        message: 'Verification code dispatched to your email address.',
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    return {
+      status: 400,
+      data: {
+        ok: false,
+        error: 'A valid email address is required.'
+      }
+    };
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
+  // ACTION 1: SEND VERIFICATION CODE
+  if (action === 'send') {
+    const otpCode = generateNumericOtp();
+    const expiresAt = Date.now() + 15 * 60 * 1000; // 15-minute validity window
+    const specialistName = (name || 'Colleague').trim();
+    const specialistRole = roleTitle || 'Certified Peer Support Specialist (CPSS-CA)';
+
+    verificationStore.set(normalizedEmail, {
+      code: otpCode,
+      name: specialistName,
+      roleTitle: specialistRole,
+      expiresAt,
+      verified: false,
+      createdAt: new Date().toISOString()
+    });
+
+    console.log(`[VERIFY_EMAIL_DISPATCH] Generated OTP for ${normalizedEmail}: ${otpCode}`);
+
+    const emailHtml = generateVerificationEmailHtml({
+      specialistName,
+      otpCode
+    });
+
+    // Send verification email via Resend API
+    const dispatchResult = await ResendMailService.sendTransactionalEmail({
+      to: normalizedEmail,
+      subject: `Peer Notebook Verification PIN: ${otpCode}`,
+      html: emailHtml,
+      tags: [{ name: 'type', value: 'email_verification' }]
+    });
+
+    return {
+      status: dispatchResult.status === 'failed' ? 502 : 200,
+      data: {
+        ok: dispatchResult.success,
+        message: dispatchResult.status === 'failed'
+          ? 'Failed to dispatch verification email to gateway'
+          : 'Verification code dispatched to your email address.',
         email: normalizedEmail,
         emailDeliveryStatus: dispatchResult.status,
         resendMessageId: dispatchResult.messageId,
         provider: dispatchResult.provider,
         ...(dispatchResult.error ? { emailError: dispatchResult.error } : {}),
-        // In preview environments or simulation, providing simulatedCode allows instantaneous verification
         simulatedCode: otpCode,
         expiresInMinutes: 15
-      };
-
-      if (response && typeof response.status === 'function') {
-        return response.status(200).json(resPayload);
       }
-      return new Response(JSON.stringify(resPayload), { status: 200, headers });
+    };
+  }
+
+  // ACTION 2: VERIFY CODE
+  if (action === 'verify') {
+    if (!code) {
+      return {
+        status: 400,
+        data: {
+          ok: false,
+          error: 'Verification code is required.'
+        }
+      };
     }
 
-    // ACTION 2: VERIFY CODE
-    if (action === 'verify') {
-      if (!code) {
-        const errRes = { error: 'Verification code is required.' };
-        if (response && typeof response.status === 'function') {
-          return response.status(400).json(errRes);
-        }
-        return new Response(JSON.stringify(errRes), { status: 400, headers });
-      }
+    const cleanCode = code.toString().trim();
+    const record = verificationStore.get(normalizedEmail);
 
-      const cleanCode = code.toString().trim();
-      const record = verificationStore.get(normalizedEmail);
+    // Allow master test code '123456' for automated test suites or check stored OTP
+    const isMasterTestCode = cleanCode === '123456';
+    const isValidOtp = record && record.code === cleanCode && Date.now() <= record.expiresAt;
 
-      // Allow master test code '123456' for automated test suites or check stored OTP
-      const isMasterTestCode = cleanCode === '123456';
-      const isValidOtp = record && record.code === cleanCode && Date.now() <= record.expiresAt;
-
-      if (!isValidOtp && !isMasterTestCode) {
-        const errRes = {
+    if (!isValidOtp && !isMasterTestCode) {
+      return {
+        status: 400,
+        data: {
+          ok: false,
           error: record && Date.now() > record.expiresAt
             ? 'Verification code has expired. Please request a new one.'
             : 'Invalid 6-digit verification code. Please check your email and try again.'
-        };
-        if (response && typeof response.status === 'function') {
-          return response.status(400).json(errRes);
         }
-        return new Response(JSON.stringify(errRes), { status: 400, headers });
-      }
+      };
+    }
 
-      // Mark verified
-      if (record) {
-        record.verified = true;
-      }
+    // Mark verified
+    if (record) {
+      record.verified = true;
+    }
 
-      const resPayload = {
+    return {
+      status: 200,
+      data: {
         ok: true,
         verified: true,
         message: 'Email address verified successfully! Welcome to Peer Notebook.',
         email: normalizedEmail,
         verifiedAt: new Date().toISOString()
-      };
-
-      if (response && typeof response.status === 'function') {
-        return response.status(200).json(resPayload);
       }
-      return new Response(JSON.stringify(resPayload), { status: 200, headers });
-    }
+    };
+  }
 
-    // ACTION 3: STATUS CHECK
-    const record = verificationStore.get(normalizedEmail);
-    const resPayload = {
+  // ACTION 3: STATUS CHECK
+  const record = verificationStore.get(normalizedEmail);
+  return {
+    status: 200,
+    data: {
       ok: true,
       email: normalizedEmail,
       isPending: Boolean(record && !record.verified && Date.now() <= record.expiresAt),
       isVerified: Boolean(record?.verified)
-    };
-
-    if (response && typeof response.status === 'function') {
-      return response.status(200).json(resPayload);
     }
-    return new Response(JSON.stringify(resPayload), { status: 200, headers });
+  };
+}
 
+export default async function handler(request: any, response?: any) {
+  // Detect Node ServerResponse vs Express vs Edge Response
+  const isExpress = Boolean(response && typeof response.status === 'function' && typeof response.json === 'function');
+  const isNode = Boolean(response && typeof response.setHeader === 'function');
+
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Content-Type': 'application/json'
+  };
+
+  const method = request.method || 'GET';
+
+  if (method === 'OPTIONS') {
+    if (isExpress) {
+      return response.status(200).end();
+    }
+    if (isNode) {
+      response.statusCode = 200;
+      response.setHeader('Access-Control-Allow-Origin', '*');
+      response.end();
+      return;
+    }
+    return new Response(null, { status: 200, headers });
+  }
+
+  try {
+    let body: any = {};
+    if (method === 'POST') {
+      if (typeof request.json === 'function') {
+        body = await request.json();
+      } else if (typeof request.body === 'string') {
+        body = JSON.parse(request.body);
+      } else if (request.body) {
+        body = request.body;
+      }
+    } else {
+      // GET method query params
+      const rawUrl = request.url || '/api/verify-email';
+      const parsedUrl = new URL(rawUrl, 'https://peernotebook.com');
+      body = {
+        action: parsedUrl.searchParams.get('action') || 'status',
+        email: parsedUrl.searchParams.get('email') || '',
+        code: parsedUrl.searchParams.get('code') || '',
+        name: parsedUrl.searchParams.get('name') || undefined,
+        roleTitle: parsedUrl.searchParams.get('roleTitle') || undefined
+      };
+    }
+
+    const { status, data } = await executeVerifyEmail(body);
+
+    if (isExpress) {
+      return response.status(status).json(data);
+    }
+    if (isNode) {
+      response.statusCode = status;
+      response.setHeader('Content-Type', 'application/json');
+      response.setHeader('Cache-Control', 'no-store');
+      response.end(JSON.stringify(data));
+      return;
+    }
+
+    return new Response(JSON.stringify(data), { status, headers });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error('[VERIFY_EMAIL_ERROR]', errorMsg);
     const errRes = { error: 'Internal server error processing email verification.', details: errorMsg };
-    if (response && typeof response.status === 'function') {
+
+    if (isExpress) {
       return response.status(500).json(errRes);
+    }
+    if (isNode) {
+      response.statusCode = 500;
+      response.setHeader('Content-Type', 'application/json');
+      response.end(JSON.stringify(errRes));
+      return;
     }
     return new Response(JSON.stringify(errRes), { status: 500, headers });
   }
