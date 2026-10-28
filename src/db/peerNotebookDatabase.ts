@@ -23,7 +23,7 @@ export interface Organization {
 
 export type UserRole = 'peer_specialist' | 'supervisor' | 'admin' | 'compliance_officer';
 export type AccountType = 'agency_cbo' | 'solo_1099';
-export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'canceled' | 'incomplete' | 'unpaid';
+export type SubscriptionStatus = 'trialing' | 'active' | 'active_subscriber' | 'past_due' | 'canceled' | 'incomplete' | 'unpaid';
 export type SubscriptionTier = 'founding_specialist' | 'solo_1099_pro' | 'agency_unlimited';
 export type BillingInterval = 'monthly' | 'annual';
 

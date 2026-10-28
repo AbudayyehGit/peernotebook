@@ -13,7 +13,8 @@ import {
   signUpWithEmail,
   signOutUser,
   getSupabaseAuthSession,
-  onSupabaseAuthStateChange
+  onSupabaseAuthStateChange,
+  getSupabaseClient
 } from '../lib/supabaseClient';
 
 interface AuthContextType {
@@ -94,7 +95,8 @@ export const DEFAULT_FALLBACK_USER: User = {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(DEFAULT_FALLBACK_USER);
+  // Zero Persistent Auth on Start: Always initializes with zero authenticated users (null)
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(DEFAULT_FALLBACK_ORG);
   const [allUsers, setAllUsers] = useState<User[]>([DEFAULT_FALLBACK_USER]);
   const [allOrgs, setAllOrgs] = useState<Organization[]>([DEFAULT_FALLBACK_ORG]);
@@ -107,15 +109,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (users && users.length > 0) {
         setAllUsers(users);
-        const savedUserId = safeStorage.getItem('peernotebook_active_user_id');
-        const matchedUser = users.find(u => u.id === savedUserId) || users[0];
-        setCurrentUser(matchedUser);
-
-        if (orgs && orgs.length > 0) {
-          setAllOrgs(orgs);
-          const matchedOrg = orgs.find(o => o.id === matchedUser.organizationId) || orgs[0];
-          setCurrentOrg(matchedOrg);
-        }
+      }
+      if (orgs && orgs.length > 0) {
+        setAllOrgs(orgs);
+        setCurrentOrg(orgs[0]);
       }
     } catch (err) {
       console.warn('[AuthContext] refreshUsersAndOrgs:', err);
@@ -125,28 +122,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
+    // Zero Persistent Auth on Start: enforce clean slate upon app initialization
+    signOutUser().catch(() => {});
+    safeStorage.removeItem('peernotebook_active_user_id');
+
     const initializeAuth = async () => {
       await refreshUsersAndOrgs();
-
-      // Check Supabase Cloud Auth session
-      try {
-        const { session, user: sbUser } = await getSupabaseAuthSession();
-        if (mounted && session && sbUser) {
-          const dbUsers = await peerNotebookDB.getAllUsers();
-          const existing = dbUsers.find(u => u.email === sbUser.email);
-          if (existing) {
-            setCurrentUser(existing);
-            safeStorage.setItem('peernotebook_active_user_id', existing.id);
-          }
-        }
-      } catch (err) {
-        console.warn('[AuthContext] Supabase session check error:', err);
-      }
     };
 
     initializeAuth();
 
-    // Listen to Supabase Auth state transitions
+    // Auto-Logout on Close / Tab Termination: clear local auth tokens and active session states
+    const handleSessionDestruction = () => {
+      safeStorage.removeItem('peernotebook_active_user_id');
+      signOutUser().catch(() => {});
+    };
+
+    window.addEventListener('beforeunload', handleSessionDestruction);
+    window.addEventListener('pagehide', handleSessionDestruction);
+
+    // Listen to explicit Supabase Auth state transitions
     const unsubscribeSb = onSupabaseAuthStateChange(async (_session, sbUser) => {
       if (sbUser && mounted) {
         const dbUsers = await peerNotebookDB.getAllUsers();
@@ -160,7 +155,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
+      window.removeEventListener('beforeunload', handleSessionDestruction);
+      window.removeEventListener('pagehide', handleSessionDestruction);
       unsubscribeSb();
+      handleSessionDestruction();
     };
   }, [refreshUsersAndOrgs]);
 
@@ -462,6 +460,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAllUsers(prev => prev.map(u => (u.id === updated.id ? updated : u)));
     }
 
+    // Direct Supabase PostgreSQL user_profiles cloud sync
+    try {
+      const client = getSupabaseClient();
+      if (client && currentUser) {
+        await client.from('user_profiles').update({
+          subscription_status: billing.subscriptionStatus,
+          subscription_tier: billing.subscriptionTier,
+          stripe_customer_id: billing.stripeCustomerId,
+          stripe_subscription_id: billing.stripeSubscriptionId,
+          billing_interval: billing.billingInterval,
+          trial_ends_at: billing.trialEndsAt,
+          current_period_end: billing.currentPeriodEnd,
+          cancel_at_period_end: billing.cancelAtPeriodEnd,
+          updated_at: new Date().toISOString()
+        }).eq('id', currentUser.id);
+      }
+    } catch (cloudErr) {
+      console.warn('[AuthContext] Supabase cloud user_profiles sync deferred:', cloudErr);
+    }
+
     await AuditLogger.log({
       organizationId: currentUser.organizationId,
       actorId: currentUser.id,
@@ -487,8 +505,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const nowTimestamp = Date.now();
   const trialDaysRemaining = Math.max(0, Math.ceil((trialEndsTimestamp - nowTimestamp) / (24 * 60 * 60 * 1000)));
   const isTrialActive = (currentUser?.subscriptionStatus === 'trialing' || !currentUser?.subscriptionStatus) && trialDaysRemaining > 0;
-  const isSubscriptionActive = currentUser?.subscriptionStatus === 'active';
-  const hasActiveAccess = isTrialActive || isSubscriptionActive || role === 'admin';
+  const isSubscriptionActive = currentUser?.subscriptionStatus === 'active' || currentUser?.subscriptionStatus === 'active_subscriber';
+  const hasActiveAccess = currentUser ? (isTrialActive || isSubscriptionActive || role === 'admin') : false;
 
   return (
     <AuthContext.Provider

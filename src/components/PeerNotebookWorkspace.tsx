@@ -1015,6 +1015,19 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
         </div>
       </nav>
 
+      {/* Zero-Persistence HIPAA Clean-Desk Session Alert */}
+      {!currentUser && (
+        <div className="mt-2 sm:mt-2.5 bg-blue-50/90 border border-blue-200/90 rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm text-blue-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-5 h-5 text-[#0F766E] shrink-0" />
+            <div>
+              <p className="font-bold text-[#1E3A8A]">Zero-Persistence Clean-Desk Mode Active</p>
+              <p className="text-blue-700 text-xs">Active sessions automatically clear on tab/window close. Click <strong>Login</strong> in the top header to authenticate as a Specialist, Supervisor, or Admin.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Shift Posture Glance & Smart Quick-Action Card (Space tightly closed to Main Menu) */}
       {activeTab !== 'new_note' && (
         <section
@@ -1040,7 +1053,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 </span>
               </div>
               <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#1E3A8A] tracking-tight">
-                {pendingNotesCount} Progress Notes Pending Sign-Off under CalAIM guidelines
+                {pendingNotesCount} Notes Pending Sign-Off
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl leading-relaxed">
                 Medi-Cal H0038 billing justification requires explicit golden-thread linkage between client care plan milestones, peer interventions, and measurable recovery responses.

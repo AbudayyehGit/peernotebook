@@ -797,5 +797,129 @@ In accordance with optimum enterprise governance standards:
 * **Peer Notebook LLC Formation:** The formal filing of Articles of Organization and procurement of the Employer Identification Number (EIN) are currently scheduled as **Pending Pre-Launch Milestones**.
 * **Founder-to-LLC IP Assignment:** Formal execution of the comprehensive IP Assignment Agreement covering all trade secrets, source code, and trademarks is scheduled for immediate execution upon LLC charter completion.
 * **Pre-Launch Operations:** All prototyping, cohort waitlists, and documentation specifications are maintained under strict copyright attribution to Peer Notebook LLC.`
+  },
+  {
+    slug: 'CalAIM_H0038_Template_Library_and_Flex_Wizard_Engine',
+    category: '04 Technical Architecture',
+    title: 'CalAIM H0038 Template Library & Circumnavigable Flex Wizard Engine',
+    subtitle: 'Standardized Non-Clinical Encounter Presets, 15-Minute CalAIM Billing Formulas, and 5-Step Golden-Thread Stepper',
+    specCode: 'GA8-H0038-04',
+    lastUpdated: '2026-10-28',
+    author: 'Principal Systems Architect & Clinical Informatics Lead',
+    readTime: '12 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/CalAIM_H0038_Template_Library_and_Flex_Wizard_Engine',
+    content: `# CalAIM H0038 Template Library & Circumnavigable Flex Wizard Engine
+**Regulatory Standard:** California Medi-Cal CalAIM (HCPCS H0038) / DHCS Behavioral Health Payment Reform  
+**Component Engine:** \`src/components/H0038TemplateDrawer.tsx\` & \`src/components/SessionNoteForm.tsx\`  
+**Scope of Practice:** California Senate Bill 803 Certified Peer Support Specialist (CPSS)
+
+---
+
+## 1. The H0038 CalAIM Documentation Challenge
+Under California CalAIM guidelines, peer support encounters billed under HCPCS **H0038** require rigorous non-clinical, strengths-based documentation that maintains an unbroken "Golden Thread" connecting the client-centered care plan to specific peer interventions and measurable recovery responses.
+
+Peer specialists working in high-friction field environments (supportive housing, street outreach, encampments) face two severe barriers:
+1. **Cognitive Fatigue:** Hand-crafting CalAIM-compliant 4-part notes while ensuring proper time allocation (Face-to-Face + Travel + Documentation).
+2. **Rigid Stepper Validation Locks:** Traditional multi-step forms lock the specialist into sequential order, blocking progress if a later field needs immediate recording during an active client encounter.
+
+---
+
+## 2. Standardized CalAIM Encounter Template Library (Drawer Engine)
+Peer Notebook introduces the **H0038 Standardized Template Drawer**, accessible via a slide-out drawer directly from any encounter note form. It contains eight certified encounter presets:
+
+| Preset Name | Focus Domain | Minutes (Direct/Travel/Doc) | CalAIM Units | Primary Interventions |
+|---|---|---|---|---|
+| **Housing Stabilization & Navigation** | Housing & Basic Needs | 45m / 15m / 10m (70m total) | 5 units | Housing search, voucher checklist, landlord communication coaching |
+| **Harm Reduction & Overdose Prevention** | Harm Reduction & Safety | 30m / 10m / 5m (45m total) | 3 units | Fentanyl test strips, naloxone coaching, non-judgmental risk discussion |
+| **Community Recovery & Mutual Aid Linkage** | Recovery Planning | 45m / 15m / 10m (70m total) | 5 units | Mutual aid meeting introduction, shared lived recovery storytelling |
+| **Wellness Recovery Action Plan (WRAP)** | Crisis & Self-Advocacy | 60m / 0m / 10m (70m total) | 5 units | Triggers identification, daily maintenance list, supporter contact tree |
+| **Justice Re-Entry & Probation Navigation** | Re-Entry & Legal Support | 45m / 20m / 10m (75m total) | 5 units | Re-entry check-in, probation appointment accompaniment, barrier problem-solving |
+| **Enhanced Care Management (ECM) Multi-Disciplinary** | Health & System Navigation | 35m / 15m / 10m (60m total) | 4 units | Primary care appointment preparation, pharmacy navigation, care team debrief |
+| **Vocational Readiness & Benefit Planning** | Employment & Education | 45m / 10m / 10m (65m total) | 5 units | Resume drafting, Medi-Cal Working Disabled 250% program advocacy |
+| **Somatic Grounding & Emotional Regulation** | Self-Regulation & Coping | 30m / 0m / 5m (35m total) | 3 units | Box breathing (4-4-4-4), 5-4-3-2-1 sensory grounding, nervous system pacing |
+
+Each template pre-populates:
+* **Recommended Modality & Place of Service Code:** POS 15 (Field) or POS 11 (Office).
+* **Precise Time Allocations:** Pre-calculates 15-minute billing units under DHCS rules ($$\\lceil \\text{Total Minutes} / 15 \\rceil$$).
+* **Trauma-Informed 4-Part Structure:** CalAIM Goal Addressed, Peer Intervention, Client Response, and Action Plan for Next Meeting.
+
+---
+
+## 3. Circumnavigable Flex Wizard Stepper Engine
+The **Flex Wizard** introduces a revolutionary 5-step stepper guiding documentation through the CalAIM Golden Thread:
+* **Step 1:** Client & Careplan Milestone Linkage (Client selector, Date of Service, Modality/POS, Strengths-Based Goal).
+* **Step 2:** CalAIM Time Accounting & Focus Domains (Direct Face-to-Face, Travel, Documentation, 1099 Contractor Ledger, and Focus Domains).
+* **Step 3:** Peer Intervention & Shared Recovery Experience (Single-tap CalMHSA trauma-informed intervention chips and narrative).
+* **Step 4:** Client Recovery Response & Plan (Client direct quotes, observable mood, and agreed action steps for next meeting).
+* **Step 5:** Safety Check & Electronic Attestation Signature (De-escalation trigger and legal electronic attestation).
+
+### Total Circumnavigation Freedom
+Unlike clinical EHR steppers that lock subsequent steps behind form validation, the Peer Notebook Flex Wizard allows specialists to **jump to any step at will** by clicking the stepper pills. Validation status is displayed non-punitive via green checkmarks (\`✓\`), allowing specialists to capture fleeting field observations instantly before returning to complete previous sections.
+
+### Dual-Mode Flexibility
+Specialists can toggle between **Single-Page View** (continuous scroll) and **Flex Wizard View** (focused stepper) at any time with a single tap, preserving 100% of inputted state.`
+  },
+  {
+    slug: 'Zero_Persistence_Auth_and_Stripe_Simulation_Pipeline',
+    category: '04 Technical Architecture',
+    title: 'Zero-Persistence Clean-Desk Auth & 4-State Stripe Simulation Pipeline',
+    subtitle: 'Zero Local Credentials on Boot, Auto-Logout on Browser Close, and Bidirectional Supabase Sync',
+    specCode: 'GA8-AUTH-05',
+    lastUpdated: '2026-10-28',
+    author: 'Principal Systems Architect & Security Engineering Lead',
+    readTime: '11 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/04-technical-architecture/Zero_Persistence_Auth_and_Stripe_Simulation_Pipeline',
+    content: `# Zero-Persistence Clean-Desk Auth & 4-State Stripe Simulation Pipeline
+**Compliance Framework:** HIPAA 45 CFR § 164.312(a)(2)(iii) (Automatic Logoff) & California CMIA  
+**Component Engines:** \`src/context/AuthContext.tsx\` & \`src/services/stripeBillingService.ts\`  
+**Cloud Relational Sync:** Supabase PostgreSQL \`public.user_profiles\`
+
+---
+
+## 1. Zero-Persistence Clean-Desk Auth Architecture
+Shared workstations in community behavioral health centers, county clinic kiosks, and field tablets present severe exposure risks if credentials remain cached. Peer Notebook implements a **Zero-Persistence Clean-Desk Policy**:
+
+### 1. Zero Authenticated Users on Boot
+On initial application launch, \`currentUser\` strictly initializes to \`null\`. The application automatically invokes:
+\`\`\`typescript
+await supabase.auth.signOut();
+safeStorage.removeItem('peernotebook_active_user_id');
+safeStorage.removeItem('peernotebook_auth_token');
+\`\`\`
+No specialist data, client records, or administrative panels are accessible until explicit, conscious login occurs.
+
+### 2. Auto-Logout on Window & Tab Close
+Peer Notebook binds dual low-level browser lifecycle listeners to guarantee session destruction:
+\`\`\`typescript
+window.addEventListener('beforeunload', purgeSession);
+window.addEventListener('pagehide', purgeSession);
+\`\`\`
+Upon closing the tab, browser, or navigating away, all active session tokens, cached specialist credentials, and in-memory authorization states are instantly purged from both memory and local storage.
+
+---
+
+## 2. 4-State Dummy/Live Stripe Simulation Pipeline
+For rapid developer testing, county auditor demonstrations, and production subscription lifecycle management, Peer Notebook provides a 4-state Stripe simulation engine:
+
+1. **\`active_subscriber\`:** Full unrestricted production access. Simulates an active paying customer with \`current_period_end\` set 30 days in the future.
+2. **\`trialing\`:** Active 14-day free trial without credit card required. Displays real-time trial countdown telemetry in the UI.
+3. **\`past_due\`:** Simulates an expired payment method or failed invoice charge. Triggers non-punitive warning banners prompting the specialist to update billing.
+4. **\`canceled\`:** Simulates an explicitly terminated subscription. Restricts access to read-only mode and displays reinstatement actions.
+
+### Bidirectional Supabase PostgreSQL Sync
+Whenever a billing state transitions (either via live Stripe webhooks or one-click simulation buttons in the Billing Modal), Peer Notebook executes an atomic dual-write:
+1. **Local Dexie.js Store:** Updates the local \`users\` store record with \`subscription_status\`, \`stripe_customer_id\`, and \`stripe_subscription_id\`.
+2. **Supabase PostgreSQL \`user_profiles\` Table:** Dispatches an immediate upsert query:
+\`\`\`typescript
+await supabase.from('user_profiles').upsert({
+  id: user.id,
+  email: user.email,
+  subscription_status: newStatus,
+  stripe_customer_id: stripeCustomerId,
+  stripe_subscription_id: stripeSubscriptionId,
+  updated_at: new Date().toISOString()
+}, { onConflict: 'id' });
+\`\`\`
+This ensures consistent subscription state across both offline client partitions and cloud administrative dashboards.`
   }
 ];

@@ -24,3 +24,21 @@ For community behavioral health agencies, Peer Notebook streamlines the weekly b
 2. **Supervisory Cosign (Within 72 Hours):** Clinical supervisors review notes in the agency queue and cosign.
 3. **Claims Extract Generation (Monday 9:00 AM):** Billing coordinators generate a weekly claims batch CSV or 837P EDI manifest containing client IDs, date, direct minutes, units, and Place of Service.
 4. **County Clearinghouse Submission:** Claims are uploaded to the county portal (e.g. LACDMH IBHIS, SFDPH Avatar) with zero manual unit calculation errors.
+
+---
+
+## 3. Standardized CalAIM H0038 Encounter Templates
+To streamline peer specialist documentation and guarantee compliance during county billing audits, Peer Notebook includes 8 certified encounter presets accessible directly from the session form drawer:
+
+1. **Housing Stabilization & Navigation:** 45m face-to-face, 15m travel, 10m doc (70m = 5 units). Focus: Housing search, voucher checklist, landlord communication coaching.
+2. **Harm Reduction & Overdose Prevention:** 30m face-to-face, 10m travel, 5m doc (45m = 3 units). Focus: Fentanyl test strips, naloxone distribution, non-judgmental risk discussion.
+3. **Community Recovery & Mutual Aid Linkage:** 45m face-to-face, 15m travel, 10m doc (70m = 5 units). Focus: Mutual aid meeting introduction, shared lived experience modeling.
+4. **Wellness Recovery Action Plan (WRAP):** 60m face-to-face, 0m travel, 10m doc (70m = 5 units). Focus: Crisis triggers, daily wellness maintenance list, peer support contact tree.
+5. **Justice Re-Entry & Probation Navigation:** 45m face-to-face, 20m travel, 10m doc (75m = 5 units). Focus: Re-entry check-in, probation appointment accompaniment, barrier problem-solving.
+6. **Enhanced Care Management (ECM) Multi-Disciplinary:** 35m face-to-face, 15m travel, 10m doc (60m = 4 units). Focus: Primary care appointment prep, pharmacy navigation, care team debrief.
+7. **Vocational Readiness & Benefit Planning:** 45m face-to-face, 10m travel, 10m doc (65m = 5 units). Focus: Resume drafting, interview preparation, Medi-Cal Working Disabled program.
+8. **Somatic Grounding & Emotional Regulation:** 30m face-to-face, 0m travel, 5m doc (35m = 3 units). Focus: Box breathing (4-4-4-4), 5-4-3-2-1 sensory grounding, nervous system pacing.
+
+### Time Calculation Rule (DHCS Standard)
+$$\text{Billing Units} = \lceil (\text{Face-to-Face Minutes} + \text{Field Travel Minutes} + \text{Documentation Minutes}) / 15 \rceil$$
+Under DHCS CalAIM regulations, travel and documentation minutes are fully billable under H0038 when directly tied to an active peer encounter.

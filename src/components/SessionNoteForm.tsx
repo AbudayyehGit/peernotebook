@@ -29,13 +29,18 @@ import {
   Wand2,
   X,
   Car,
-  DollarSign
+  DollarSign,
+  Layers,
+  ChevronLeft,
+  ChevronRight,
+  BookOpen
 } from 'lucide-react';
 import {
   calculateMediCalBillingUnits,
   sanitizeToNonClinicalLanguage,
   parseUnstructuredPeerDictation
 } from '../services/peerNoteEngine';
+import { H0038TemplateDrawer, H0038Template } from './H0038TemplateDrawer';
 
 interface SessionNoteFormProps {
   initialClient?: Client | null;
@@ -202,6 +207,30 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
   const [sanitizedNotice, setSanitizedNotice] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+
+  // CalAIM H0038 Standard Template Drawer & Flex Wizard Stepper State
+  const [isTemplateDrawerOpen, setIsTemplateDrawerOpen] = useState(false);
+  const [formMode, setFormMode] = useState<'standard' | 'flex_wizard'>('standard');
+  const [wizardStep, setWizardStep] = useState<number>(1);
+
+  const handleApplyH0038Template = (tmpl: H0038Template) => {
+    setGoalAddressed(tmpl.goalAddressed);
+    setPeerIntervention(tmpl.peerIntervention);
+    setClientResponse(tmpl.clientResponse);
+    setPlanNextSteps(tmpl.planNextSteps);
+    setModality(tmpl.modality);
+    setPlaceOfServiceCode(tmpl.placeOfServiceCode);
+    setLocationDetails(tmpl.locationDetails);
+    setFaceToFaceMinutes(tmpl.faceToFaceMinutes);
+    setTravelMinutes(tmpl.travelMinutes);
+    setDocumentationMinutes(tmpl.documentationMinutes);
+    setFocusDomains(tmpl.focusDomains);
+    if (tmpl.recommendedInterventionChips && tmpl.recommendedInterventionChips.length > 0) {
+      setSelectedInterventionChips(tmpl.recommendedInterventionChips);
+    }
+    setSanitizedNotice(`Applied CalAIM H0038 Standard: "${tmpl.title}"`);
+    setTimeout(() => setSanitizedNotice(null), 4500);
+  };
 
   // Auto-calculate Face-to-Face Duration from Start and End Times
   useEffect(() => {
@@ -595,95 +624,10 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
     }, 1000);
   };
 
-  return (
-    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-7 shadow-[0_4px_20px_rgba(15,23,42,0.04)] max-w-4xl mx-auto space-y-6 max-w-full overflow-hidden">
-      {/* Header with Title & Quick Starters */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-teal-50 text-[#0F766E] rounded-2xl border border-teal-200/80 shrink-0">
-            <FileText className="w-6 h-6" />
-          </div>
-          <div>
-            <h2 className="text-base sm:text-lg font-bold text-[#1E3A8A] leading-tight">
-              {existingNote ? 'Edit CalAIM Encounter Documentation' : 'Medi-Cal H0038 Peer Encounter Note'}
-            </h2>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
-              <span>CalAIM Payment Reform</span>
-              <span>·</span>
-              <span>Procedure: <strong className="font-mono text-[#0F766E]">{billingCode}</strong></span>
-              <span>·</span>
-              <span>Billable: <strong className="font-mono text-[#1E3A8A]">{billingUnits} Units ({totalBillableMinutes} min)</strong></span>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick template starters and dictation toolbar (Symmetrical 2x2 grid on mobile, streamlined row on desktop) */}
-        <div className="bg-[#FEF3C7]/60 p-2.5 sm:p-2 rounded-2xl border border-amber-200/80 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 w-full md:w-auto">
-          {/* Starter Indicator Label */}
-          <div className="flex items-center justify-between sm:justify-start gap-1.5 px-1 sm:px-0 shrink-0">
-            <span className="text-xs font-bold text-[#D97706] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
-              <span>Starters:</span>
-            </span>
-            <span className="text-[10px] font-semibold text-amber-800/70 sm:hidden">
-              Tap to Pre-fill
-            </span>
-          </div>
-
-          {/* Symmetrical Action Pills Grid on Mobile (2x2 equal-width pills), inline flex on desktop */}
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={() => applyTemplate('recovery')}
-              className="min-h-[44px] px-3 py-2 text-xs bg-white hover:bg-amber-50 active:scale-[0.98] text-slate-800 font-semibold rounded-full border border-amber-200 shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#D97706] shrink-0" />
-              <span className="truncate">Recovery</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => applyTemplate('housing')}
-              className="min-h-[44px] px-3 py-2 text-xs bg-white hover:bg-amber-50 active:scale-[0.98] text-slate-800 font-semibold rounded-full border border-amber-200 shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#D97706] shrink-0" />
-              <span className="truncate">Housing</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => applyTemplate('coping')}
-              className="min-h-[44px] px-3 py-2 text-xs bg-white hover:bg-amber-50 active:scale-[0.98] text-slate-800 font-semibold rounded-full border border-amber-200 shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#D97706] shrink-0" />
-              <span className="truncate">Somatic</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsDictationModalOpen(true)}
-              className="min-h-[44px] px-3.5 py-2 text-xs bg-[#0F766E] hover:bg-teal-800 active:scale-[0.98] text-white font-bold rounded-full shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
-            >
-              <Mic className="w-3.5 h-3.5 text-white shrink-0" />
-              <span className="truncate">PeerNote™ Dictate</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {validationWarning && (
-        <div className="flex items-center gap-2.5 p-3.5 bg-amber-50 border border-amber-300 rounded-xl text-[#D97706] text-xs font-semibold">
-          <AlertTriangle className="w-5 h-5 shrink-0" />
-          <span>{validationWarning}</span>
-        </div>
-      )}
-
-      {saveStatus && (
-        <div className="flex items-center gap-2.5 p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-[#16A34A] text-xs font-bold">
-          <CheckCircle2 className="w-5 h-5 shrink-0" />
-          <span>{saveStatus}</span>
-        </div>
-      )}
-
-      {/* Peer Client Selection & Encounter Metadata */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+  // Step 1: Careplan Milestone & Client Linkage
+  const renderStep1 = () => (
+    <div className="space-y-4 animate-in fade-in duration-150">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1.5">
             Peer / Client *
@@ -716,13 +660,43 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             value={encounterDate}
             onChange={(e) => setEncounterDate(e.target.value)}
             className="w-full min-h-[44px] px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-          >
-          </input>
+          />
         </div>
+      </div>
 
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[11px] font-bold">1</span>
+            <span>CalAIM Strengths-Based Goal Addressed (Part 1 of 4) *</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => setIsTemplateDrawerOpen(true)}
+            className="text-[11px] text-[#0F766E] hover:text-teal-800 font-semibold flex items-center gap-1 cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Select from H0038 Templates</span>
+          </button>
+        </div>
+        <textarea
+          rows={3}
+          value={goalAddressed}
+          onChange={(e) => setGoalAddressed(e.target.value)}
+          placeholder="Document client-centered recovery plan goal or milestone addressed today (e.g. Housing transition, relapse prevention capital, WRAP early warning cues)..."
+          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
+        />
+      </div>
+    </div>
+  );
+
+  // Step 2: Time, Location & POS 15 (H0038 Calculator)
+  const renderStep2 = () => (
+    <div className="space-y-4 animate-in fade-in duration-150">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1.5">
-            Modality & Place of Service *
+            Modality &amp; Place of Service *
           </label>
           <select
             value={`${modality}:${placeOfServiceCode}`}
@@ -740,9 +714,21 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             <option value="phone_outreach:02">Phone Outreach Encounter (POS 02)</option>
           </select>
         </div>
+
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            Location Specifics
+          </label>
+          <input
+            type="text"
+            value={locationDetails}
+            onChange={(e) => setLocationDetails(e.target.value)}
+            placeholder="e.g. Client supportive housing site, Library career center, Community park"
+            className="w-full min-h-[44px] px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
+          />
+        </div>
       </div>
 
-      {/* CalAIM Time Accounting (Direct Face-to-Face + Travel + Documentation) */}
       <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/90 space-y-3 shadow-[0_2px_6px_rgba(15,23,42,0.03)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
           <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
@@ -782,8 +768,8 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1 truncate">
-              Documentation (mins)
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1 truncate">
+              <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Doc (mins)
             </label>
             <input
               type="number"
@@ -796,18 +782,29 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 mb-1 truncate">
-              Billing Formula
+              Time Window
             </label>
-            <div className="flex items-center min-h-[44px] px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono text-[#1E3A8A] font-bold truncate">
-              Ceil({totalBillableMinutes}/15) = {billingUnits}u
+            <div className="flex items-center gap-1">
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-1/2 min-h-[44px] px-2 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800"
+              />
+              <span className="text-slate-400">-</span>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-1/2 min-h-[44px] px-2 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800"
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* 1099 Independent Contractor Mileage & Billable Ledger (if contractor) */}
       {isContractor && (
-        <div className="p-4 bg-amber-50/70 rounded-2xl border border-amber-200/90 space-y-3 shadow-[0_2px_6px_rgba(15,23,42,0.03)]">
+        <div className="p-4 bg-amber-50/70 rounded-2xl border border-amber-200/90 space-y-3 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
             <span className="text-xs font-bold uppercase tracking-wider text-[#D97706] flex items-center gap-1.5">
               <Car className="w-4 h-4 text-[#D97706] shrink-0" />
@@ -854,8 +851,12 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           </div>
         </div>
       )}
+    </div>
+  );
 
-      {/* Focus Domains (Single-Tap Toggle Chips with rounded-full & 44-48px min tap target) */}
+  // Step 3: Peer Specialist Interventions & Chips
+  const renderStep3 = () => (
+    <div className="space-y-4 animate-in fade-in duration-150">
       <div className="space-y-2">
         <label className="block text-xs font-bold text-slate-700">
           CalAIM Encounter Focus Domains (Tap to select)
@@ -886,7 +887,6 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
         </div>
       </div>
 
-      {/* OVERHAUL: Clear, Single-Tap Toggle Chips for Peer Interventions (rounded-full 46px pills) */}
       <div className="p-5 bg-slate-50/80 rounded-2xl border border-slate-200/90 space-y-3.5 shadow-[0_2px_6px_rgba(15,23,42,0.03)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
           <div className="flex items-center gap-2">
@@ -894,7 +894,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
               <Zap className="w-4 h-4" />
             </div>
             <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A]">
-              Single-Tap Peer Intervention Chips (CalMHSA & CalAIM Core)
+              Single-Tap Peer Intervention Chips (CalMHSA &amp; CalAIM Core)
             </span>
           </div>
           <span className="text-[11px] text-[#D97706] font-semibold bg-[#FEF3C7] px-2.5 py-0.5 rounded-full border border-amber-200">
@@ -932,6 +932,310 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           })}
         </div>
       </div>
+
+      <div className="space-y-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full bg-teal-100 text-[#0F766E] flex items-center justify-center text-[11px] font-bold">2</span>
+            <span>Certified Peer Specialist Intervention (Part 2 of 4 - What YOU Did) *</span>
+          </label>
+          <button
+            type="button"
+            onClick={handleCleanseJargon}
+            className="min-h-[40px] px-3.5 py-1.5 bg-slate-100 hover:bg-teal-50 hover:text-[#0F766E] border border-slate-300 rounded-full text-xs font-bold text-slate-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs self-start sm:self-auto"
+            title="Scan text to replace medicalized terms with non-clinical peer language"
+          >
+            <Wand2 className="w-3.5 h-3.5 text-[#0F766E]" />
+            <span>Cleanse Clinical Jargon</span>
+          </button>
+        </div>
+        <textarea
+          rows={4}
+          value={peerIntervention}
+          onChange={(e) => setPeerIntervention(e.target.value)}
+          placeholder="Detail peer-delivered interventions: shared lived recovery experience, somatic grounding exercises, system navigation, emotional support, self-advocacy coaching..."
+          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
+        />
+      </div>
+    </div>
+  );
+
+  // Step 4: Observable Client Response & Recovery Metric
+  const renderStep4 = () => (
+    <div className="space-y-4 animate-in fade-in duration-150">
+      <div className="space-y-2">
+        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+          <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[11px] font-bold">3</span>
+          <span>Peer / Client Observable Response (Part 3 of 4 - Quotes &amp; Metrics) *</span>
+        </label>
+        <textarea
+          rows={3}
+          value={clientResponse}
+          onChange={(e) => setClientResponse(e.target.value)}
+          placeholder="Record client quotes, observable behavioral responses, mood, self-reported distress rating (e.g. 1-10 scale), and reception of peer coaching..."
+          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
+        />
+      </div>
+
+      <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
+        <label className="flex items-center gap-3 cursor-pointer min-h-[44px]">
+          <input
+            type="checkbox"
+            checked={safetyConcerns}
+            onChange={(e) => setSafetyConcerns(e.target.checked)}
+            className="w-5 h-5 rounded text-rose-600 focus:ring-0 border-slate-300"
+          />
+          <span className="text-xs font-bold text-slate-800">
+            Check here if any safety, crisis, overdose risk, or self-harm indicators were identified during session
+          </span>
+        </label>
+
+        {safetyConcerns && (
+          <div className="space-y-1.5 pt-1">
+            <span className="text-xs text-rose-700 font-bold flex items-center gap-1">
+              <AlertTriangle className="w-4 h-4 text-rose-600" />
+              Crisis De-escalation &amp; Safety Response Documentation:
+            </span>
+            <textarea
+              rows={2}
+              value={safetyNotes}
+              onChange={(e) => setSafetyNotes(e.target.value)}
+              placeholder="Document review of safety plan, supervisor contact, emergency services involvement, or mobile crisis referral..."
+              className="w-full px-3.5 py-2 bg-white border border-rose-300 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:border-rose-500"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Step 5: Plan Next Steps & Attestation Signature
+  const renderStep5 = () => (
+    <div className="space-y-4 animate-in fade-in duration-150">
+      <div className="space-y-2">
+        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+          <span className="w-5 h-5 rounded-full bg-teal-100 text-[#0F766E] flex items-center justify-center text-[11px] font-bold">4</span>
+          <span>Collaborative Plan &amp; Action Steps for Next Meeting (Part 4 of 4) *</span>
+        </label>
+        <textarea
+          rows={2}
+          value={planNextSteps}
+          onChange={(e) => setPlanNextSteps(e.target.value)}
+          placeholder="Agreed action steps for peer before next session; scheduled date, time, and focus of upcoming encounter..."
+          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
+        />
+      </div>
+
+      <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] block">
+          Certified Peer Support Specialist Electronic Signature &amp; Attestation
+        </span>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Typed Legal Signature *</label>
+            <input
+              type="text"
+              value={signatureTyped}
+              onChange={(e) => setSignatureTyped(e.target.value)}
+              className="w-full min-h-[44px] px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-mono font-bold focus:outline-hidden focus:border-[#0F766E]"
+            />
+          </div>
+
+          <div className="flex items-center">
+            <label className="flex items-start gap-2.5 cursor-pointer min-h-[44px] py-1">
+              <input
+                type="checkbox"
+                checked={signatureConfirmed}
+                onChange={(e) => setSignatureConfirmed(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded text-[#0F766E] focus:ring-0 border-slate-300"
+              />
+              <span className="text-xs text-slate-700 leading-normal">
+                I attest that this note accurately reflects peer support services rendered in accordance with California Medi-Cal CPSS scope of practice and CalAIM guidelines.
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-7 shadow-[0_4px_20px_rgba(15,23,42,0.04)] max-w-4xl mx-auto space-y-6 max-w-full overflow-hidden">
+      {/* Header with Title & Quick Starters */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-teal-50 text-[#0F766E] rounded-2xl border border-teal-200/80 shrink-0">
+            <FileText className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-[#1E3A8A] leading-tight">
+              {existingNote ? 'Edit CalAIM Encounter Documentation' : 'Medi-Cal H0038 Peer Encounter Note'}
+            </h2>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
+              <span>CalAIM Payment Reform</span>
+              <span>·</span>
+              <span>Procedure: <strong className="font-mono text-[#0F766E]">{billingCode}</strong></span>
+              <span>·</span>
+              <span>Billable: <strong className="font-mono text-[#1E3A8A]">{billingUnits} Units ({totalBillableMinutes} min)</strong></span>
+            </div>
+          </div>
+        </div>
+
+        {/* Controls Toolbar: View Mode Switcher & H0038 Template Library Trigger */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+          {/* View Mode Toggle: Single-Page vs Flex Wizard */}
+          <div className="bg-slate-100 p-1 rounded-full border border-slate-200 flex items-center justify-between sm:justify-start">
+            <button
+              type="button"
+              onClick={() => setFormMode('standard')}
+              className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                formMode === 'standard'
+                  ? 'bg-[#1E3A8A] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Single-Page
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormMode('flex_wizard')}
+              className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                formMode === 'flex_wizard'
+                  ? 'bg-[#0F766E] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>Flex Wizard</span>
+            </button>
+          </div>
+
+          {/* CalAIM H0038 Standardized Template Drawer Trigger Button */}
+          <button
+            type="button"
+            onClick={() => setIsTemplateDrawerOpen(true)}
+            className="min-h-[44px] px-4 py-2 bg-gradient-to-r from-teal-600 to-[#0F766E] hover:from-teal-700 hover:to-teal-800 text-white font-bold rounded-full text-xs shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 border border-teal-500/50"
+            title="Open H0038 Standardized CalAIM Template Library (8 Core Encounters)"
+          >
+            <BookOpen className="w-4 h-4 text-amber-300 shrink-0" />
+            <span>H0038 CalAIM Templates (8)</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Quick template starters and dictation toolbar (Symmetrical 2x2 grid on mobile, streamlined row on desktop) */}
+      <div className="bg-[#FEF3C7]/60 p-2.5 sm:p-2 rounded-2xl border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-2.5 w-full">
+        {/* Starter Indicator Label */}
+        <div className="flex items-center justify-between sm:justify-start gap-1.5 px-1 sm:px-0 shrink-0">
+          <span className="text-xs font-bold text-[#D97706] flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
+            <span>Quick Starters:</span>
+          </span>
+          <span className="text-[10px] font-semibold text-amber-800/70 sm:hidden">
+            Tap to Pre-fill
+          </span>
+        </div>
+
+        {/* Symmetrical Action Pills Grid on Mobile (2x2 equal-width pills), inline flex on desktop */}
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => applyTemplate('recovery')}
+            className="min-h-[44px] px-3 py-2 text-xs bg-white hover:bg-amber-50 active:scale-[0.98] text-slate-800 font-semibold rounded-full border border-amber-200 shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
+          >
+            <span className="w-2 h-2 rounded-full bg-[#D97706] shrink-0" />
+            <span className="truncate">Recovery</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => applyTemplate('housing')}
+            className="min-h-[44px] px-3 py-2 text-xs bg-white hover:bg-amber-50 active:scale-[0.98] text-slate-800 font-semibold rounded-full border border-amber-200 shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
+          >
+            <span className="w-2 h-2 rounded-full bg-[#D97706] shrink-0" />
+            <span className="truncate">Housing</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => applyTemplate('coping')}
+            className="min-h-[44px] px-3 py-2 text-xs bg-white hover:bg-amber-50 active:scale-[0.98] text-slate-800 font-semibold rounded-full border border-amber-200 shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
+          >
+            <span className="w-2 h-2 rounded-full bg-[#D97706] shrink-0" />
+            <span className="truncate">Somatic</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsDictationModalOpen(true)}
+            className="min-h-[44px] px-3.5 py-2 text-xs bg-[#0F766E] hover:bg-teal-800 active:scale-[0.98] text-white font-bold rounded-full shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
+          >
+            <Mic className="w-3.5 h-3.5 text-white shrink-0" />
+            <span className="truncate">PeerNote™ Dictate</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Flex Wizard Stepper Rail: Full Circumnavigation Freedom */}
+      {formMode === 'flex_wizard' && (
+        <div className="bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200/90 space-y-2.5 shadow-xs">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-bold text-[#1E3A8A] uppercase tracking-wider flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-[#0F766E]" />
+              <span>H0038 Golden Thread Wizard: Step {wizardStep} of 5</span>
+            </span>
+            <span className="text-slate-500 font-medium text-[11px]">
+              Tap any step to jump freely (Zero Validation Blocks)
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {[
+              { num: 1, title: '1. Client & Goal', valid: isPart1Valid && Boolean(selectedClientId) },
+              { num: 2, title: '2. Time & POS 15', valid: totalBillableMinutes > 0 },
+              { num: 3, title: '3. Interventions', valid: isPart2Valid },
+              { num: 4, title: '4. Response', valid: isPart3Valid },
+              { num: 5, title: '5. Next Steps & Sign', valid: isPart4Valid && signatureConfirmed }
+            ].map(step => (
+              <button
+                key={step.num}
+                type="button"
+                onClick={() => setWizardStep(step.num)}
+                className={`min-h-[44px] px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                  wizardStep === step.num
+                    ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-sm font-bold ring-2 ring-blue-300'
+                    : step.valid
+                    ? 'bg-emerald-50 text-[#16A34A] border-emerald-200 hover:bg-emerald-100'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                  wizardStep === step.num
+                    ? 'bg-white text-[#1E3A8A]'
+                    : step.valid
+                    ? 'bg-[#16A34A] text-white'
+                    : 'bg-slate-200 text-slate-600'
+                }`}>
+                  {step.valid && wizardStep !== step.num ? '✓' : step.num}
+                </span>
+                <span className="truncate">{step.title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {validationWarning && (
+        <div className="flex items-center gap-2.5 p-3.5 bg-amber-50 border border-amber-300 rounded-xl text-[#D97706] text-xs font-semibold">
+          <AlertTriangle className="w-5 h-5 shrink-0" />
+          <span>{validationWarning}</span>
+        </div>
+      )}
+
+      {saveStatus && (
+        <div className="flex items-center gap-2.5 p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-[#16A34A] text-xs font-bold">
+          <CheckCircle2 className="w-5 h-5 shrink-0" />
+          <span>{saveStatus}</span>
+        </div>
+      )}
 
       {/* Automated CalAIM 4-Part Structure Validation Telemetry */}
       <div className={`p-4 rounded-2xl border transition-colors ${
@@ -1006,146 +1310,138 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
         </div>
       )}
 
-      {/* Structured DAP Narrative Header with Language Cleanse Trigger */}
-      <div className="space-y-4 pt-1">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-slate-100">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
-            <FileText className="w-4 h-4 text-[#0F766E]" />
-            <span>Medi-Cal Mandated 4-Part Structured Narrative</span>
-          </span>
-          <button
-            type="button"
-            onClick={handleCleanseJargon}
-            className="min-h-[44px] px-4 py-2 bg-slate-100 hover:bg-teal-50 hover:text-[#0F766E] border border-slate-300 rounded-full text-xs font-bold text-slate-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs self-start sm:self-auto"
-            title="Scan note text to strip medicalized jargon (e.g. 'patient' -> 'peer', 'non-compliant' -> strengths-based pacing)"
-          >
-            <Wand2 className="w-3.5 h-3.5 text-[#0F766E]" />
-            <span>Cleanse Clinical Jargon (CalMHSA Audit)</span>
-          </button>
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-            <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[11px] font-bold">1</span>
-            <span>CalAIM Strengths-Based Goal Addressed *</span>
-          </label>
-          <textarea
-            rows={2}
-            value={goalAddressed}
-            onChange={(e) => setGoalAddressed(e.target.value)}
-            placeholder="Document client-centered recovery plan goal or objective addressed today..."
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-teal-100 text-[#0F766E] flex items-center justify-center text-[11px] font-bold">2</span>
-              <span>Certified Peer Specialist Intervention (What YOU did) *</span>
-            </span>
-            <span className="text-[11px] text-slate-400 font-normal">Use intervention chips above for quick insertion</span>
-          </label>
-          <textarea
-            rows={4}
-            value={peerIntervention}
-            onChange={(e) => setPeerIntervention(e.target.value)}
-            placeholder="Detail peer-delivered interventions: shared lived recovery experience, somatic grounding exercises, system navigation, emotional support, self-advocacy coaching..."
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-            <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[11px] font-bold">3</span>
-            <span>Peer / Client Response (Client Quotes & Response to Intervention) *</span>
-          </label>
-          <textarea
-            rows={3}
-            value={clientResponse}
-            onChange={(e) => setClientResponse(e.target.value)}
-            placeholder="Record client quotes, observable behavioral responses, mood, self-reported distress rating (e.g. 1-10 scale), and reception of peer coaching..."
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-            <span className="w-5 h-5 rounded-full bg-teal-100 text-[#0F766E] flex items-center justify-center text-[11px] font-bold">4</span>
-            <span>Plan & Action Steps for Next Meeting *</span>
-          </label>
-          <textarea
-            rows={2}
-            value={planNextSteps}
-            onChange={(e) => setPlanNextSteps(e.target.value)}
-            placeholder="Agreed action steps for peer before next session; scheduled date, time, and focus of upcoming encounter..."
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-          />
-        </div>
-      </div>
-
-      {/* Safety & Crisis Flag */}
-      <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
-        <label className="flex items-center gap-3 cursor-pointer min-h-[44px]">
-          <input
-            type="checkbox"
-            checked={safetyConcerns}
-            onChange={(e) => setSafetyConcerns(e.target.checked)}
-            className="w-5 h-5 rounded text-rose-600 focus:ring-0 border-slate-300"
-          />
-          <span className="text-xs font-bold text-slate-800">
-            Check here if any safety, crisis, overdose risk, or self-harm indicators were identified during session
-          </span>
-        </label>
-
-        {safetyConcerns && (
-          <div className="space-y-1.5 pt-1">
-            <span className="text-xs text-rose-700 font-bold flex items-center gap-1">
-              <AlertTriangle className="w-4 h-4 text-rose-600" />
-              Crisis De-escalation & Safety Response Documentation:
-            </span>
-            <textarea
-              rows={2}
-              value={safetyNotes}
-              onChange={(e) => setSafetyNotes(e.target.value)}
-              placeholder="Document review of safety plan, supervisor contact, emergency services involvement, or mobile crisis referral..."
-              className="w-full px-3.5 py-2 bg-white border border-rose-300 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:border-rose-500"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Electronic Signature Block */}
-      <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] block">
-          Certified Peer Support Specialist Electronic Signature
-        </span>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Typed Legal Signature</label>
-            <input
-              type="text"
-              value={signatureTyped}
-              onChange={(e) => setSignatureTyped(e.target.value)}
-              className="w-full min-h-[44px] px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-mono font-bold focus:outline-hidden focus:border-[#0F766E]"
-            />
-          </div>
-
-          <div className="flex items-center">
-            <label className="flex items-start gap-2.5 cursor-pointer min-h-[44px] py-1">
-              <input
-                type="checkbox"
-                checked={signatureConfirmed}
-                onChange={(e) => setSignatureConfirmed(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded text-[#0F766E] focus:ring-0 border-slate-300"
-              />
-              <span className="text-xs text-slate-700 leading-normal">
-                I attest that this note accurately reflects peer support services rendered in accordance with California Medi-Cal CPSS scope of practice and CalAIM guidelines.
+      {/* Workflow Engine: Dual-Mode Rendering (Standard Full Page vs Flex Wizard) */}
+      {formMode === 'standard' ? (
+        <div className="space-y-6">
+          <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[10px] font-bold">1</span>
+                Step 1 · Client & Careplan Milestone Linkage
               </span>
-            </label>
+              <span className="text-[11px] font-semibold text-[#0F766E] bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                CalAIM H0038
+              </span>
+            </div>
+            {renderStep1()}
+          </div>
+
+          <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[10px] font-bold">2</span>
+                Step 2 · CalAIM Time Accounting & Focus Domains
+              </span>
+              <span className="text-[11px] font-semibold text-[#0F766E] bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                Direct + Travel + Doc
+              </span>
+            </div>
+            {renderStep2()}
+          </div>
+
+          <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[10px] font-bold">3</span>
+                Step 3 · Peer Intervention & Shared Recovery Experience
+              </span>
+              <span className="text-[11px] font-semibold text-[#0F766E] bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                Trauma-Informed Chips
+              </span>
+            </div>
+            {renderStep3()}
+          </div>
+
+          <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[10px] font-bold">4</span>
+                Step 4 · Client Recovery Response & Plan
+              </span>
+              <span className="text-[11px] font-semibold text-[#0F766E] bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                Quotes & Next Encounter
+              </span>
+            </div>
+            {renderStep4()}
+          </div>
+
+          <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[10px] font-bold">5</span>
+                Step 5 · Safety Check & Electronic Attestation Signature
+              </span>
+              <span className="text-[11px] font-semibold text-[#0F766E] bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                CPSS Attestation
+              </span>
+            </div>
+            {renderStep5()}
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="p-5 sm:p-6 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A]">
+                Step {wizardStep} of 5 · {
+                  wizardStep === 1 ? 'Client & Careplan Linkage' :
+                  wizardStep === 2 ? 'CalAIM Time Accounting' :
+                  wizardStep === 3 ? 'Peer Intervention & Strengths' :
+                  wizardStep === 4 ? 'Client Response & Plan' :
+                  'Safety & Electronic Attestation'
+                }
+              </span>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Total circumnavigation freedom enabled. Jump between any steps at will with zero validation locking.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+              <span className="text-[11px] font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full">
+                Step {wizardStep}/5
+              </span>
+            </div>
+          </div>
+
+          {wizardStep === 1 && renderStep1()}
+          {wizardStep === 2 && renderStep2()}
+          {wizardStep === 3 && renderStep3()}
+          {wizardStep === 4 && renderStep4()}
+          {wizardStep === 5 && renderStep5()}
+
+          {/* Stepper Navigation Buttons */}
+          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setWizardStep(prev => Math.max(1, prev - 1) as 1 | 2 | 3 | 4 | 5)}
+              disabled={wizardStep === 1}
+              className="min-h-[44px] px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Previous Step</span>
+            </button>
+
+            <span className="text-xs text-slate-400 font-semibold hidden sm:inline">
+              Step {wizardStep} of 5
+            </span>
+
+            {wizardStep < 5 ? (
+              <button
+                type="button"
+                onClick={() => setWizardStep(prev => Math.min(5, prev + 1) as 1 | 2 | 3 | 4 | 5)}
+                className="min-h-[44px] px-5 py-2 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+              >
+                <span>Next Step</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <span className="text-xs font-bold text-[#16A34A] flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4" />
+                All Steps Ready
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons with 48px touch target and uniform sizing */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3">
@@ -1288,6 +1584,13 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           </div>
         </div>
       )}
+
+      {/* CalAIM H0038 Standardized Encounter Template Drawer */}
+      <H0038TemplateDrawer
+        isOpen={isTemplateDrawerOpen}
+        onClose={() => setIsTemplateDrawerOpen(false)}
+        onSelectTemplate={handleApplyH0038Template}
+      />
     </div>
   );
 };

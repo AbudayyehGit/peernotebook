@@ -119,6 +119,50 @@ export const BillingModal: React.FC<BillingModalProps> = ({
     setSuccessMessage(`Simulated trial state: ${days === 0 ? 'Expired' : `${days} days remaining`}`);
   };
 
+  const handleSimulateState = async (state: 'active_subscriber' | 'trialing' | 'past_due' | 'canceled') => {
+    setIsProcessing(true);
+    setErrorMessage(null);
+    try {
+      const now = new Date();
+      if (state === 'active_subscriber') {
+        await updateUserBilling({
+          subscriptionStatus: 'active_subscriber',
+          subscriptionTier: selectedTier || 'founding_specialist',
+          stripeCustomerId: currentUser?.stripeCustomerId || `cus_sim_${Date.now()}`,
+          stripeSubscriptionId: currentUser?.stripeSubscriptionId || `sub_sim_${Date.now()}`,
+          currentPeriodEnd: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          cancelAtPeriodEnd: false
+        });
+        setSuccessMessage('Simulated state: active_subscriber (Full features and cloud access unlocked)');
+      } else if (state === 'trialing') {
+        const trialEndsAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
+        await updateUserBilling({
+          subscriptionStatus: 'trialing',
+          trialEndsAt,
+          currentPeriodEnd: trialEndsAt,
+          cancelAtPeriodEnd: false
+        });
+        setSuccessMessage('Simulated state: trialing (14-day CalAIM trial active)');
+      } else if (state === 'past_due') {
+        await updateUserBilling({
+          subscriptionStatus: 'past_due',
+          cancelAtPeriodEnd: false
+        });
+        setSuccessMessage('Simulated state: past_due (Payment retry banner enabled)');
+      } else if (state === 'canceled') {
+        await updateUserBilling({
+          subscriptionStatus: 'canceled',
+          cancelAtPeriodEnd: true
+        });
+        setSuccessMessage('Simulated state: canceled (Subscription ended, offline read/export active)');
+      }
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Simulation state update failed.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full my-6 overflow-hidden flex flex-col max-h-[92vh]">
@@ -339,45 +383,74 @@ export const BillingModal: React.FC<BillingModalProps> = ({
           </div>
 
           {/* Sandbox Diagnostic Simulator Buttons */}
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-2.5">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-3">
             <div className="flex items-center justify-between">
               <span className="font-bold text-slate-700 flex items-center gap-1.5">
                 <Award className="w-4 h-4 text-[#0F766E]" />
                 Sandbox Testing &amp; Lifecycle Diagnostics
               </span>
-              <span className="text-[10px] text-slate-400 font-mono">Simulate Billing States</span>
+              <span className="text-[10px] text-slate-400 font-mono">Real-Time State Simulation</span>
             </div>
-            <p className="text-[11px] text-slate-500">
-              Test feature gating, trial countdown banners, and live subscription states without running live credit card charges:
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Test real-time subscription lifecycle states, feature gating, and Supabase cloud sync without live payment processing:
             </p>
-            <div className="flex flex-wrap items-center gap-2 pt-1">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
               <button
                 type="button"
-                onClick={() => handleSimulateTrialDays(14)}
-                className="min-h-[48px] px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-300 font-semibold cursor-pointer"
+                onClick={() => handleSimulateState('active_subscriber')}
+                disabled={isProcessing}
+                className="min-h-[48px] px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-300 font-bold text-center cursor-pointer flex flex-col items-center justify-center transition-colors"
+                title="Simulate active_subscriber: unblocks all features and updates user_profiles"
               >
-                Reset 14 Days Trial
+                <span className="text-xs">active_subscriber</span>
+                <span className="text-[10px] font-normal text-emerald-700">Full Cloud Access</span>
               </button>
               <button
                 type="button"
-                onClick={() => handleSimulateTrialDays(2)}
-                className="min-h-[48px] px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl border border-amber-300 font-semibold cursor-pointer"
+                onClick={() => handleSimulateState('trialing')}
+                disabled={isProcessing}
+                className="min-h-[48px] px-3 py-2.5 bg-teal-50 hover:bg-teal-100 text-[#0F766E] rounded-xl border border-teal-300 font-bold text-center cursor-pointer flex flex-col items-center justify-center transition-colors"
+                title="Simulate trialing: 14 days zero-risk free trial"
               >
-                Simulate 2 Days Left (Amber Alert)
+                <span className="text-xs">trialing</span>
+                <span className="text-[10px] font-normal text-teal-700">14-Day Free Trial</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSimulateState('past_due')}
+                disabled={isProcessing}
+                className="min-h-[48px] px-3 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl border border-amber-300 font-bold text-center cursor-pointer flex flex-col items-center justify-center transition-colors"
+                title="Simulate past_due: shows retry banner and updates user_profiles"
+              >
+                <span className="text-xs">past_due</span>
+                <span className="text-[10px] font-normal text-amber-700">Grace Period</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSimulateState('canceled')}
+                disabled={isProcessing}
+                className="min-h-[48px] px-3 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-800 rounded-xl border border-rose-300 font-bold text-center cursor-pointer flex flex-col items-center justify-center transition-colors"
+                title="Simulate canceled: subscription ended, read-only mode"
+              >
+                <span className="text-xs">canceled</span>
+                <span className="text-[10px] font-normal text-rose-700">Subscription Ended</span>
+              </button>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-200/60">
+              <span className="text-[11px] text-slate-500 font-medium">Trial Countdown Fine-Tuning:</span>
+              <button
+                type="button"
+                onClick={() => handleSimulateTrialDays(2)}
+                className="min-h-[36px] px-3 py-1.5 bg-white hover:bg-slate-100 text-amber-800 rounded-lg border border-slate-200 text-xs font-semibold cursor-pointer"
+              >
+                2 Days Left
               </button>
               <button
                 type="button"
                 onClick={() => handleSimulateTrialDays(0)}
-                className="min-h-[48px] px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-800 rounded-xl border border-red-300 font-semibold cursor-pointer"
+                className="min-h-[36px] px-3 py-1.5 bg-white hover:bg-slate-100 text-rose-800 rounded-lg border border-slate-200 text-xs font-semibold cursor-pointer"
               >
-                Simulate Trial Expired (Gating)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleInitiateCheckout('founding_specialist')}
-                className="min-h-[48px] px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-300 font-semibold cursor-pointer"
-              >
-                Simulate Active Founding ($19/mo)
+                0 Days (Expired)
               </button>
             </div>
           </div>

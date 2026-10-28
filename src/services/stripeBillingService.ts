@@ -139,7 +139,7 @@ export class StripeBillingService {
       };
     }
 
-    if (user.subscriptionStatus === 'active') {
+    if (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'active_subscriber') {
       const tierName = SUBSCRIPTION_TIERS[user.subscriptionTier || 'founding_specialist']?.name || 'Active Plan';
       return {
         daysRemaining: 365,
@@ -149,6 +149,30 @@ export class StripeBillingService {
         hasFullAccess: true,
         statusBadgeText: `${tierName} · Active`,
         statusBadgeColor: 'bg-emerald-50 text-[#16A34A] border-emerald-200 font-semibold'
+      };
+    }
+
+    if (user.subscriptionStatus === 'past_due') {
+      return {
+        daysRemaining: 0,
+        hoursRemaining: 0,
+        isTrialActive: false,
+        isSubscriptionActive: false,
+        hasFullAccess: false,
+        statusBadgeText: 'Past Due · Please Update Payment',
+        statusBadgeColor: 'bg-amber-100 text-amber-900 border-amber-300 font-bold'
+      };
+    }
+
+    if (user.subscriptionStatus === 'canceled') {
+      return {
+        daysRemaining: 0,
+        hoursRemaining: 0,
+        isTrialActive: false,
+        isSubscriptionActive: false,
+        hasFullAccess: false,
+        statusBadgeText: 'Subscription Canceled',
+        statusBadgeColor: 'bg-red-50 text-red-700 border-red-200 font-bold'
       };
     }
 
