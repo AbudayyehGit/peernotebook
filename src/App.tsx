@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PeerNotebookWorkspace } from './components/PeerNotebookWorkspace';
 import { SyncStatusBadge } from './components/SyncStatusBadge';
@@ -285,6 +286,7 @@ export default function App() {
           <AppContent />
         </PrivacyModeProvider>
       </AuthProvider>
+      <Analytics />
     </FieldErrorBoundary>
   );
 }
