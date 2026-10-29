@@ -646,34 +646,32 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               <span>Settings &amp; BAA</span>
             </button>
 
-            {canManageAgency && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => navigateToTab('admin_dashboard')}
-                  className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    activeTab === 'admin_dashboard'
-                      ? 'bg-[#1E3A8A] text-white shadow-sm'
-                      : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
-                  }`}
-                >
-                  <Building2 className={`w-3.5 h-3.5 ${activeTab === 'admin_dashboard' ? 'text-white' : 'text-slate-500'}`} />
-                  <span>CBO Dashboard</span>
-                </button>
+            <button
+              type="button"
+              onClick={() => navigateToTab('admin_dashboard')}
+              className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'admin_dashboard'
+                  ? 'bg-[#1E3A8A] text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+              }`}
+            >
+              <Building2 className={`w-3.5 h-3.5 ${activeTab === 'admin_dashboard' ? 'text-white' : 'text-slate-500'}`} />
+              <span>CBO Dashboard</span>
+            </button>
 
-                <button
-                  type="button"
-                  onClick={() => navigateToTab('admin_users')}
-                  className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    activeTab === 'admin_users'
-                      ? 'bg-[#1E3A8A] text-white shadow-sm'
-                      : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
-                  }`}
-                >
-                  <Users className={`w-3.5 h-3.5 ${activeTab === 'admin_users' ? 'text-white' : 'text-slate-500'}`} />
-                  <span>Staff</span>
-                </button>
-              </>
+            {canManageAgency && (
+              <button
+                type="button"
+                onClick={() => navigateToTab('admin_users')}
+                className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'admin_users'
+                    ? 'bg-[#1E3A8A] text-white shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                }`}
+              >
+                <Users className={`w-3.5 h-3.5 ${activeTab === 'admin_users' ? 'text-white' : 'text-slate-500'}`} />
+                <span>Staff</span>
+              </button>
             )}
 
             <button
@@ -785,7 +783,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               type="button"
               onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
               className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                ['goalpath', 'audit', 'architecture', 'settings', 'admin_users'].includes(activeTab)
+                ['goalpath', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(activeTab)
                   ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-sm'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90'
               }`}
@@ -800,8 +798,12 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                   ? 'GA #8 Specs'
                   : activeTab === 'settings'
                   ? 'Settings & BAA'
+                  : activeTab === 'admin_dashboard'
+                  ? 'CBO Dashboard'
                   : activeTab === 'admin_users'
                   ? 'Users & CBOs'
+                  : activeTab === 'telemetry'
+                  ? 'Telemetry'
                   : 'More Modules'}
               </span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isMoreMenuOpen ? 'rotate-180' : ''}`} />
@@ -880,6 +882,46 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                   <button
                     type="button"
                     onClick={() => {
+                      navigateToTab('admin_dashboard');
+                      setIsMoreMenuOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between text-xs font-bold transition-colors cursor-pointer ${
+                      activeTab === 'admin_dashboard' ? 'bg-blue-50 text-[#1E3A8A]' : 'hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-[#0F766E]" />
+                      <div>
+                        <span>CBO Agency Dashboard</span>
+                        <span className="text-xs text-slate-500 font-normal block">Onboarding & capacity tracker</span>
+                      </div>
+                    </div>
+                    {activeTab === 'admin_dashboard' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigateToTab('telemetry');
+                      setIsMoreMenuOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between text-xs font-bold transition-colors cursor-pointer ${
+                      activeTab === 'telemetry' ? 'bg-blue-50 text-[#1E3A8A]' : 'hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-[#0F766E]" />
+                      <div>
+                        <span>Engineering Telemetry</span>
+                        <span className="text-xs text-slate-500 font-normal block">IndexedDB, sync & diagnostics</span>
+                      </div>
+                    </div>
+                    {activeTab === 'telemetry' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
                       navigateToTab('settings');
                       setIsMoreMenuOpen(false);
                     }}
@@ -909,9 +951,9 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-[#0F766E]" />
+                        <Users className="w-4 h-4 text-[#0F766E]" />
                         <div>
-                          <span>Users &amp; CBO Agencies</span>
+                          <span>Users &amp; Staff</span>
                           <span className="text-xs text-slate-500 font-normal block">Provision accounts &amp; contracts</span>
                         </div>
                       </div>
@@ -1939,15 +1981,52 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               </div>
             </div>
 
-            {/* 3. System, Specs & Persistence */}
+            {/* 3. System, Specs & Governance */}
             <div className="space-y-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">
-                Specifications & Settings
+                Administration &amp; System Health
               </span>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => navigateToTab('architecture')}
+                  onClick={() => {
+                    navigateToTab('admin_dashboard');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`p-3 rounded-xl border text-left flex flex-col justify-between min-h-[58px] transition-all cursor-pointer ${
+                    activeTab === 'admin_dashboard'
+                      ? 'bg-blue-50/80 border-blue-200 text-[#1E3A8A]'
+                      : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-800'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4 text-[#0F766E] mb-1" />
+                  <span className="font-bold text-xs leading-tight">CBO Dashboard</span>
+                  <span className="text-[10px] text-slate-500">Medi-Cal setup</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigateToTab('telemetry');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`p-3 rounded-xl border text-left flex flex-col justify-between min-h-[58px] transition-all cursor-pointer ${
+                    activeTab === 'telemetry'
+                      ? 'bg-blue-50/80 border-blue-200 text-[#1E3A8A]'
+                      : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-800'
+                  }`}
+                >
+                  <Activity className="w-4 h-4 text-[#0F766E] mb-1" />
+                  <span className="font-bold text-xs leading-tight">Telemetry</span>
+                  <span className="text-[10px] text-slate-500">Storage &amp; sync</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigateToTab('architecture');
+                    setIsMobileMenuOpen(false);
+                  }}
                   className={`p-3 rounded-xl border text-left flex flex-col justify-between min-h-[58px] transition-all cursor-pointer ${
                     activeTab === 'architecture'
                       ? 'bg-blue-50/80 border-blue-200 text-[#1E3A8A]'
@@ -1961,7 +2040,10 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
 
                 <button
                   type="button"
-                  onClick={() => navigateToTab('settings')}
+                  onClick={() => {
+                    navigateToTab('settings');
+                    setIsMobileMenuOpen(false);
+                  }}
                   className={`p-3 rounded-xl border text-left flex flex-col justify-between min-h-[58px] transition-all cursor-pointer ${
                     activeTab === 'settings'
                       ? 'bg-blue-50/80 border-blue-200 text-[#1E3A8A]'
@@ -1970,7 +2052,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 >
                   <Settings className="w-4 h-4 text-[#0F766E] mb-1" />
                   <span className="font-bold text-xs leading-tight">Settings & BAA</span>
-                  <span className="text-[10px] text-slate-500">Storage & sync</span>
+                  <span className="text-[10px] text-slate-500">BAA &amp; exports</span>
                 </button>
               </div>
             </div>

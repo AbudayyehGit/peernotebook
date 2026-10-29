@@ -921,5 +921,164 @@ await supabase.from('user_profiles').upsert({
 }, { onConflict: 'id' });
 \`\`\`
 This ensures consistent subscription state across both offline client partitions and cloud administrative dashboards.`
+  },
+  {
+    slug: 'California_SB_803_and_17_CalMHSA_Core_Competencies',
+    category: '02 Business Strategy',
+    title: 'California Senate Bill 803 & CalMHSA 17 Core Competencies Architecture',
+    subtitle: 'Statutory Certification Standards, Non-Clinical Medi-Cal H0038 Alignment, and Golden Thread Workflow Integration',
+    specCode: 'GA8-SB803-01',
+    lastUpdated: '2026-10-29',
+    author: 'Chief Medical & Compliance Officer & Peer Lead',
+    readTime: '15 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/02-business-strategy/California_SB_803_and_17_CalMHSA_Core_Competencies',
+    content: `# California Senate Bill 803 & CalMHSA 17 Core Competencies Architecture
+**Statutory Authority:** California Senate Bill 803 (Beall, Chapter 150, Statutes of 2020)  
+**Certifying Entity:** California Mental Health Services Authority (CalMHSA)  
+**Standard:** Medi-Cal Certified Peer Support Specialist (CPSS-CA) & CalAIM H0038 Compliance  
+**Canonical Source:** https://www.peernotebook.com/docs/02-business-strategy/California_SB_803_and_17_CalMHSA_Core_Competencies
+
+---
+
+## 1. Executive Summary & Legislative Foundation
+California Senate Bill 803 established a statewide credentialing standard for **Medi-Cal Certified Peer Support Specialists (CPSS-CA)** under the governance of the Department of Health Care Services (DHCS) and CalMHSA. 
+
+Peer support is fundamentally defined as non-clinical, strengths-based, lived-experience mentorship that promotes hope, personal recovery, and health system navigation. Under CalAIM Behavioral Health Payment Reform, peer support services are recognized as Medicaid-reimbursable services under HCPCS procedure code **H0038**.
+
+To maintain claim defensibility during county mental health plan audits, specialists must demonstrate that services rendered adhere strictly to the **17 CalMHSA Core Competencies** while avoiding prohibited clinical therapy or medicalized language.
+
+---
+
+## 2. The 17 CalMHSA Core Competency Manifest
+
+The 17 competencies are grouped into four functional domains:
+
+### Category 1: Foundation
+1. **The Recovery Model & Philosophy (SB803-01):** Promotes hope, personal empowerment, self-determination, and the belief that recovery is individual and achievable.
+2. **Peer Support Role & Code of Ethics (SB803-02):** Maintains clear peer boundaries, voluntary mutual aid, confidentiality, and the California Peer Code of Ethics.
+3. **Goal Setting & Action Planning (SB803-10):** Assists the peer in defining SMART, self-directed goals broken into achievable, celebrated milestones.
+
+### Category 2: Practice
+4. **Trauma-Informed Care Practices (SB803-03):** Creates safety, trust, peer agency, and avoids re-traumatizing individuals through respectful engagement.
+5. **Cultural Humility & Responsiveness (SB803-04):** Honors intersecting cultural, linguistic, gender, and lived backgrounds with humility and active listening.
+6. **Communication Skills & Active Listening (SB803-05):** Uses open-ended reflection, validation, shared dialogue, and non-judgmental feedback to build connection.
+7. **Collaboration and Teamwork (SB803-06):** Partners with behavioral health teams, care coordinators, and natural support networks with peer consent.
+8. **Conflict Resolution & De-escalation (SB803-07):** Applies calm presence, voluntary space, validating language, and non-coercive methods during tension.
+9. **Facilitating Peer Support Groups (SB803-11):** Guides mutual aid recovery circles, ensures inclusive shared time, and protects group safety norms.
+10. **Harm Reduction & Overdose Prevention (SB803-15):** Offers non-judgmental safety strategies, naloxone education, safer use resources, and relapse support.
+11. **Crisis Prevention & Zero-Coercion Intervention (SB803-16):** Identifies distress early, creates calm spaces, connects to peer respites or warm lines, and minimizes police involvement.
+
+### Category 3: Navigation
+12. **Wellness & Recovery Action Planning / WRAP (SB803-08):** Facilitates self-directed wellness tools, daily maintenance routines, early warning sign awareness, and crisis planning.
+13. **Navigating Community Systems & CalAIM Supports (SB803-09):** Guides access to housing deposits, food programs, transit, Medi-Cal benefits, and community resources.
+14. **Advocacy in Mental Health & Substance Use (SB803-12):** Empowers peers to advocate for their own needs, rights, choices, and dignity across medical and legal systems.
+15. **Behavioral Health System Navigation & Rights (SB803-14):** Explains grievance processes, advance directives, voluntary treatment rights, and county mental health plans.
+
+### Category 4: Ethics & Wellness
+16. **Digital Literacy & Electronic Documentation (SB803-13):** Uses secure, compliant electronic tools to record timely, accurate, trauma-informed H0038 progress notes within DHCS 14-day turnaround standards.
+17. **Self-Care, Professional Boundaries & Burnout Prevention (SB803-17):** Practices personal wellness routines, seeks supervision, monitors secondary trauma, and sustains long-term resilience.
+
+---
+
+## 3. Workflow Integration in Peer Notebook
+Peer Notebook integrates the 17 Core Competencies directly into daily software workflows:
+* **Interactive Tagging Drawer (\`SB803CompetencyGuide\`):** Specialists can browse plain-English explanations, documentation prompts, and CalAIM relevance directly while drafting notes.
+* **GoalPath™ Coverage Matrix:** Specialists and supervisors can view real-time coverage across all 17 competencies based on encounter history.
+* **Automated Clinical Jargon Cleanser:** Scans draft text and replaces pathological psychiatric jargon with certified non-clinical, strengths-based peer support terminology.`
+  },
+  {
+    slug: 'CBO_Onboarding_Admin_Governance_and_1099_W2_Workflows',
+    category: '06 Operations & Deployment',
+    title: 'CBO Onboarding, Multi-Agency Governance & 1099 vs. W-2 Classification',
+    subtitle: 'Step-by-Step Medi-Cal Provider Setup, Contractor Tax Ledgers, and CalAIM Billable Capacity Tracking',
+    specCode: 'GA8-CBO-02',
+    lastUpdated: '2026-10-29',
+    author: 'VP of Operations & Healthcare Reimbursement Lead',
+    readTime: '13 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/06-operations-deployment/CBO_Onboarding_Admin_Governance_and_1099_W2_Workflows',
+    content: `# CBO Onboarding, Multi-Agency Governance & 1099 vs. W-2 Classification
+**Target Modules:** \`/admin/dashboard\`, \`/settings\`, and User Registration  
+**Regulatory Standards:** California Department of Health Care Services (DHCS) & IRS Section 530 Safe Harbor  
+**Reimbursement Benchmark:** CalAIM H0038 Tiered Benchmark ($32.50 / 15-min unit)
+
+---
+
+## 1. CBO Administrative Architecture
+Community-Based Organizations (CBOs) and peer-run respites are the primary contracting entities delivering CalAIM Enhanced Care Management (ECM) and Community Supports across California counties.
+
+The Peer Notebook **CBO Administrative Dashboard (\`/admin/dashboard\`)** centralizes agency governance into four core pillars:
+1. **Agency Credentialing & County Medi-Cal Provider Profile:** County Code (e.g. 01-Alameda, 19-Los Angeles, 38-San Francisco), Organization NPI (Type 2 Facility), Medicaid Provider ID, and Business Associate Agreement (BAA) signing status.
+2. **6-Step Medi-Cal Provider Checklist:** Guided milestone tracker covering county contracting, NPI registration, CalMHSA supervisor cosigning workflows, EHR batch export compliance, and annual HIPAA security audits.
+3. **Specialist & Supervisor Roster:** Multi-role management for Peer Specialists (CPSS-CA), Clinical Supervisors (LCSW, LMFT, LPCC), and Agency Administrators.
+4. **CalAIM Monthly Volume & Capacity Tracker:** Real-time billing analytics calculating direct service minutes, travel time, documentation units, and projected gross Medicaid revenue against county contract allocation ceilings.
+
+---
+
+## 2. 1099 Independent Contractor vs. W-2 Employee Classification
+
+Unlike legacy EHRs that presume a monolithic W-2 hospital workforce, modern behavioral health agencies rely extensively on 1099 independent contractor peer specialists who provide mobile field outreach across multiple non-profit contracts.
+
+Peer Notebook provides a native **1099 vs. W-2 toggle** in both registration and roster management:
+
+| Dimension | W-2 Agency Employee | 1099 Independent Contractor |
+|---|---|---|
+| **Tax Classification** | Payroll with statutory withholding (FICA/SUI) | W-9 EIN / SSN with 1099-NEC annual reporting |
+| **Compensation Model** | Fixed hourly wage or annual salary | Negotiated hourly rate (benchmark: $35.00–$55.00/hr) |
+| **Field Mileage Reimbursement** | Agency fleet or monthly expense report | Direct IRS standard business mileage ($0.67/mile) |
+| **Supervisor Review Routing** | Internal LCSW/LMFT cosigning hierarchy | Multi-agency contract cosign or external clinical mentor |
+| **Multi-Agency Isolation** | Single-tenant agency record | Multi-agency tenant switching with segmented client rosters |
+
+### Automated Contractor Encounter Ledger
+When a note is logged by a specialist marked as a 1099 contractor, Peer Notebook automatically computes:
+$$\\text{Contractor Total} = (\\text{Billable Hours} \\times \\text{Hourly Rate}) + (\\text{Field Miles} \\times \\$0.67)$$
+This ledger is accessible in both the individual encounter view and the administrative EHR batch export.`
+  },
+  {
+    slug: 'Engineering_Telemetry_Zero_Trust_Audit_and_Self_Diagnostics',
+    category: '05 Engineering Quality',
+    title: 'Engineering Telemetry, Zero-Trust Audit Logs & Automated Self-Diagnostics',
+    subtitle: 'IndexedDB Table Capacities, Real-Time Sync Latency, SHA-256 Tamper-Proof Cryptography, and In-Browser Automated Test Suite',
+    specCode: 'GA8-ENG-03',
+    lastUpdated: '2026-10-29',
+    author: 'Principal Systems Architect & Reliability Engineering Lead',
+    readTime: '12 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/05-engineering-quality/Engineering_Telemetry_Zero_Trust_Audit_and_Self_Diagnostics',
+    content: `# Engineering Telemetry, Zero-Trust Audit Logs & Automated Self-Diagnostics
+**Target Module:** \`/engineering/monitoring\`  
+**Regulatory Standards:** HIPAA Security Rule 45 CFR § 164.312(b) & ISO 27001 Annex A.12.4  
+**Integrity Engine:** WebCrypto SHA-256 Tamper-Evident Hashing & Dexie.js Reactive Store
+
+---
+
+## 1. Engineering Monitoring Architecture
+The **Engineering Telemetry Portal (\`/engineering/monitoring\`)** provides transparent, real-time observability into the client-side PWA runtime, offline storage partitions, and background synchronization queues.
+
+### Core Telemetry Panels:
+* **Storage Telemetry & Quota Metrics:** Queries browser \`navigator.storage.estimate()\` to report total disk quota, utilized bytes, and individual table row counts across \`clients\`, \`session_notes\`, \`audit_logs\`, and \`sync_queue\`.
+* **Background Sync Latency & Queue Backlog:** Reports online/offline state, pending mutation backlog, last successful sync timestamp, and network latency to the cloud Supabase cluster.
+* **Transactional Email Gateway:** Monitors delivery status, Resend API key presence, silent failure fallbacks, and 6-digit PIN verification metrics.
+
+---
+
+## 2. Cryptographic SHA-256 Tamper-Proof Audit Integrity
+Under HIPAA 45 CFR § 164.312(b), covered entities must maintain immutable audit trails of all activities involving Electronic Protected Health Information (ePHI).
+
+Peer Notebook implements a **Zero-Trust Cryptographic Seal** on every audit event:
+1. **Pre-Commit Checksum Generation:** Prior to writing an event to IndexedDB, the payload (timestamp, actor ID, action, entity type, entity ID) is serialized into canonical JSON.
+2. **SHA-256 Hashing:** The payload is hashed using \`crypto.subtle.digest('SHA-256', bytes)\` into a 64-character hexadecimal digest.
+3. **On-Demand Integrity Verification:** Clicking **"Verify SHA-256 Integrity"** in the telemetry portal iterates over all stored audit entries, recomputes the cryptographic hash from stored fields, and verifies that zero records have been altered, truncated, or injected.
+
+---
+
+## 3. In-Browser Automated Self-Diagnostic Test Suite
+Engineers, auditors, and IT administrators can execute a 1-click **Self-Diagnostic Test Suite** directly inside the browser viewport.
+
+The test suite validates six critical health checks with sub-millisecond precision:
+1. **IndexedDB Read/Write Latency:** Creates, reads, and deletes an ephemeral test record to verify sub-50ms datastore responsiveness.
+2. **SHA-256 Cryptographic Engine:** Verifies that \`window.crypto.subtle\` produces consistent, standards-compliant hashes.
+3. **CalAIM Billing Math Formula:** Verifies that 15-minute unit calculations conform exactly to DHCS rounding thresholds (e.g. 70 minutes = 5 billing units).
+4. **Offline Sync Queue Ingestion:** Confirms that enqueue mutations succeed even under zero network availability.
+5. **Session Note Sanitization Engine:** Verifies that non-clinical jargon replacement patterns function deterministically without runtime exceptions.
+6. **EHR / ANSI 837P Export Pipeline:** Verifies that batch export serializers generate syntactically valid JSON and text payloads.`
   }
 ];
