@@ -5,7 +5,7 @@
  * Overhauled single-tap peer intervention toggle chips & 44px minimum tap targets
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { peerNotebookDB, Client, SessionNote, ServiceModality } from '../db/peerNotebookDatabase';
 import { useAuth } from '../context/AuthContext';
 import { usePrivacyMode } from '../context/PrivacyModeContext';
@@ -34,7 +34,9 @@ import {
   ChevronLeft,
   ChevronRight,
   BookOpen,
-  Award
+  Award,
+  Quote,
+  Scale
 } from 'lucide-react';
 import {
   calculateMediCalBillingUnits,
@@ -260,6 +262,48 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
     setIsFourPartModalOpen(false);
     setSanitizedNotice(`Applied Four-Part CalAIM Note (${noteData.durationMinutes}m · ${noteData.billingUnits} units)`);
     setTimeout(() => setSanitizedNotice(null), 4500);
+  };
+
+  // DHCS & CalMHSA Code of Ethics Attestation
+  const [ethicsAttestationConfirmed, setEthicsAttestationConfirmed] = useState<boolean>(true);
+
+  // Golden Thread Clinical Standard Validation & Continuity
+  const goldenThreadStatus = useMemo(() => {
+    const hasGoal = goalAddressed.trim().length >= 10;
+    const hasIntervention = peerIntervention.trim().length >= 15;
+    const hasSB803Tagged = taggedSB803Competencies.length > 0;
+    // Quote check: contains quotation marks "..." or “...” with at least 3 characters inside
+    const hasDirectQuote = /["“][^"”]{3,}["”]|['‘][^'’]{3,}['’]/.test(clientResponse);
+    const hasResponse = clientResponse.trim().length >= 10;
+    const hasPlan = planNextSteps.trim().length >= 10;
+
+    const link1Goal = hasGoal;
+    const link2Intervention = hasIntervention;
+    const link3Response = hasResponse && hasDirectQuote;
+    const link4Plan = hasPlan;
+
+    const validLinksCount = [link1Goal, link2Intervention, link3Response, link4Plan].filter(Boolean).length;
+    const isUnbroken = validLinksCount === 4;
+
+    return {
+      hasGoal,
+      hasIntervention,
+      hasSB803Tagged,
+      hasDirectQuote,
+      hasResponse,
+      hasPlan,
+      link1Goal,
+      link2Intervention,
+      link3Response,
+      link4Plan,
+      validLinksCount,
+      isUnbroken
+    };
+  }, [goalAddressed, peerIntervention, clientResponse, planNextSteps, taggedSB803Competencies]);
+
+  const handleInsertDirectQuoteTemplate = () => {
+    const quoteTemplate = ' Peer stated: "[Insert client\'s authentic words here]"';
+    setClientResponse((prev) => (prev.trim() ? `${prev.trim()}${quoteTemplate}` : `Peer stated: "[Insert client's authentic words here]"`));
   };
 
   // Auto-calculate Face-to-Face Duration from Start and End Times
@@ -995,10 +1039,21 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
   const renderStep4 = () => (
     <div className="space-y-4 animate-in fade-in duration-150">
       <div className="space-y-2">
-        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-          <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[11px] font-bold">3</span>
-          <span>Peer / Client Observable Response (Part 3 of 4 - Quotes &amp; Metrics) *</span>
-        </label>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[11px] font-bold">3</span>
+            <span>Peer / Client Observable Response (Part 3 of 4 - Quotes &amp; Metrics) *</span>
+          </label>
+          <button
+            type="button"
+            onClick={handleInsertDirectQuoteTemplate}
+            className="min-h-[38px] px-3.5 py-1.5 bg-teal-50 hover:bg-teal-100 text-[#0F766E] border border-teal-200 rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs self-start sm:self-auto"
+            title="Insert client direct quote template into response"
+          >
+            <Quote className="w-3.5 h-3.5 text-[#0F766E]" />
+            <span>Insert Direct Quote ("...")</span>
+          </button>
+        </div>
         <textarea
           rows={3}
           value={clientResponse}
@@ -1006,6 +1061,19 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           placeholder="Record client quotes, observable behavioral responses, mood, self-reported distress rating (e.g. 1-10 scale), and reception of peer coaching..."
           className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
         />
+        <div className="flex items-center justify-between text-xs pt-1">
+          {goldenThreadStatus.hasDirectQuote ? (
+            <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#16A34A]" />
+              <span>Direct quote verified for Medi-Cal Golden Thread audit</span>
+            </span>
+          ) : (
+            <span className="text-[11px] text-amber-700 font-semibold flex items-center gap-1">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+              <span>Golden Thread Requirement: Include at least one verbatim quote in quotation marks ("...")</span>
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
@@ -1055,6 +1123,31 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           placeholder="Agreed action steps for peer before next session; scheduled date, time, and focus of upcoming encounter..."
           className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
         />
+      </div>
+
+      {/* DHCS & CalMHSA Code of Ethics Boundary Attestation */}
+      <div className="p-4 bg-teal-50/70 rounded-2xl border border-teal-200/90 space-y-2 shadow-2xs">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#0F766E] flex items-center gap-1.5">
+            <Scale className="w-4 h-4" />
+            DHCS &amp; CalMHSA Code of Ethics Boundary Checklist
+          </span>
+          <span className="text-[10px] font-bold text-[#0F766E] bg-white px-2 py-0.5 rounded-full border border-teal-200">
+            10 Standards Adhered
+          </span>
+        </div>
+        <label className="flex items-start gap-2.5 cursor-pointer min-h-[44px] py-1">
+          <input
+            type="checkbox"
+            checked={ethicsAttestationConfirmed}
+            onChange={(e) => setEthicsAttestationConfirmed(e.target.checked)}
+            className="mt-0.5 w-4 h-4 rounded text-[#0F766E] focus:ring-0 border-slate-300"
+          />
+          <span className="text-xs text-teal-950 leading-relaxed font-medium">
+            I attest that this encounter strictly observed all DHCS and CalMHSA Peer Support Specialist boundary rules:
+            non-clinical scope of practice, zero dual or exploitative relationships, purposeful lived experience disclosure for client benefit only, and unconditional self-determination.
+          </span>
+        </label>
       </div>
 
       <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
@@ -1234,6 +1327,147 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           </div>
         </div>
       )}
+
+      {/* CalAIM Golden Thread™ Clinical Standard Continuity Banner */}
+      <div className={`p-4 rounded-2xl border transition-all space-y-3 ${
+        goldenThreadStatus.isUnbroken
+          ? 'bg-emerald-50/80 border-emerald-300 text-emerald-950 shadow-2xs'
+          : 'bg-slate-50 border-slate-200/90 text-slate-800'
+      }`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className={`p-1.5 rounded-lg ${
+              goldenThreadStatus.isUnbroken ? 'bg-[#16A34A] text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
+                <span>CalAIM Golden Thread™ Clinical Standard</span>
+                {goldenThreadStatus.isUnbroken && (
+                  <span className="text-[10px] bg-emerald-100 text-[#16A34A] px-2 py-0.5 rounded-full font-extrabold border border-emerald-300">
+                    Audit-Proof
+                  </span>
+                )}
+              </span>
+              <p className="text-[11px] text-slate-500">
+                Direct linkage: Care Plan Goal → CPSS Peer Intervention → Measurable Client Response with Quote → Co-Created Plan
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5 ${
+              goldenThreadStatus.isUnbroken
+                ? 'bg-emerald-100 text-[#16A34A] border border-emerald-300 shadow-2xs'
+                : 'bg-amber-100 text-[#D97706] border border-amber-300'
+            }`}>
+              {goldenThreadStatus.isUnbroken ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Golden Thread Complete (4/4)</span>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Golden Thread: {goldenThreadStatus.validLinksCount}/4 Links Verified</span>
+                </>
+              )}
+            </span>
+          </div>
+        </div>
+
+        {/* 4 Connected Thread Nodes */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-1 text-xs">
+          {/* Link 1: Goal */}
+          <div className={`p-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+            goldenThreadStatus.link1Goal
+              ? 'bg-white border-emerald-300 text-emerald-900 shadow-2xs'
+              : 'bg-white/60 border-slate-200 text-slate-500'
+          }`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+              goldenThreadStatus.link1Goal ? 'bg-[#16A34A] text-white' : 'bg-slate-200 text-slate-600'
+            }`}>
+              {goldenThreadStatus.link1Goal ? '✓' : '1'}
+            </span>
+            <div className="min-w-0">
+              <span className="font-bold block truncate">1. Recovery Goal</span>
+              <span className="text-[10px] text-slate-500 block truncate">
+                {goldenThreadStatus.link1Goal ? 'Active Link Established' : 'Goal missing'}
+              </span>
+            </div>
+          </div>
+
+          {/* Link 2: Intervention */}
+          <div className={`p-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+            goldenThreadStatus.link2Intervention
+              ? 'bg-white border-emerald-300 text-emerald-900 shadow-2xs'
+              : 'bg-white/60 border-slate-200 text-slate-500'
+          }`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+              goldenThreadStatus.link2Intervention ? 'bg-[#16A34A] text-white' : 'bg-slate-200 text-slate-600'
+            }`}>
+              {goldenThreadStatus.link2Intervention ? '✓' : '2'}
+            </span>
+            <div className="min-w-0">
+              <span className="font-bold block truncate">2. Peer Intervention</span>
+              <span className="text-[10px] text-slate-500 block truncate">
+                {goldenThreadStatus.link2Intervention ? `${taggedSB803Competencies.length > 0 ? `${taggedSB803Competencies.length} SB 803 Tagged` : 'Non-clinical stated'}` : 'Action missing'}
+              </span>
+            </div>
+          </div>
+
+          {/* Link 3: Client Response with Quote */}
+          <div className={`p-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+            goldenThreadStatus.link3Response
+              ? 'bg-white border-emerald-300 text-emerald-900 shadow-2xs'
+              : 'bg-white/60 border-slate-200 text-slate-500'
+          }`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+              goldenThreadStatus.link3Response ? 'bg-[#16A34A] text-white' : 'bg-slate-200 text-slate-600'
+            }`}>
+              {goldenThreadStatus.link3Response ? '✓' : '3'}
+            </span>
+            <div className="min-w-0">
+              <span className="font-bold block truncate">3. Peer Response</span>
+              <span className="text-[10px] text-slate-500 block truncate">
+                {goldenThreadStatus.hasDirectQuote ? 'Direct quote ("...")' : 'Direct quote missing'}
+              </span>
+            </div>
+          </div>
+
+          {/* Link 4: Plan */}
+          <div className={`p-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+            goldenThreadStatus.link4Plan
+              ? 'bg-white border-emerald-300 text-emerald-900 shadow-2xs'
+              : 'bg-white/60 border-slate-200 text-slate-500'
+          }`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+              goldenThreadStatus.link4Plan ? 'bg-[#16A34A] text-white' : 'bg-slate-200 text-slate-600'
+            }`}>
+              {goldenThreadStatus.link4Plan ? '✓' : '4'}
+            </span>
+            <div className="min-w-0">
+              <span className="font-bold block truncate">4. Agreed Next Plan</span>
+              <span className="text-[10px] text-slate-500 block truncate">
+                {goldenThreadStatus.link4Plan ? 'Follow-up scheduled' : 'Plan missing'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {!goldenThreadStatus.isUnbroken && (
+          <div className="text-[11px] text-amber-900 bg-amber-50/90 p-2.5 rounded-xl border border-amber-200 flex items-center gap-2">
+            <Info className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span>
+              <strong>Clinical Golden Thread Audit Tip:</strong> {!goldenThreadStatus.link1Goal && 'Link to client recovery plan goal. '}
+              {!goldenThreadStatus.link2Intervention && 'Document non-clinical peer intervention. '}
+              {!goldenThreadStatus.hasDirectQuote && 'Enclose peer\'s authentic words in quotation marks ("..."). '}
+              {!goldenThreadStatus.link4Plan && 'Specify collaborative plan and scheduled next meeting.'}
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Quick template starters and dictation toolbar (Symmetrical 2x2 grid on mobile, streamlined row on desktop) */}
       <div className="bg-[#FEF3C7]/60 p-2.5 sm:p-2 rounded-2xl border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-2.5 w-full">

@@ -1,6 +1,6 @@
 /**
  * Peer Notebook - Interactive Checklist Widget & Audit Tracker
- * Standards: CalAIM Medi-Cal H0038 Compliance & SDLC Delivery
+ * Standards: CalAIM Medi-Cal H0038 Compliance, DHCS Code of Ethics & SDLC Delivery
  * Trauma-Informed Clinical UI • Minimum 48px Touch Targets • Zero-Pill Discipline
  * Full State Persistence via checklistStateService
  */
@@ -8,7 +8,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   checklistStateService,
-  ChecklistItem
+  ChecklistItem,
+  ChecklistCategory
 } from '../services/checklistStateService';
 import {
   CheckCircle2,
@@ -21,14 +22,15 @@ import {
   ShieldCheck,
   FileText,
   Sliders,
-  ExternalLink
+  ExternalLink,
+  Scale
 } from 'lucide-react';
 
 interface InteractiveChecklistWidgetProps {
   isOpen?: boolean;
   onClose?: () => void;
   isModal?: boolean;
-  initialTab?: 'calaim_audit' | 'sdlc_deployment';
+  initialTab?: ChecklistCategory;
 }
 
 export const InteractiveChecklistWidget: React.FC<InteractiveChecklistWidgetProps> = ({
@@ -37,14 +39,16 @@ export const InteractiveChecklistWidget: React.FC<InteractiveChecklistWidgetProp
   isModal = false,
   initialTab = 'calaim_audit'
 }) => {
-  const [activeTab, setActiveTab] = useState<'calaim_audit' | 'sdlc_deployment'>(initialTab);
+  const [activeTab, setActiveTab] = useState<ChecklistCategory>(initialTab);
   const [calaimItems, setCalaimItems] = useState<ChecklistItem[]>(checklistStateService.getCalaimChecklist());
+  const [ethicsItems, setEthicsItems] = useState<ChecklistItem[]>(checklistStateService.getEthicsChecklist());
   const [sdlcItems, setSdlcItems] = useState<ChecklistItem[]>(checklistStateService.getSdlcChecklist());
   const [copied, setCopied] = useState(false);
   const [resetNotice, setResetNotice] = useState<string | null>(null);
 
   const refreshState = () => {
     setCalaimItems(checklistStateService.getCalaimChecklist());
+    setEthicsItems(checklistStateService.getEthicsChecklist());
     setSdlcItems(checklistStateService.getSdlcChecklist());
   };
 
@@ -56,7 +60,11 @@ export const InteractiveChecklistWidget: React.FC<InteractiveChecklistWidgetProp
 
   if (isModal && !isOpen) return null;
 
-  const currentItems = activeTab === 'calaim_audit' ? calaimItems : sdlcItems;
+  const currentItems = activeTab === 'calaim_audit' 
+    ? calaimItems 
+    : activeTab === 'ethics_boundary' 
+      ? ethicsItems 
+      : sdlcItems;
   const summary = checklistStateService.getSummary(activeTab);
 
   const handleToggle = (item: ChecklistItem) => {
@@ -70,9 +78,12 @@ export const InteractiveChecklistWidget: React.FC<InteractiveChecklistWidgetProp
   };
 
   const handleCopyText = async () => {
-    const title = activeTab === 'calaim_audit'
-      ? 'THE 10-MINUTE MEDI-CAL H0038 NOTE CHECKLIST (CalAIM & CalMHSA Compliant)'
-      : 'PEER NOTEBOOK - MASTER SDLC & DEPLOYMENT CHECKLIST';
+    let title = 'PEER NOTEBOOK - MASTER SDLC & DEPLOYMENT CHECKLIST';
+    if (activeTab === 'calaim_audit') {
+      title = 'THE 10-MINUTE MEDI-CAL H0038 NOTE CHECKLIST (CalAIM & CalMHSA Compliant)';
+    } else if (activeTab === 'ethics_boundary') {
+      title = 'DHCS & CALMHSA CODE OF ETHICS 10-POINT BOUNDARY CHECKLIST';
+    }
     
     const lines = currentItems.map((item) => {
       const box = item.completed ? '[x]' : '[ ]';
@@ -94,28 +105,40 @@ export const InteractiveChecklistWidget: React.FC<InteractiveChecklistWidgetProp
     <div className="space-y-5">
       {/* Tab Switcher */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-        <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1">
+        <div className="bg-slate-100 p-1 rounded-xl flex flex-wrap items-center gap-1">
           <button
             type="button"
             onClick={() => setActiveTab('calaim_audit')}
-            className={`min-h-[44px] px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`min-h-[44px] px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'calaim_audit'
                 ? 'bg-[#1E3A8A] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Field Note Audit (7 Points)
+            Field Note (7 Pt)
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('sdlc_deployment')}
-            className={`min-h-[44px] px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'sdlc_deployment'
+            onClick={() => setActiveTab('ethics_boundary')}
+            className={`min-h-[44px] px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'ethics_boundary'
                 ? 'bg-[#0F766E] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            SDLC &amp; Deployment (Phases 1-6)
+            <Scale className="w-3.5 h-3.5" />
+            <span>Ethics &amp; Boundaries (10 Pt)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('sdlc_deployment')}
+            className={`min-h-[44px] px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'sdlc_deployment'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            SDLC (Phases 1-12)
           </button>
         </div>
 

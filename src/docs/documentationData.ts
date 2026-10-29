@@ -1080,5 +1080,201 @@ The test suite validates six critical health checks with sub-millisecond precisi
 4. **Offline Sync Queue Ingestion:** Confirms that enqueue mutations succeed even under zero network availability.
 5. **Session Note Sanitization Engine:** Verifies that non-clinical jargon replacement patterns function deterministically without runtime exceptions.
 6. **EHR / ANSI 837P Export Pipeline:** Verifies that batch export serializers generate syntactically valid JSON and text payloads.`
+  },
+  {
+    slug: 'CalAIM_H0038_Golden_Thread_Documentation_Architecture',
+    category: '01 Clinical Compliance',
+    title: 'CalAIM H0038 Golden Thread Documentation Architecture',
+    subtitle: 'The Unbroken 4-Link Standard Connecting Recovery Goals, Peer Interventions, Client Responses with Verbatim Quotes, and Co-Created Plans',
+    specCode: 'GA8-GOLDEN-01',
+    lastUpdated: '2026-10-29',
+    author: 'CalAIM Clinical Compliance & Peer Informatics Lead',
+    readTime: '11 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/01-clinical-compliance/CalAIM_H0038_Golden_Thread_Documentation_Architecture',
+    content: `# CalAIM H0038 Golden Thread™ Documentation Architecture
+**Regulatory Standard:** California DHCS CalAIM Payment Reform & Medi-Cal Peer Support Services (HCPCS H0038)  
+**Quality Benchmark:** CMS 42 CFR Part 438 & CalMHSA Clinical Audit Protocol  
+**Target Module:** \`src/components/SessionNoteForm.tsx\`
+
+---
+
+## 1. What is the Golden Thread in Peer Support?
+The **Golden Thread** is the unbroken, traceable continuity that links a client's identified recovery goals to the specific peer interventions delivered, the client's measurable response, and the collaborative forward plan.
+
+In Medi-Cal post-payment audits by the California Department of Health Care Services (DHCS) or county Mental Health Plans (MHPs), claims for **HCPCS H0038 (Peer Support Services)** fail audit clawbacks if any link in this 4-part chain is missing or disconnected.
+
+\`\`\`
+┌─────────────────────────────────┐
+│   1. Care Plan Recovery Goal    │ (Client's active autonomous milestone)
+└────────────────┬────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────┐
+│  2. CPSS Peer Intervention      │ (Non-clinical action + SB 803 Core Competency)
+└────────────────┬────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────┐
+│  3. Observable Client Response  │ (Measurable metric + Authentic Verbatim Quote)
+└────────────────┬────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────┐
+│  4. Co-Created Next Steps       │ (Mutual action plan + Scheduled touchpoint)
+└─────────────────────────────────┘
+\`\`\`
+
+---
+
+## 2. The Four Unbroken Links in Peer Notebook
+
+### Link 1: Individualized Recovery Goal Linkage
+* **Compliance Requirement:** General conversations (e.g. "hung out with client and talked about weather") are **non-billable**. The note must explicitly cite the client's care plan recovery milestone (housing transition, substance use harm reduction, somatic regulation, vocational navigation).
+* **Deterministic Rule:** Minimum 10 characters linking to an active recovery domain.
+
+### Link 2: Specific Non-Clinical Peer Intervention
+* **Compliance Requirement:** The documentation must state what the Certified Peer Support Specialist (CPSS-CA) *did*, remaining strictly in non-clinical scope.
+* **Prohibited Terms:** Psychoeducation, behavioral therapy, dialectical training, psychotherapy, medication management.
+* **Permitted Strengths Terms:** Shared lived recovery experience to normalize distress, somatic grounding (box breathing / 5-4-3-2-1), self-advocacy role-play, warm handoff coordination.
+* **SB 803 Tagging:** Explicitly tagged with at least one California SB 803 Core Competency.
+
+### Link 3: Client Observable Response with Direct Quote
+* **Compliance Requirement:** County audits require proof of the peer's genuine participation and emotional response.
+* **Mandatory Verbatim Quote:** The note must capture at least one authentic statement enclosed in quotation marks (\`"..."\`) reflecting the peer's emotional state, self-advocacy, or personal insight.
+* **Automated Validator:** Peer Notebook scans the response field for quotation marks and warns the specialist before saving if the direct quote is missing.
+
+### Link 4: Collaborative Plan & Next Steps
+* **Compliance Requirement:** Concrete next actions agreed upon by both the specialist and the peer, with a specific scheduled date and focus for the subsequent encounter.
+
+---
+
+## 3. Real-Time Golden Thread Meter & Audit Proofing
+Peer Notebook includes an inline, reactive **Golden Thread Quality Meter** embedded in \`SessionNoteForm.tsx\`. The meter tracks each of the four links in real time:
+* When all 4 links are established, the encounter receives the **"Golden Thread Complete • 100% CalAIM Audit Proof"** badge.
+* If any link is incomplete, the specialist receives instant, constructive guidance before signing and routing to their clinical supervisor.`
+  },
+  {
+    slug: 'California_SB803_Curriculum_and_STAR_Interview_Framework',
+    category: '02 Business Strategy',
+    title: 'California SB 803 Curriculum & STAR Interview Framework',
+    subtitle: 'The 80-Hour CalMHSA Core Track, 40-Hour Specialized Curricula, and Behavioral STAR Interview Scenarios for CPSS-CA Certification',
+    specCode: 'GA8-CURR-02',
+    lastUpdated: '2026-10-29',
+    author: 'Workforce Development & Peer Curriculum Specialist',
+    readTime: '13 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/02-business-strategy/California_SB803_Curriculum_and_STAR_Interview_Framework',
+    content: `# California SB 803 Curriculum & STAR Interview Framework
+**Regulatory Framework:** California Senate Bill 803 (Chapter 150, Statutes of 2020)  
+**Accrediting Entity:** California Mental Health Services Authority (CalMHSA) & DHCS  
+**Target Module:** \`src/components/STARCurriculumView.tsx\`
+
+---
+
+## 1. Overview of California Peer Support Specialist Certification
+Senate Bill 803 authorized Medi-Cal reimbursement for Peer Support Specialist services across California counties. Under CalMHSA statewide standards, candidates seeking the **CPSS-CA credential** must complete an **80-hour foundational training program** covering the 17 core competencies.
+
+Certified specialists maintaining active credentials must also complete continuing education units (CEUs) every two years, often through **40-hour specialized tracks**.
+
+---
+
+## 2. The 80-Hour CalMHSA Core Curriculum Structure
+Peer Notebook models all 17 modules across the four operational domains:
+
+1. **Foundations of Peer Support & The Recovery Model (5 hrs):** Historical civil rights movement, SAMHSA 10 principles of recovery.
+2. **Trauma-Informed Practice & Healing-Centered Engagement (6 hrs):** ACEs, neurobiology of toxic stress, somatic grounding.
+3. **Purposeful Sharing of Lived Recovery Experience (6 hrs):** Strategic disclosure, who does the story benefit, avoiding trauma dumping.
+4. **Active Listening & Motivational Dialogue (6 hrs):** OARS framework, avoiding the righting reflex, reflective validation.
+5. **Cultural Humility & Anti-Oppressive Peer Practice (5 hrs):** Intersectionality, addressing Medi-Cal disparities, traditional healing.
+6. **CalAIM & Medi-Cal H0038 Documentation (6 hrs):** The 4-part note standard, CMS 8-minute rounding math, Golden Thread continuity.
+7. **DHCS & CalMHSA Code of Ethics & Professional Boundaries (6 hrs):** 10 boundary rules, dual relationships, CANRA/Tarasoff.
+8. **Crisis Intervention & Suicide Prevention (6 hrs):** Stanley-Brown safety planning, AB 988 mobile crisis alternatives to 5150 holds.
+9. **Harm Reduction Approaches (5 hrs):** Naloxone (Narcan) administration, fentanyl test strips, MAT/MOUD support without stigma.
+10. **Self-Advocacy Coaching (4 hrs):** Patients' Rights Advocates (PRA), preparing peers for clinical conferences.
+11. **Goal Setting & WRAP® Planning (5 hrs):** Wellness Recovery Action Plans, identifying early warning signs and daily maintenance.
+12. **System Navigation & CalAIM Community Supports (5 hrs):** Housing transition, recuperative care, warm handoffs vs cold referrals.
+13. **Digital Health Literacy (4 hrs):** California Lifeline phones, patient portals, offline field note security.
+14. **Community Integration & Mutual Aid (4 hrs):** 12-Step, SMART Recovery, Refuge Recovery, Recovery Community Centers (RCCs).
+15. **Multi-Disciplinary Team Collaboration (4 hrs):** Educating clinical colleagues, defending peer scope against forced tasks.
+16. **Peer Specialist Self-Care & Burnout Prevention (4 hrs):** Secondary traumatic stress, transition rituals, peer debriefing.
+17. **Supervisory Engagement & Continuous Growth (4 hrs):** Reflective supervision models, 20 CEU biennial recertification.
+
+---
+
+## 3. The STAR Behavioral Interview Framework for Peer Specialists
+During county civil service and CBO hiring interviews, candidates are evaluated on behavioral competencies using the **STAR method**:
+* **Situation:** Describe the real recovery crisis or field encounter.
+* **Task:** Clarify your exact peer role while maintaining non-clinical scope.
+* **Action:** Detail the non-clinical, trauma-informed intervention you initiated.
+* **Result:** Articulate the positive empowerment outcome for the peer.
+
+### Model STAR Scenarios Built into Peer Notebook:
+1. *De-escalating Agitation in a Busy County Clinic Waiting Area* (Crisis De-escalation)
+2. *Purposeful Lived Experience Disclosure with a Hopeless Peer* (Storytelling Boundary)
+3. *Navigating a Boundary Challenge: Gift and Personal Phone Number* (Ethics & Scope)
+4. *Advocating for Peer Dignity in a Multi-Disciplinary Case Conference* (Team Advocacy)
+5. *Harm Reduction & Overdose Safety Planning with an Active Substance User* (Harm Reduction)`
+  },
+  {
+    slug: 'DHCS_CalMHSA_Code_of_Ethics_and_Boundary_Standard',
+    category: '03 Compliance Regulatory',
+    title: 'DHCS & CalMHSA Code of Ethics and Boundary Standard',
+    subtitle: 'The 10 Operational Ethical Principles for California Medi-Cal Certified Peer Support Specialists (CPSS-CA)',
+    specCode: 'GA8-ETH-03',
+    lastUpdated: '2026-10-29',
+    author: 'Ethics & Legal Regulatory Compliance Counsel',
+    readTime: '10 min',
+    canonicalUrl: 'https://www.peernotebook.com/docs/03-compliance-regulatory/DHCS_CalMHSA_Code_of_Ethics_and_Boundary_Standard',
+    content: `# DHCS & CalMHSA Code of Ethics and Boundary Standard
+**Governing Standard:** California Department of Health Care Services (DHCS) & CalMHSA CPSS Code of Ethics  
+**Legal Framework:** Welfare & Institutions Code § 14045.12 & California Penal Code § 11166  
+**Implementation Modules:** \`checklistStateService.ts\` & \`src/components/InteractiveChecklistWidget.tsx\`
+
+---
+
+## 1. Ethical Governance in Peer Support Services
+Certified Peer Support Specialists hold a unique, relational role built on shared vulnerability and lived recovery experience. Unlike traditional medical providers, peer specialists leverage egalitarian partnership.
+
+To protect peers from exploitation and ensure specialists maintain healthy boundaries, DHCS and CalMHSA established the **10 Ethical Boundary Standards**.
+
+---
+
+## 2. The 10 CalMHSA Ethical Boundary Principles
+
+### Principle 1: Client Self-Determination & Voluntary Engagement
+Specialists respect the absolute autonomy of the individual. All services are voluntary. Specialists never utilize coercive tactics, threats of institutionalization, or paternalistic pressure to compel compliance.
+
+### Principle 2: Non-Clinical Scope of Practice Integrity
+Specialists deliver peer-to-peer emotional, navigation, and relational support. Under California law, specialists **never**:
+* Provide diagnostic evaluations or clinical psychiatric labeling.
+* Prescribe or recommend altering medications.
+* Perform formal clinical psychotherapy.
+* Conduct involuntary searches or act as law enforcement security.
+
+### Principle 3: Zero Tolerance for Dual or Exploitative Relationships
+Specialists are strictly prohibited from engaging in romantic, sexual, financial, or business relationships with peers currently or historically served. Exploitation of the relational power dynamic causes severe retraumatization.
+
+### Principle 4: Purposeful & Ethical Lived Experience Sharing
+Specialists share their personal recovery story solely when it directly benefits the peer's immediate recovery goals. Sharing must never burden the peer, vent unresolved personal trauma, or center the specialist's emotional needs.
+
+### Principle 5: Confidentiality & Transparent Limits (CANRA & Tarasoff)
+Client privacy is strictly protected under HIPAA and 42 CFR Part 2. Specialists must transparently disclose mandatory reporting exceptions upfront:
+1. Child abuse or neglect (California Child Abuse and Neglect Reporting Act - CANRA).
+2. Elder or dependent adult abuse.
+3. Imminent physical harm to self or an identifiable third party (Tarasoff / duty to protect).
+
+### Principle 6: Financial & Gift Integrity
+Specialists do not accept monetary loans, cash, or expensive gifts from peers. Tokens of nominal value (e.g. a drawing, holiday card) may be accepted with gratitude; high-value items are declined warmly to protect professional objectivity.
+
+### Principle 7: Cultural Humility & Anti-Bias
+Specialists actively examine their own implicit biases and honor diverse racial, sexual, gender, and recovery identities. Traditional indigenous, spiritual, secular, and medical recovery choices are affirmed equally.
+
+### Principle 8: Harm Reduction Stance
+Specialists meet peers where they are on the recovery continuum. Active substance use is met with life-saving harm reduction tools (Naloxone, test strips, safe disposal) rather than moralizing or punitive exclusion.
+
+### Principle 9: Duty to Consult & Reflective Supervision
+When encountering boundary grey areas, dual relationships in mutual aid meetings, or acute moral dilemmas, specialists have an affirmative ethical duty to debrief proactively with their clinical or peer supervisor.
+
+### Principle 10: Specialist Self-Care & Recovery Maintenance
+Specialists must routinely monitor their own wellness foundation and recognize symptoms of secondary traumatic stress, compassion fatigue, and burnout. Safeguarding personal recovery is an ethical prerequisite for serving others.`
   }
 ];

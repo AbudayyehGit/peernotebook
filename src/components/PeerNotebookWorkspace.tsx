@@ -22,6 +22,7 @@ import { EmptyState, Button } from './ui';
 import { AdminUserManagement } from './AdminUserManagement';
 import { AdminDashboard } from './AdminDashboard';
 import { EngineeringMonitoring } from './EngineeringMonitoring';
+import { STARCurriculumView } from './STARCurriculumView';
 import { usePrivacyMode } from '../context/PrivacyModeContext';
 import {
   Users,
@@ -54,10 +55,11 @@ import {
   FolderOpen,
   Target,
   Building2,
-  Cpu
+  Cpu,
+  GraduationCap
 } from 'lucide-react';
 
-export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'supervisor' | 'audit' | 'architecture' | 'settings' | 'admin_users' | 'admin_dashboard' | 'telemetry';
+export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'curriculum' | 'supervisor' | 'audit' | 'architecture' | 'settings' | 'admin_users' | 'admin_dashboard' | 'telemetry';
 
 interface PeerNotebookWorkspaceProps {
   onReplayTutorial?: () => void;
@@ -80,6 +82,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     if (path.startsWith('/clients')) return { tab: 'clients' };
     if (path.startsWith('/notes')) return { tab: 'notes' };
     if (path.startsWith('/goalpath')) return { tab: 'goalpath' };
+    if (path.startsWith('/curriculum') || path.startsWith('/star') || path.startsWith('/training')) return { tab: 'curriculum' };
     if (path.startsWith('/new-note') || path.startsWith('/new_note')) return { tab: 'new_note' };
     if (path.startsWith('/supervisor')) return { tab: 'supervisor' };
     if (path.startsWith('/audit')) return { tab: 'audit' };
@@ -92,7 +95,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     try {
       const searchParams = new URLSearchParams(window.location.search);
       const tabParam = searchParams.get('tab') as WorkspaceTab;
-      if (tabParam && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(tabParam)) {
+      if (tabParam && ['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(tabParam)) {
         return { tab: tabParam };
       }
     } catch {
@@ -103,11 +106,12 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     try {
       const hash = window.location.hash.replace('#/', '').replace('#', '').toLowerCase();
       if (hash.startsWith('docs')) return { tab: 'architecture' };
-      if (['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(hash)) {
+      if (['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(hash)) {
         return { tab: hash as WorkspaceTab };
       }
       if (hash === 'new-note') return { tab: 'new_note' };
       if (hash === 'goal-path' || hash === 'wellness') return { tab: 'goalpath' };
+      if (hash === 'curriculum' || hash === 'star' || hash === 'training') return { tab: 'curriculum' };
       if (hash.startsWith('admin/dashboard') || hash === 'admin-dashboard' || hash === 'dashboard') return { tab: 'admin_dashboard' };
       if (hash.startsWith('engineering') || hash.startsWith('monitoring') || hash === 'telemetry') return { tab: 'telemetry' };
       if (hash.startsWith('admin') || hash.startsWith('user')) return { tab: 'admin_users' };
@@ -117,7 +121,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
 
     // Fallback to persisted tab from last active session
     const saved = safeStorage.getItem('peernotebook_active_tab') as WorkspaceTab;
-    if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(saved)) {
+    if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(saved)) {
       return { tab: saved };
     }
 
@@ -783,7 +787,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               type="button"
               onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
               className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                ['goalpath', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(activeTab)
+                ['goalpath', 'curriculum', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(activeTab)
                   ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-sm'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90'
               }`}
@@ -792,6 +796,8 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               <span>
                 {activeTab === 'goalpath'
                   ? 'GoalPath™'
+                  : activeTab === 'curriculum'
+                  ? 'Curriculum & STAR'
                   : activeTab === 'audit'
                   ? 'Audit Trail'
                   : activeTab === 'architecture'
@@ -838,6 +844,26 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                       </div>
                     </div>
                     {activeTab === 'goalpath' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigateToTab('curriculum');
+                      setIsMoreMenuOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between text-xs font-bold transition-colors cursor-pointer ${
+                      activeTab === 'curriculum' ? 'bg-blue-50 text-[#1E3A8A]' : 'hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-[#0F766E]" />
+                      <div>
+                        <span>Curriculum &amp; STAR Lab</span>
+                        <span className="text-xs text-slate-500 font-normal block">80h/40h tracks &amp; STAR prep</span>
+                      </div>
+                    </div>
+                    {activeTab === 'curriculum' && <Check className="w-4 h-4 text-[#1E3A8A]" />}
                   </button>
                   <button
                     type="button"
@@ -1605,6 +1631,10 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
         <SettingsPanel onReplayTutorial={onReplayTutorial} />
       )}
 
+      {activeTab === 'curriculum' && (
+        <STARCurriculumView />
+      )}
+
       {activeTab === 'admin_dashboard' && (
         <AdminDashboard />
       )}
@@ -1867,6 +1897,30 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                     <div>
                       <span className="font-bold text-xs block">GoalPath™ Recovery Domains</span>
                       <span className="text-[11px] text-slate-500">Housing, Social Connection, Self-Advocacy & Routines</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigateToTab('curriculum');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full p-3 rounded-xl border text-left flex items-center justify-between min-h-[48px] transition-all cursor-pointer ${
+                    activeTab === 'curriculum'
+                      ? 'bg-blue-50/80 border-blue-200 text-[#1E3A8A]'
+                      : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-50 text-[#1E3A8A] border border-blue-200">
+                      <GraduationCap className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-xs block">Curriculum &amp; STAR Lab</span>
+                      <span className="text-[11px] text-slate-500">80h/40h tracks, STAR interview &amp; ethics</span>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />

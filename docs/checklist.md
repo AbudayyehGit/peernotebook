@@ -110,3 +110,28 @@
   - `BetaOnboardingModal.tsx`: Specialist classification toggle with real-time profile persistence.
   - `AdminDashboard.tsx`: Roster filter by W-2 vs. 1099 with modal editing.
 
+### Phase 12: STAR Behavioral Interview Modules & 80-Hr / 40-Hr Curriculum Tracks — [COMPLETE]
+- [x] Master Curriculum Dataset (`src/data/curriculumData.ts`):
+  - 80-Hour California CalMHSA Peer Support Specialist Core Certification Track (17 modules aligned with SB 803 core competencies).
+  - 40-Hour Specialized & Advanced Practice Track (CalAIM ECM, Forensic Reentry, Street Medicine, and Crisis Peer Respite).
+  - STAR (Situation, Task, Action, Result) Behavioral Interview Simulator: 5 real-world California county and CBO hiring scenarios with model non-clinical exemplar responses, red-flag pitfalls, and CalMHSA ethical benchmarks.
+- [x] Interactive Curriculum Lab Component (`src/components/STARCurriculumView.tsx`):
+  - Tabbed interface: 80-Hour Core Track, 40-Hour Specialized Track, STAR Interview Simulator, and DHCS Code of Ethics.
+  - Offline-first progress tracking with persistent hour logs in `safeStorage`.
+  - 1-Click candidate practice notes, scenario copying, and printable training hour attestations.
+  - Integrated into main workspace navigation (`/curriculum` and `tab=curriculum`).
+
+### Phase 13: DHCS & CalMHSA Code of Ethics & CalAIM Golden Thread Note Standard — [COMPLETE]
+- [x] 10-Point DHCS & CalMHSA Code of Ethics Boundary Checklist (`checklistStateService.ts` & `InteractiveChecklistWidget.tsx`):
+  - Self-determination, non-clinical scope integrity, zero dual relationships, purposeful lived experience disclosure, confidentiality limits (CANRA/Tarasoff), financial/gift integrity, cultural humility, harm reduction affirmation, duty to consult, and self-care.
+  - Real-time interactive completion tracking, clipboard export, and baseline reset.
+- [x] CalAIM Golden Thread™ Clinical Standard in Encounter Notes (`SessionNoteForm.tsx`):
+  - Interactive visual continuity banner verifying the unbroken 4-link chain:
+    1. Recovery Care Plan Goal Linkage
+    2. Non-Clinical Peer Intervention (with SB 803 Core Competencies tagged)
+    3. Observable Client Response with mandatory direct quote (`"..."`)
+    4. Collaborative Plan and scheduled next meeting
+  - 1-Tap "Insert Direct Quote Template" button and real-time audit verification pill.
+  - Mandatory DHCS/CalMHSA Code of Ethics boundary attestation checkbox prior to electronic signing.
+
+

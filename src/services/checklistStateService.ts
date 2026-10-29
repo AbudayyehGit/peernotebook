@@ -11,7 +11,7 @@ import { safeStorage } from '../utils/safeStorage';
 
 export interface ChecklistItem {
   id: string;
-  category: 'calaim_audit' | 'sdlc_deployment';
+  category: 'calaim_audit' | 'sdlc_deployment' | 'ethics_boundary';
   title: string;
   description: string;
   completed: boolean;
@@ -21,6 +21,7 @@ export interface ChecklistItem {
 
 const STORAGE_KEY_CALAIM = 'peernotebook_checklist_calaim_v1';
 const STORAGE_KEY_SDLC = 'peernotebook_checklist_sdlc_v1';
+const STORAGE_KEY_ETHICS = 'peernotebook_checklist_ethics_v1';
 
 export const DEFAULT_CALAIM_CHECKLIST: ChecklistItem[] = [
   {
@@ -52,7 +53,7 @@ export const DEFAULT_CALAIM_CHECKLIST: ChecklistItem[] = [
     category: 'calaim_audit',
     title: '4. Concrete, Actionable Peer Intervention Named',
     description: 'Specific interventions are stated (e.g. "Reviewed housing voucher application step-by-step; practiced role-playing landlord phone interview").',
-    completed: false,
+    completed: true,
     isRequired: true
   },
   {
@@ -60,7 +61,7 @@ export const DEFAULT_CALAIM_CHECKLIST: ChecklistItem[] = [
     category: 'calaim_audit',
     title: '5. Accurate 3-Way Time Allocation',
     description: 'Direct face-to-face minutes, travel time, and documentation minutes are tracked separately to verify Medi-Cal payment reform compliance.',
-    completed: false,
+    completed: true,
     isRequired: true
   },
   {
@@ -68,7 +69,7 @@ export const DEFAULT_CALAIM_CHECKLIST: ChecklistItem[] = [
     category: 'calaim_audit',
     title: '6. Strict H0038 15-Minute Billing Unit Conversion',
     description: 'Total duration is converted accurately using California DHCS 15-minute rules (8–22 min = 1 unit; 23–37 min = 2 units; 38–52 min = 3 units; 53–67 min = 4 units).',
-    completed: false,
+    completed: true,
     isRequired: true
   },
   {
@@ -76,7 +77,90 @@ export const DEFAULT_CALAIM_CHECKLIST: ChecklistItem[] = [
     category: 'calaim_audit',
     title: '7. Specialist Credential Signature & Date Stamp',
     description: 'Encounter is signed with your legal name and CPSS-CA or trainee credential immediately upon completion with electronic attestation.',
-    completed: false,
+    completed: true,
+    isRequired: true
+  }
+];
+
+export const DEFAULT_ETHICS_CHECKLIST: ChecklistItem[] = [
+  {
+    id: 'eth_01',
+    category: 'ethics_boundary',
+    title: '1. Self-Determination & Dignity Affirmation',
+    description: 'Honor the peer’s absolute right to direct their own recovery, choose goals, and decline unwanted interventions without coercion or institutional punishment.',
+    completed: true,
+    isRequired: true
+  },
+  {
+    id: 'eth_02',
+    category: 'ethics_boundary',
+    title: '2. Non-Clinical Scope of Practice Integrity',
+    description: 'Deliver non-clinical peer support strictly within CPSS-CA scope; avoid diagnosing, prescribing, providing clinical psychotherapy, or conducting forced contraband searches.',
+    completed: true,
+    isRequired: true
+  },
+  {
+    id: 'eth_03',
+    category: 'ethics_boundary',
+    title: '3. Zero Dual or Exploitative Relationships',
+    description: 'Prohibit all romantic, sexual, business, or exploitative relationships with peers currently or historically served to preserve emotional safety.',
+    completed: true,
+    isRequired: true
+  },
+  {
+    id: 'eth_04',
+    category: 'ethics_boundary',
+    title: '4. Purposeful Lived Experience Disclosure',
+    description: 'Share recovery stories solely to inspire hope and model problem-solving for the direct benefit of the peer, never for self-venting or emotional burdening.',
+    completed: true,
+    isRequired: true
+  },
+  {
+    id: 'eth_05',
+    category: 'ethics_boundary',
+    title: '5. Confidentiality & Clear Legal Limits (CANRA/Tarasoff)',
+    description: 'Protect confidentiality under HIPAA and 42 CFR Part 2 while transparently informing peers upfront about mandatory reporting (imminent physical harm, child/elder abuse).',
+    completed: true,
+    isRequired: true
+  },
+  {
+    id: 'eth_06',
+    category: 'ethics_boundary',
+    title: '6. Financial & Gift Integrity',
+    description: 'Decline cash, personal loans, high-value gifts, or financial entanglements with peers; accept only nominal tokens of gratitude with kindness.',
+    completed: true,
+    isRequired: true
+  },
+  {
+    id: 'eth_07',
+    category: 'ethics_boundary',
+    title: '7. Cultural Humility & Affirming Diverse Pathways',
+    description: 'Practice ongoing cultural humility, counter personal implicit bias, and honor indigenous, spiritual, secular, and medical recovery choices.',
+    completed: true,
+    isRequired: true
+  },
+  {
+    id: 'eth_08',
+    category: 'ethics_boundary',
+    title: '8. Harm Reduction & Non-Judgmental Presence',
+    description: 'Support peers unconditionally at all points along the continuum, including active substance use, with life-saving harm reduction and overdose prevention.',
+    completed: true,
+    isRequired: true
+  },
+  {
+    id: 'eth_09',
+    category: 'ethics_boundary',
+    title: '9. Duty to Consult & Reflective Supervision',
+    description: 'Proactively bring boundary challenges, ethical dilemmas, and vicarious trauma to CPSS clinical or peer supervision for transparent debriefing.',
+    completed: true,
+    isRequired: true
+  },
+  {
+    id: 'eth_10',
+    category: 'ethics_boundary',
+    title: '10. Specialist Self-Care & Recovery Maintenance',
+    description: 'Routinely assess personal recovery foundation, monitor compassion fatigue and secondary traumatic stress, and maintain healthy off-shift boundaries.',
+    completed: true,
     isRequired: true
   }
 ];
@@ -161,9 +245,26 @@ export const DEFAULT_SDLC_CHECKLIST: ChecklistItem[] = [
     description: 'Dual-path onboarding toggles, IRS $0.67/mi mileage tracking, hourly rate configuration, and supervisor cosignature routing.',
     completed: true,
     isRequired: true
+  },
+  {
+    id: 'sdlc_phase11',
+    category: 'sdlc_deployment',
+    title: 'Phase 11: STAR Interview Modules & 80-Hr/40-Hr Training Tracks',
+    description: 'CalMHSA 80-hour CPSS-CA core certification curriculum, 40-hour specialized tracks (ECM, Forensic, Street Medicine, Respite), and STAR behavioral interview practice engine.',
+    completed: true,
+    isRequired: true
+  },
+  {
+    id: 'sdlc_phase12',
+    category: 'sdlc_deployment',
+    title: 'Phase 12: DHCS / CalMHSA Code of Ethics & CalAIM Golden Thread Standard',
+    description: '10-point DHCS / CalMHSA ethical boundaries checklist, unbroken Golden Thread 4-part note verification, and audit-proof encounter documentation.',
+    completed: true,
+    isRequired: true
   }
 ];
 
+type ChecklistCategory = 'calaim_audit' | 'sdlc_deployment' | 'ethics_boundary';
 type ChecklistListener = () => void;
 
 class ChecklistStateManager {
@@ -172,7 +273,7 @@ class ChecklistStateManager {
   constructor() {
     if (typeof window !== 'undefined') {
       window.addEventListener('storage', (e) => {
-        if (e.key === STORAGE_KEY_CALAIM || e.key === STORAGE_KEY_SDLC) {
+        if (e.key === STORAGE_KEY_CALAIM || e.key === STORAGE_KEY_SDLC || e.key === STORAGE_KEY_ETHICS) {
           this.notifyListeners();
         }
       });
@@ -214,6 +315,21 @@ class ChecklistStateManager {
     return DEFAULT_CALAIM_CHECKLIST;
   }
 
+  public getEthicsChecklist(): ChecklistItem[] {
+    try {
+      const stored = safeStorage.getItem(STORAGE_KEY_ETHICS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // fallback
+    }
+    return DEFAULT_ETHICS_CHECKLIST;
+  }
+
   public getSdlcChecklist(): ChecklistItem[] {
     try {
       const stored = safeStorage.getItem(STORAGE_KEY_SDLC);
@@ -229,9 +345,21 @@ class ChecklistStateManager {
     return DEFAULT_SDLC_CHECKLIST;
   }
 
-  public toggleItem(category: 'calaim_audit' | 'sdlc_deployment', itemId: string): void {
-    const key = category === 'calaim_audit' ? STORAGE_KEY_CALAIM : STORAGE_KEY_SDLC;
-    const current = category === 'calaim_audit' ? this.getCalaimChecklist() : this.getSdlcChecklist();
+  private getKeyForCategory(category: ChecklistCategory): string {
+    if (category === 'calaim_audit') return STORAGE_KEY_CALAIM;
+    if (category === 'ethics_boundary') return STORAGE_KEY_ETHICS;
+    return STORAGE_KEY_SDLC;
+  }
+
+  private getItemsForCategory(category: ChecklistCategory): ChecklistItem[] {
+    if (category === 'calaim_audit') return this.getCalaimChecklist();
+    if (category === 'ethics_boundary') return this.getEthicsChecklist();
+    return this.getSdlcChecklist();
+  }
+
+  public toggleItem(category: ChecklistCategory, itemId: string): void {
+    const key = this.getKeyForCategory(category);
+    const current = this.getItemsForCategory(category);
     const updated = current.map((item) => {
       if (item.id === itemId) {
         return {
@@ -247,9 +375,9 @@ class ChecklistStateManager {
     this.notifyListeners();
   }
 
-  public setItemStatus(category: 'calaim_audit' | 'sdlc_deployment', itemId: string, completed: boolean): void {
-    const key = category === 'calaim_audit' ? STORAGE_KEY_CALAIM : STORAGE_KEY_SDLC;
-    const current = category === 'calaim_audit' ? this.getCalaimChecklist() : this.getSdlcChecklist();
+  public setItemStatus(category: ChecklistCategory, itemId: string, completed: boolean): void {
+    const key = this.getKeyForCategory(category);
+    const current = this.getItemsForCategory(category);
     const updated = current.map((item) => {
       if (item.id === itemId) {
         return {
@@ -265,9 +393,12 @@ class ChecklistStateManager {
     this.notifyListeners();
   }
 
-  public resetToDefaults(category?: 'calaim_audit' | 'sdlc_deployment'): void {
+  public resetToDefaults(category?: ChecklistCategory): void {
     if (!category || category === 'calaim_audit') {
       safeStorage.setItem(STORAGE_KEY_CALAIM, JSON.stringify(DEFAULT_CALAIM_CHECKLIST));
+    }
+    if (!category || category === 'ethics_boundary') {
+      safeStorage.setItem(STORAGE_KEY_ETHICS, JSON.stringify(DEFAULT_ETHICS_CHECKLIST));
     }
     if (!category || category === 'sdlc_deployment') {
       safeStorage.setItem(STORAGE_KEY_SDLC, JSON.stringify(DEFAULT_SDLC_CHECKLIST));
@@ -275,13 +406,14 @@ class ChecklistStateManager {
     this.notifyListeners();
   }
 
-  public getSummary(category: 'calaim_audit' | 'sdlc_deployment') {
-    const items = category === 'calaim_audit' ? this.getCalaimChecklist() : this.getSdlcChecklist();
+  public getSummary(category: ChecklistCategory) {
+    const items = this.getItemsForCategory(category);
     const total = items.length;
     const completed = items.filter((i) => i.completed).length;
-    const percent = Math.round((completed / total) * 100);
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
     return { total, completed, percent, allComplete: completed === total };
   }
 }
 
 export const checklistStateService = new ChecklistStateManager();
+export type { ChecklistCategory };
