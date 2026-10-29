@@ -56,6 +56,8 @@ import { leadDigestService, DigestResponse, TestEmailResult } from '../services/
 import { StripeBillingService, SUBSCRIPTION_TIERS } from '../services/stripeBillingService';
 import { safeStorage } from '../utils/safeStorage';
 import { VerifyEmailModal } from './VerifyEmailModal';
+import { Edi837PGenerator } from '../services/edi837pService';
+import { Client } from '../db/peerNotebookDatabase';
 
 const HARDENED_RLS_SQL = `-- ==============================================================================
 -- Peer Notebook: Supabase Row-Level Security (RLS) Hardening Migration
@@ -570,6 +572,73 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
         entityId: 'full_database_backup',
         details: { exportFormat: 'full_json_bundle', records: storageMetrics?.noteCount }
       });
+    }
+  };
+
+  const handleExportEdi837PBatch = async () => {
+    try {
+      const allNotes = await peerNotebookDB.getAllNotes();
+      const allClients = await peerNotebookDB.getAllClients();
+      const clientMap = allClients.reduce((acc, c) => {
+        acc[c.id] = c;
+        return acc;
+      }, {} as Record<string, Client>);
+
+      const billingProvider = {
+        organizationName: currentOrg?.name || 'Peer Support Services CBO',
+        npi: currentOrg?.npi || '1992834012',
+        taxId: '94-3829104',
+        addressLine: '100 California Street, Suite 400',
+        city: 'San Francisco',
+        state: 'CA',
+        zipCode: '94111'
+      };
+
+      const payer = {
+        payerName: 'California Department of Health Care Services (DHCS) / Medi-Cal',
+        payerId: 'CA-DHS-MEDICAL'
+      };
+
+      const ediContent = Edi837PGenerator.generate837PBatch({
+        billingProvider,
+        payer,
+        notes: allNotes,
+        clientMap
+      });
+
+      const blob = new Blob([ediContent], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', url);
+      const dateFormatted = new Date().toISOString().split('T')[0];
+      downloadAnchor.setAttribute('download', `peernotebook_edi_837p_batch_${dateFormatted}.edi`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      URL.revokeObjectURL(url);
+
+      setExportNotice(`Exported ANSI X12 EDI 837P Claims Batch (${allNotes.length} encounters)`);
+      setTimeout(() => setExportNotice(null), 4000);
+
+      if (currentUser && currentOrg) {
+        await AuditLogger.log({
+          organizationId: currentOrg.id,
+          actorId: currentUser.id,
+          actorName: currentUser.fullName,
+          actorRole: currentUser.role,
+          action: 'MANUAL_SYNC',
+          entityType: 'system',
+          entityId: 'edi_837p_export',
+          details: {
+            claimCount: allNotes.length,
+            standard: 'ANSI ASC X12N 837P (005010X222A1)'
+          }
+        });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setExportNotice(`EDI Export error: ${msg}`);
+      setTimeout(() => setExportNotice(null), 4000);
     }
   };
 
@@ -1241,7 +1310,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
         <div className="pt-2 border-t border-slate-100 space-y-3">
           <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Data Portability & Emergency Backup (JSON)</h4>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
             {/* Export Full JSON Backup */}
             <button
               type="button"
@@ -1273,6 +1342,17 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
             >
               <FileCheck className="w-4 h-4 text-[#16A34A] shrink-0" />
               <span>Export Audit Trail (SHA-256)</span>
+            </button>
+
+            {/* Export ANSI X12 EDI 837P Claims Batch */}
+            <button
+              type="button"
+              onClick={handleExportEdi837PBatch}
+              className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
+              title="Generate ANSI ASC X12N 837P (005010X222A1) professional claim batch for Medi-Cal H0038"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-[#1E3A8A] shrink-0" />
+              <span>Export EDI 837P Batch</span>
             </button>
           </div>
 

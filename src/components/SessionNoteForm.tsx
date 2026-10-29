@@ -41,6 +41,7 @@ import {
   parseUnstructuredPeerDictation
 } from '../services/peerNoteEngine';
 import { H0038TemplateDrawer, H0038Template } from './H0038TemplateDrawer';
+import { FourPartNoteGenerator, FourPartNoteData } from './FourPartNoteGenerator';
 
 interface SessionNoteFormProps {
   initialClient?: Client | null;
@@ -229,6 +230,20 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       setSelectedInterventionChips(tmpl.recommendedInterventionChips);
     }
     setSanitizedNotice(`Applied CalAIM H0038 Standard: "${tmpl.title}"`);
+    setTimeout(() => setSanitizedNotice(null), 4500);
+  };
+
+  // Four-Part Note Generator State & Application Handler
+  const [isFourPartModalOpen, setIsFourPartModalOpen] = useState(false);
+
+  const handleApplyFourPartNote = (noteData: FourPartNoteData) => {
+    setGoalAddressed(noteData.goalAddressed);
+    setPeerIntervention(noteData.peerIntervention);
+    setClientResponse(noteData.clientResponse);
+    setPlanNextSteps(noteData.planNextSteps);
+    setFaceToFaceMinutes(noteData.durationMinutes);
+    setIsFourPartModalOpen(false);
+    setSanitizedNotice(`Applied Four-Part CalAIM Note (${noteData.durationMinutes}m · ${noteData.billingUnits} units)`);
     setTimeout(() => setSanitizedNotice(null), 4500);
   };
 
@@ -1111,6 +1126,17 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             </button>
           </div>
 
+          {/* 4-Part Generator Trigger Button */}
+          <button
+            type="button"
+            onClick={() => setIsFourPartModalOpen(true)}
+            className="min-h-[44px] px-3.5 py-2 bg-white hover:bg-slate-50 text-[#1E3A8A] font-bold rounded-full text-xs shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 border border-slate-300"
+            title="Generate custom CalAIM 4-part note from raw inputs or goal presets"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#0F766E] shrink-0" />
+            <span>4-Part Generator</span>
+          </button>
+
           {/* CalAIM H0038 Standardized Template Drawer Trigger Button */}
           <button
             type="button"
@@ -1119,7 +1145,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             title="Open H0038 Standardized CalAIM Template Library (8 Core Encounters)"
           >
             <BookOpen className="w-4 h-4 text-amber-300 shrink-0" />
-            <span>H0038 CalAIM Templates (8)</span>
+            <span>H0038 Templates (8)</span>
           </button>
         </div>
       </div>
@@ -1591,6 +1617,30 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
         onClose={() => setIsTemplateDrawerOpen(false)}
         onSelectTemplate={handleApplyH0038Template}
       />
+
+      {/* Four-Part Note Template Generator Modal */}
+      {isFourPartModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl relative my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-150 border border-slate-200">
+            <div className="p-3 sm:p-5">
+              <FourPartNoteGenerator
+                initialGoal={goalAddressed}
+                onApplyNote={handleApplyFourPartNote}
+                onClose={() => setIsFourPartModalOpen(false)}
+              />
+            </div>
+            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsFourPartModalOpen(false)}
+                className="min-h-[44px] px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-full text-xs cursor-pointer transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
