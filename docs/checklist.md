@@ -49,3 +49,64 @@
 - [x] Vercel Edge custom domain resolution (`peernotebook.com` / `www.peernotebook.com`) verified with active SSL/TLS.
 - [x] User-facing documentation, Medi-Cal H0038 billing codes, and CalAIM compliance runbooks published to `optimumprimers.com/peernotebook/docs`.
 - [x] Platform ready for specialist cohort onboarding and real-world field utilization.
+
+### Phase 7: Interactive Checklist State Engine & CBO Interoperability — [COMPLETE]
+- [x] Dynamic Cross-Session State Engine (`checklistStateService.ts`):
+  - CalAIM 7-Point Quality Audit Checklist (Goal linkage, Non-clinical language, Client quote, Concrete intervention, 3-way time accounting, 15-min billing units, CPSS attestation signature).
+  - Master Engineering & SDLC Deployment Checklist (Phases 1-6).
+  - Event-driven cross-tab and cross-session persistence via `peernotebook:checklist-update`.
+- [x] Interactive Checklist UI (`InteractiveChecklistWidget.tsx`):
+  - Modal overlay and embedded inline modes with real-time completion progress tracking.
+  - 48px touch targets, zero-pill discipline, "Copy Text Summary", and "Reset Baseline".
+  - Embedded in Navigation drawer, Settings Panel, and Session Note Form.
+- [x] CBO EHR Clinical Interchange Pipeline (`ehrIntegrationService.ts`):
+  - HL7 FHIR R4 Encounter & DocumentReference Bundle JSON export.
+  - HL7 v2.5.1 Clinical Message (ORU^R01 / MDM^T02) export.
+  - C-CDA Release 2.1 Progress Note XML export.
+  - Integrated with ANSI X12 837P batch claims generator.
+
+### Phase 8: California SB 803 Core Competencies Alignment — [COMPLETE]
+- [x] Master SB 803 17 Core Competencies Dataset (`src/data/sb803Competencies.ts`):
+  - Mapped all 17 competencies defined under Senate Bill 803 (Chapter 150, Statutes of 2020) and CalMHSA.
+  - Formulated plain-English documentation prompts for CalAIM H0038 medical necessity defense.
+- [x] In-App Competency Guide & Selector (`src/components/SB803CompetencyGuide.tsx`):
+  - Category filters: Foundation, Practice, Navigation, Ethics & Wellness.
+  - Integrated into `SessionNoteForm.tsx` for encounter note tagging.
+  - Tagged competencies bundled into Dexie.js records, printable chart exports (`ExportSessionPDF.tsx`), and FHIR R4 bundles.
+- [x] Regulatory Documentation: `docs/03-compliance-regulatory/calmhsa-sb803-core-competencies.md`.
+
+### Phase 9: CBO Onboarding & Administrative Governance (`/admin/dashboard`) — [COMPLETE]
+- [x] CBO Dashboard Component (`src/components/AdminDashboard.tsx`):
+  - Route `/admin/dashboard` wired in React Router and workspace navigation.
+  - CBO Entity Profile Management (NPI, Medi-Cal Provider ID, County Code, Active CalAIM BAA).
+- [x] 6-Step Guided Medi-Cal Provider Onboarding Checklist:
+  1. Business Associate Agreement (BAA) execution with County/DHCS.
+  2. Medi-Cal County Provider ID & NPI claim parameter configuration.
+  3. Clinical Supervisor cosignature delegation protocol (LCSW/LMFT/LPCC).
+  4. CMS 8-minute rounding accounting formula validation.
+  5. Specialist roster onboarding (W-2 Employees & 1099 Subcontractors).
+  6. Interoperability verification test export (FHIR R4 / HL7 / CCDA).
+- [x] CalAIM Capacity & Revenue Estimator:
+  - Monthly billable units used vs. contract cap.
+  - Estimated reimbursement at California standard $32.50 / 15-min county benchmark.
+- [x] Operational Documentation: `docs/01-project-management/admin-cbo-onboarding-guide.md`.
+
+### Phase 10: Engineering Telemetry & System Monitoring Portal (`/engineering/monitoring`) — [COMPLETE]
+- [x] Telemetry Portal Component (`src/components/EngineeringMonitoring.tsx`):
+  - Route `/engineering/monitoring` wired in workspace navigation and Navbar menu.
+  - Real-time IndexedDB Dexie.js storage quota metrics (bytes used, quota, table counts).
+  - Background Sync Worker state machine, queue backlog latency, and network connection listener.
+  - Cryptographic SHA-256 Audit Trail Checksum Validator verifying zero data tampering.
+  - Transactional Email Dispatch Monitor (Resend API registration, verification code, waitlist routes).
+  - 1-Click In-Browser Self-Diagnostic Test Suite executing 5 architectural verification checks.
+- [x] Technical Specification: `docs/04-technical-architecture/telemetry-monitoring-spec.md`.
+
+### Phase 11: 1099 Independent Contractor vs. W-2 Employee Classification — [COMPLETE]
+- [x] Schema & Database Modeling (`src/db/peerNotebookDatabase.ts`):
+  - Added `employmentType: 'w2_employee' | '1099_contractor'` to `User` interface.
+  - Mileage tracking ($0.67/mile IRS standard rate) and hourly contractor rate.
+- [x] Onboarding & Registration Toggles:
+  - `AuthModal.tsx`: High-visibility plain-English toggle during account creation.
+  - `BetaOnboardingModal.tsx`: Specialist classification toggle with real-time profile persistence.
+  - `AdminDashboard.tsx`: Roster filter by W-2 vs. 1099 with modal editing.
+

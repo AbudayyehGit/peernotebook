@@ -36,6 +36,7 @@ import { HeroSection } from './HeroSection';
 import { AuthModal } from './AuthModal';
 import { safeStorage } from '../utils/safeStorage';
 import { leadDigestService } from '../services/leadDigestService';
+import { checklistStateService, ChecklistItem } from '../services/checklistStateService';
 
 // Static photo assets served from /public/images/ with absolute root paths for reliable Vercel production deployment
 const HERO_IMAGE_URL = '/images/hero-peer-support-workspace.jpg';
@@ -60,57 +61,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onOpenDoc
   const [outreachModalOpen, setOutreachModalOpen] = useState(false);
   const [checklistCopied, setChecklistCopied] = useState(false);
 
-  // Interactive Checklist State
-  const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({
-    0: true,
-    1: true,
-    2: true,
-    3: false,
-    4: false,
-    5: false,
-    6: false,
-  });
+  // Persistent Interactive Checklist State
+  const [calaimItems, setCalaimItems] = useState<ChecklistItem[]>(() => checklistStateService.getCalaimChecklist());
 
-  const checklistStandards = [
-    {
-      title: '1. CalAIM Medical Necessity & Recovery Goal Linkage',
-      desc: 'Encounter directly references the peer client’s active recovery goal (e.g. permanent supportive housing, harm reduction, community navigation) rather than general conversation.',
-    },
-    {
-      title: '2. Clear Peer Specialist Scope of Practice (Non-Clinical)',
-      desc: 'Intervention clearly highlights peer-delivered support (lived experience modeling, mutual empowerment, crisis de-escalation) and explicitly avoids licensed psychotherapeutic terminology.',
-    },
-    {
-      title: '3. Direct Quotation of Client’s Own Words',
-      desc: 'The "Client Response" section includes at least one authentic verbatim quote from the peer reflecting their emotional state, self-advocacy, or insight.',
-    },
-    {
-      title: '4. Concrete, Actionable Peer Intervention Named',
-      desc: 'Specific interventions are stated (e.g. "Reviewed housing voucher application step-by-step; practiced role-playing landlord phone interview").',
-    },
-    {
-      title: '5. Accurate 3-Way Time Allocation',
-      desc: 'Direct face-to-face minutes, travel time, and documentation minutes are tracked separately to verify Medi-Cal payment reform compliance.',
-    },
-    {
-      title: '6. Strict H0038 15-Minute Billing Unit Conversion',
-      desc: 'Total duration is converted accurately using California DHCS 15-minute rules (8–22 min = 1 unit; 23–37 min = 2 units; 38–52 min = 3 units; 53–67 min = 4 units).',
-    },
-    {
-      title: '7. Specialist Credential Signature & Date Stamp',
-      desc: 'Encounter is signed with your legal name and CPSS-CA or trainee credential immediately upon completion.',
-    },
-  ];
+  React.useEffect(() => {
+    return checklistStateService.subscribe(() => {
+      setCalaimItems(checklistStateService.getCalaimChecklist());
+    });
+  }, []);
 
-  const handleToggleChecklist = (idx: number) => {
-    setCheckedItems((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  const handleToggleChecklist = (id: string) => {
+    checklistStateService.toggleItem('calaim_audit', id);
   };
 
   const handleCopyChecklistText = async () => {
     const text = `THE 10-MINUTE MEDI-CAL H0038 NOTE CHECKLIST (CalAIM & CalMHSA Compliant)
 Peer Notebook (peernotebook.com)
 
-${checklistStandards.map((item, i) => `[ ] ${item.title}\n    ${item.desc}`).join('\n\n')}
+${calaimItems.map((item) => `[${item.completed ? 'x' : ' '}] ${item.title}\n    ${item.description}`).join('\n\n')}
 
 CALIFORNIA DHCS H0038 BILLING UNIT INCREMENTS:
 • 8 - 22 minutes = 1 Unit
@@ -517,41 +485,41 @@ Built with trauma-informed care at peernotebook.com`;
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-[#1E3A8A]">Interactive Compliance Audit</h3>
-                    <p className="text-xs text-slate-500">Test any encounter note against the 7 California standards</p>
+                    <p className="text-xs text-slate-500">Persistent across browser and offline sessions</p>
                   </div>
                 </div>
                 <span className="px-3 py-1 bg-slate-100 text-slate-700 font-mono text-xs font-bold rounded-lg shrink-0">
-                  {Object.values(checkedItems).filter(Boolean).length} / 7 Verified
+                  {calaimItems.filter((i) => i.completed).length} / {calaimItems.length} Verified
                 </span>
               </div>
 
               {/* Checklist Items */}
               <div className="space-y-3">
-                {checklistStandards.map((item, idx) => (
+                {calaimItems.map((item) => (
                   <div
-                    key={idx}
-                    onClick={() => handleToggleChecklist(idx)}
+                    key={item.id}
+                    onClick={() => handleToggleChecklist(item.id)}
                     className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
-                      checkedItems[idx]
+                      item.completed
                         ? 'bg-emerald-50/60 border-emerald-300'
                         : 'bg-slate-50/80 border-slate-200 hover:bg-slate-100/60'
                     }`}
                   >
                     <div
                       className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                        checkedItems[idx]
+                        item.completed
                           ? 'bg-[#16A34A] text-white'
                           : 'border border-slate-300 bg-white'
                       }`}
                     >
-                      {checkedItems[idx] && <Check className="w-3.5 h-3.5" />}
+                      {item.completed && <Check className="w-3.5 h-3.5" />}
                     </div>
                     <div className="space-y-0.5">
                       <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
                         {item.title}
                       </h4>
                       <p className="text-xs text-slate-600 leading-relaxed">
-                        {item.desc}
+                        {item.description}
                       </p>
                     </div>
                   </div>

@@ -21,13 +21,16 @@ import {
   ChevronRight,
   ExternalLink,
   Layers,
-  Check
+  Check,
+  Building2,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ZeroAiBadge } from './ZeroAiBadge';
 import { SubscriptionStatusBadge } from './SubscriptionStatusBadge';
 import { SyncStatusBadge } from './SyncStatusBadge';
 import { OrgSelect } from './OrgSelect';
+import { InteractiveChecklistWidget } from './InteractiveChecklistWidget';
 
 export interface NavbarProps {
   switchView: (view: 'landing' | 'workspace' | 'docs' | 'trust', docSlug?: string) => void;
@@ -50,6 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const { currentUser } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
 
   // Explicit label: Replaces any legacy 'Specialist' label with 'Login'
   const getAuthButtonLabel = () => {
@@ -303,6 +307,57 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    switchView('workspace');
+                    setTimeout(() => {
+                      window.location.hash = '#admin/dashboard';
+                    }, 50);
+                  }}
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-between transition-colors text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Building2 className="w-4 h-4 text-[#1E3A8A]" />
+                    <span>CBO Admin Dashboard</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    switchView('workspace');
+                    setTimeout(() => {
+                      window.location.hash = '#telemetry';
+                    }, 50);
+                  }}
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-between transition-colors text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Activity className="w-4 h-4 text-emerald-600" />
+                    <span>Engineering Telemetry Portal</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsChecklistOpen(true);
+                  }}
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl bg-teal-50/70 hover:bg-teal-100/70 border border-teal-200 text-[#0F766E] text-xs sm:text-sm font-bold flex items-center justify-between transition-colors text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
+                    <span>Interactive Compliance Checklist</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-teal-400" />
+                </button>
               </div>
 
               {/* 5. Zero-AI Compliance Badge in Drawer */}
@@ -328,6 +383,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       )}
+
+      {/* Interactive Compliance Checklist Modal */}
+      <InteractiveChecklistWidget
+        isModal
+        isOpen={isChecklistOpen}
+        onClose={() => setIsChecklistOpen(false)}
+      />
     </>
   );
 };

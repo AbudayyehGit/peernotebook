@@ -45,8 +45,14 @@ function AppContent() {
         pathname.startsWith('/settings') ||
         pathname.startsWith('/goalpath') ||
         pathname.startsWith('/new-note') ||
+        pathname.startsWith('/engineering') ||
+        pathname.startsWith('/monitoring') ||
+        pathname.startsWith('/telemetry') ||
         hash.startsWith('#admin') ||
         hash.startsWith('#users') ||
+        hash.startsWith('#engineering') ||
+        hash.startsWith('#monitoring') ||
+        hash.startsWith('#telemetry') ||
         hash === '#workspace'
       ) return 'workspace';
       if (hash === '#landing' || hash === '#checklist' || hash === '#overview') return 'landing';
@@ -126,8 +132,14 @@ function AppContent() {
         pathname.startsWith('/settings') ||
         pathname.startsWith('/goalpath') ||
         pathname.startsWith('/new-note') ||
+        pathname.startsWith('/engineering') ||
+        pathname.startsWith('/monitoring') ||
+        pathname.startsWith('/telemetry') ||
         hash.startsWith('#admin') ||
         hash.startsWith('#users') ||
+        hash.startsWith('#engineering') ||
+        hash.startsWith('#monitoring') ||
+        hash.startsWith('#telemetry') ||
         hash === '#workspace'
       ) {
         setCurrentView('workspace');

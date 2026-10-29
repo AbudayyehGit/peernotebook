@@ -20,6 +20,8 @@ import { syncWorker, SyncStatusInfo } from '../services/syncWorker';
 import { safeStorage } from '../utils/safeStorage';
 import { EmptyState, Button } from './ui';
 import { AdminUserManagement } from './AdminUserManagement';
+import { AdminDashboard } from './AdminDashboard';
+import { EngineeringMonitoring } from './EngineeringMonitoring';
 import { usePrivacyMode } from '../context/PrivacyModeContext';
 import {
   Users,
@@ -51,10 +53,11 @@ import {
   SlidersHorizontal,
   FolderOpen,
   Target,
-  Building2
+  Building2,
+  Cpu
 } from 'lucide-react';
 
-export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'supervisor' | 'audit' | 'architecture' | 'settings' | 'admin_users';
+export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'supervisor' | 'audit' | 'architecture' | 'settings' | 'admin_users' | 'admin_dashboard' | 'telemetry';
 
 interface PeerNotebookWorkspaceProps {
   onReplayTutorial?: () => void;
@@ -81,13 +84,15 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     if (path.startsWith('/supervisor')) return { tab: 'supervisor' };
     if (path.startsWith('/audit')) return { tab: 'audit' };
     if (path.startsWith('/settings')) return { tab: 'settings' };
+    if (path.startsWith('/admin/dashboard') || path.startsWith('/admin-dashboard')) return { tab: 'admin_dashboard' };
+    if (path.startsWith('/engineering') || path.startsWith('/monitoring') || path.startsWith('/telemetry')) return { tab: 'telemetry' };
     if (path.startsWith('/admin') || path.startsWith('/users')) return { tab: 'admin_users' };
 
     // Support query param ?tab= (e.g., inside AI Studio preview iframe or direct link)
     try {
       const searchParams = new URLSearchParams(window.location.search);
       const tabParam = searchParams.get('tab') as WorkspaceTab;
-      if (tabParam && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users'].includes(tabParam)) {
+      if (tabParam && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(tabParam)) {
         return { tab: tabParam };
       }
     } catch {
@@ -98,11 +103,13 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     try {
       const hash = window.location.hash.replace('#/', '').replace('#', '').toLowerCase();
       if (hash.startsWith('docs')) return { tab: 'architecture' };
-      if (['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'settings', 'admin_users'].includes(hash)) {
+      if (['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(hash)) {
         return { tab: hash as WorkspaceTab };
       }
       if (hash === 'new-note') return { tab: 'new_note' };
       if (hash === 'goal-path' || hash === 'wellness') return { tab: 'goalpath' };
+      if (hash.startsWith('admin/dashboard') || hash === 'admin-dashboard' || hash === 'dashboard') return { tab: 'admin_dashboard' };
+      if (hash.startsWith('engineering') || hash.startsWith('monitoring') || hash === 'telemetry') return { tab: 'telemetry' };
       if (hash.startsWith('admin') || hash.startsWith('user')) return { tab: 'admin_users' };
     } catch {
       // ignore
@@ -110,7 +117,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
 
     // Fallback to persisted tab from last active session
     const saved = safeStorage.getItem('peernotebook_active_tab') as WorkspaceTab;
-    if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users'].includes(saved)) {
+    if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(saved)) {
       return { tab: saved };
     }
 
@@ -211,6 +218,10 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       path = '/audit';
     } else if (tab === 'settings') {
       path = '/settings';
+    } else if (tab === 'admin_dashboard') {
+      path = '/admin/dashboard';
+    } else if (tab === 'telemetry') {
+      path = '/engineering/monitoring';
     } else if (tab === 'admin_users') {
       path = '/admin/users';
     }
@@ -448,14 +459,28 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     ...(canManageAgency
       ? [
           {
-            id: 'admin_users' as WorkspaceTab,
-            label: 'Users & CBOs',
-            shortLabel: 'Admin',
+            id: 'admin_dashboard' as WorkspaceTab,
+            label: 'CBO Dashboard',
+            shortLabel: 'CBO',
             icon: Building2,
+            badge: null
+          },
+          {
+            id: 'admin_users' as WorkspaceTab,
+            label: 'Users & Staff',
+            shortLabel: 'Staff',
+            icon: Users,
             badge: null
           }
         ]
-      : [])
+      : []),
+    {
+      id: 'telemetry' as WorkspaceTab,
+      label: 'Engineering Telemetry',
+      shortLabel: 'Telemetry',
+      icon: Activity,
+      badge: null
+    }
   ];
 
   const currentActiveItem = navItems.find((item) => item.id === activeTab) || navItems[0];
@@ -622,19 +647,47 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
             </button>
 
             {canManageAgency && (
-              <button
-                type="button"
-                onClick={() => navigateToTab('admin_users')}
-                className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === 'admin_users'
-                    ? 'bg-[#1E3A8A] text-white shadow-sm'
-                    : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
-                }`}
-              >
-                <Building2 className={`w-3.5 h-3.5 ${activeTab === 'admin_users' ? 'text-white' : 'text-slate-500'}`} />
-                <span>Users &amp; CBOs</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => navigateToTab('admin_dashboard')}
+                  className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === 'admin_dashboard'
+                      ? 'bg-[#1E3A8A] text-white shadow-sm'
+                      : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                  }`}
+                >
+                  <Building2 className={`w-3.5 h-3.5 ${activeTab === 'admin_dashboard' ? 'text-white' : 'text-slate-500'}`} />
+                  <span>CBO Dashboard</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigateToTab('admin_users')}
+                  className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === 'admin_users'
+                      ? 'bg-[#1E3A8A] text-white shadow-sm'
+                      : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                  }`}
+                >
+                  <Users className={`w-3.5 h-3.5 ${activeTab === 'admin_users' ? 'text-white' : 'text-slate-500'}`} />
+                  <span>Staff</span>
+                </button>
+              </>
             )}
+
+            <button
+              type="button"
+              onClick={() => navigateToTab('telemetry')}
+              className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'telemetry'
+                  ? 'bg-[#1E3A8A] text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+              }`}
+            >
+              <Activity className={`w-3.5 h-3.5 ${activeTab === 'telemetry' ? 'text-white' : 'text-slate-500'}`} />
+              <span>Telemetry</span>
+            </button>
 
             <a
               href="#trust"
@@ -1510,8 +1563,16 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
         <SettingsPanel onReplayTutorial={onReplayTutorial} />
       )}
 
+      {activeTab === 'admin_dashboard' && (
+        <AdminDashboard />
+      )}
+
       {activeTab === 'admin_users' && (
         <AdminUserManagement />
+      )}
+
+      {activeTab === 'telemetry' && (
+        <EngineeringMonitoring />
       )}
       </div>
 

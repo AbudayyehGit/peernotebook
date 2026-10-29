@@ -23,6 +23,7 @@ export interface Organization {
 
 export type UserRole = 'peer_specialist' | 'supervisor' | 'admin' | 'compliance_officer';
 export type AccountType = 'agency_cbo' | 'solo_1099';
+export type EmploymentType = 'w2_employee' | '1099_contractor';
 export type SubscriptionStatus = 'trialing' | 'active' | 'active_subscriber' | 'past_due' | 'canceled' | 'incomplete' | 'unpaid';
 export type SubscriptionTier = 'founding_specialist' | 'solo_1099_pro' | 'agency_unlimited';
 export type BillingInterval = 'monthly' | 'annual';
@@ -31,6 +32,7 @@ export interface User {
   id: string;
   organizationId?: string; // Optional for solo 1099 independent practitioners
   accountType?: AccountType; // 'agency_cbo' or 'solo_1099'
+  employmentType?: EmploymentType; // 'w2_employee' or '1099_contractor'
   email: string;
   fullName: string;
   credentialTitle: string; // e.g. Medi-Cal Certified Peer Support Specialist (CPSS-CA)
@@ -115,6 +117,7 @@ export interface SessionNote {
   
   // Structured CalAIM DAP / Peer Support Documentation
   focusDomains: string[];
+  sb803Competencies?: string[]; // CalMHSA / SB 803 17 Core Competencies tagged
   goalAddressed: string; // Strengths-based Recovery Goal
   peerIntervention: string; // Lived experience coaching, system navigation, recovery capital building
   clientResponse: string; // Client engagement, quotes, mood, measurable response

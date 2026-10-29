@@ -17,8 +17,11 @@ import {
   FileCheck,
   Zap,
   Check,
-  Mail
+  Mail,
+  Building2,
+  Briefcase
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface BetaOnboardingModalProps {
   isOpen: boolean;
@@ -31,7 +34,24 @@ export const BetaOnboardingModal: React.FC<BetaOnboardingModalProps> = ({
   onClose,
   onStartFirstNote,
 }) => {
+  const { currentUser, updateContractorSettings } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
+  const [employmentType, setEmploymentType] = useState<'w2_employee' | '1099_contractor'>(
+    currentUser?.isContractor1099 ? '1099_contractor' : 'w2_employee'
+  );
+
+  const handleSelectEmployment = async (type: 'w2_employee' | '1099_contractor') => {
+    setEmploymentType(type);
+    try {
+      await updateContractorSettings({
+        isContractor1099: type === '1099_contractor',
+        hourlyContractRate: type === '1099_contractor' ? 45 : undefined,
+        mileageReimbursementRate: type === '1099_contractor' ? 0.67 : undefined
+      });
+    } catch {
+      // ignore
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -120,6 +140,44 @@ export const BetaOnboardingModal: React.FC<BetaOnboardingModalProps> = ({
           <p className="text-xs sm:text-sm text-slate-600">
             Follow this 4-step walkthrough designed to eliminate documentation anxiety and ensure complete Medi-Cal audit readiness.
           </p>
+        </div>
+
+        {/* 1099 vs. W-2 Clinical Classification Toggle */}
+        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+              Your Specialist Classification
+            </span>
+            <span className="text-[11px] text-slate-500 font-medium">
+              {employmentType === 'w2_employee' ? 'Agency Payroll & Cosigning' : 'IRS $0.67/mi & 1099 Rates'}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => handleSelectEmployment('w2_employee')}
+              className={`min-h-[44px] px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                employmentType === 'w2_employee'
+                  ? 'bg-white text-[#1E3A8A] shadow-xs ring-1 ring-slate-300'
+                  : 'text-slate-600 hover:text-slate-900 bg-slate-100'
+              }`}
+            >
+              <Building2 className="w-4 h-4" />
+              <span>W-2 Agency Employee</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSelectEmployment('1099_contractor')}
+              className={`min-h-[44px] px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                employmentType === '1099_contractor'
+                  ? 'bg-white text-amber-900 shadow-xs ring-1 ring-amber-300'
+                  : 'text-slate-600 hover:text-slate-900 bg-slate-100'
+              }`}
+            >
+              <Briefcase className="w-4 h-4 text-amber-600" />
+              <span>1099 Independent Contractor</span>
+            </button>
+          </div>
         </div>
 
         {/* Progress Stepper */}

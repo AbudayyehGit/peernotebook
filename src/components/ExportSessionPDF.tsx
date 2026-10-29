@@ -335,6 +335,22 @@ export const ExportSessionPDF: React.FC<ExportSessionPDFProps> = ({ note, onClos
               </div>
             </div>
 
+            {/* California SB 803 Core Competencies Compliance Block */}
+            {note.sb803Competencies && note.sb803Competencies.length > 0 && (
+              <div className="bg-blue-50/70 border border-blue-200 rounded-lg p-3 mb-4 text-[11px]">
+                <span className="text-[#1E3A8A] uppercase font-bold text-[10px] block mb-1">
+                  California SB 803 / CalMHSA Core Competencies ({note.sb803Competencies.length} Tagged)
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {note.sb803Competencies.map((compId) => (
+                    <span key={compId} className="px-2 py-0.5 bg-white border border-blue-300 rounded font-semibold text-slate-800 text-[10px]">
+                      {compId}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* 4-Part CalAIM Note Body */}
             <div className="space-y-4">
               {/* Part 1: Recovery Goal */}

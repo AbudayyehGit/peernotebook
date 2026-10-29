@@ -49,7 +49,8 @@ import {
   Car,
   DollarSign,
   Briefcase,
-  CreditCard
+  CreditCard,
+  FileText
 } from 'lucide-react';
 import { opfsStorage, StorageQuotaInfo, OPFSSnapshotMeta } from '../services/opfsStorageService';
 import { leadDigestService, DigestResponse, TestEmailResult } from '../services/leadDigestService';
@@ -57,6 +58,8 @@ import { StripeBillingService, SUBSCRIPTION_TIERS } from '../services/stripeBill
 import { safeStorage } from '../utils/safeStorage';
 import { VerifyEmailModal } from './VerifyEmailModal';
 import { Edi837PGenerator } from '../services/edi837pService';
+import { EhrIntegrationService } from '../services/ehrIntegrationService';
+import { InteractiveChecklistWidget } from './InteractiveChecklistWidget';
 import { Client } from '../db/peerNotebookDatabase';
 
 const HARDENED_RLS_SQL = `-- ==============================================================================
@@ -638,6 +641,97 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setExportNotice(`EDI Export error: ${msg}`);
+      setTimeout(() => setExportNotice(null), 4000);
+    }
+  };
+
+  const handleExportFhirBundle = async () => {
+    try {
+      const allNotes = await peerNotebookDB.getAllNotes();
+      const allClients = await peerNotebookDB.getAllClients();
+      const clientMap = allClients.reduce((acc, c) => {
+        acc[c.id] = c;
+        return acc;
+      }, {} as Record<string, Client>);
+
+      if (allNotes.length === 0) {
+        setExportNotice('No session notes recorded yet to generate FHIR Bundle.');
+        setTimeout(() => setExportNotice(null), 3500);
+        return;
+      }
+
+      const targetNote = allNotes[0];
+      EhrIntegrationService.exportNoteAsFhir(targetNote, clientMap[targetNote.clientId], currentOrg);
+      setExportNotice(`Exported HL7 FHIR R4 Bundle (.json)`);
+      setTimeout(() => setExportNotice(null), 4000);
+
+      if (currentUser && currentOrg) {
+        await AuditLogger.log({
+          organizationId: currentOrg.id,
+          actorId: currentUser.id,
+          actorName: currentUser.fullName,
+          actorRole: currentUser.role,
+          action: 'MANUAL_SYNC',
+          entityType: 'system',
+          entityId: 'fhir_r4_export',
+          details: { format: 'HL7 FHIR R4', noteId: targetNote.id }
+        });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setExportNotice(`FHIR Export error: ${msg}`);
+      setTimeout(() => setExportNotice(null), 4000);
+    }
+  };
+
+  const handleExportHl7Batch = async () => {
+    try {
+      const allNotes = await peerNotebookDB.getAllNotes();
+      const allClients = await peerNotebookDB.getAllClients();
+      const clientMap = allClients.reduce((acc, c) => {
+        acc[c.id] = c;
+        return acc;
+      }, {} as Record<string, Client>);
+
+      if (allNotes.length === 0) {
+        setExportNotice('No session notes recorded yet to generate HL7 message.');
+        setTimeout(() => setExportNotice(null), 3500);
+        return;
+      }
+
+      const targetNote = allNotes[0];
+      EhrIntegrationService.exportNoteAsHl7(targetNote, clientMap[targetNote.clientId], currentOrg);
+      setExportNotice(`Exported HL7 v2.5.1 Clinical Message (.hl7)`);
+      setTimeout(() => setExportNotice(null), 4000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setExportNotice(`HL7 Export error: ${msg}`);
+      setTimeout(() => setExportNotice(null), 4000);
+    }
+  };
+
+  const handleExportCcdaBatch = async () => {
+    try {
+      const allNotes = await peerNotebookDB.getAllNotes();
+      const allClients = await peerNotebookDB.getAllClients();
+      const clientMap = allClients.reduce((acc, c) => {
+        acc[c.id] = c;
+        return acc;
+      }, {} as Record<string, Client>);
+
+      if (allNotes.length === 0) {
+        setExportNotice('No session notes recorded yet to generate C-CDA XML.');
+        setTimeout(() => setExportNotice(null), 3500);
+        return;
+      }
+
+      const targetNote = allNotes[0];
+      EhrIntegrationService.exportNoteAsCcda(targetNote, clientMap[targetNote.clientId], currentOrg);
+      setExportNotice(`Exported C-CDA R2.1 Progress Note XML (.xml)`);
+      setTimeout(() => setExportNotice(null), 4000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setExportNotice(`C-CDA Export error: ${msg}`);
       setTimeout(() => setExportNotice(null), 4000);
     }
   };
@@ -1242,6 +1336,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
         </div>
       </div>
 
+      {/* Interactive Compliance & Production Deployment Checklist */}
+      <InteractiveChecklistWidget />
+
       {/* Dexie.js (IndexedDB) Local Storage Usage & Portability Card */}
       <div className="p-5 sm:p-7 bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] space-y-5 max-w-full overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
@@ -1353,6 +1450,39 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
             >
               <FileSpreadsheet className="w-4 h-4 text-[#1E3A8A] shrink-0" />
               <span>Export EDI 837P Batch</span>
+            </button>
+
+            {/* Export HL7 FHIR R4 Bundle */}
+            <button
+              type="button"
+              onClick={handleExportFhirBundle}
+              className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
+              title="Generate HL7 FHIR R4 Encounter & DocumentReference Bundle (.json)"
+            >
+              <FileCheck className="w-4 h-4 text-[#0F766E] shrink-0" />
+              <span>Export FHIR R4 (.json)</span>
+            </button>
+
+            {/* Export HL7 v2.x Message */}
+            <button
+              type="button"
+              onClick={handleExportHl7Batch}
+              className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
+              title="Generate HL7 v2.5.1 clinical documentation message (.hl7)"
+            >
+              <HardDrive className="w-4 h-4 text-[#0F766E] shrink-0" />
+              <span>Export HL7 v2 (.hl7)</span>
+            </button>
+
+            {/* Export C-CDA XML Progress Note */}
+            <button
+              type="button"
+              onClick={handleExportCcdaBatch}
+              className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-[0_2px_4px_rgba(15,23,42,0.04)] cursor-pointer"
+              title="Generate C-CDA Release 2.1 Progress Note XML document"
+            >
+              <FileText className="w-4 h-4 text-[#1E3A8A] shrink-0" />
+              <span>Export C-CDA (.xml)</span>
             </button>
           </div>
 

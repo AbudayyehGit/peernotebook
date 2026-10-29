@@ -33,7 +33,8 @@ import {
   Layers,
   ChevronLeft,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  Award
 } from 'lucide-react';
 import {
   calculateMediCalBillingUnits,
@@ -42,6 +43,9 @@ import {
 } from '../services/peerNoteEngine';
 import { H0038TemplateDrawer, H0038Template } from './H0038TemplateDrawer';
 import { FourPartNoteGenerator, FourPartNoteData } from './FourPartNoteGenerator';
+import { InteractiveChecklistWidget } from './InteractiveChecklistWidget';
+import { SB803CompetencyGuide } from './SB803CompetencyGuide';
+import { SB_803_CORE_COMPETENCIES } from '../data/sb803Competencies';
 
 interface SessionNoteFormProps {
   initialClient?: Client | null;
@@ -235,6 +239,17 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
 
   // Four-Part Note Generator State & Application Handler
   const [isFourPartModalOpen, setIsFourPartModalOpen] = useState(false);
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [isSB803GuideOpen, setIsSB803GuideOpen] = useState(false);
+  const [taggedSB803Competencies, setTaggedSB803Competencies] = useState<string[]>(
+    existingNote?.sb803Competencies || []
+  );
+
+  const handleToggleSB803Competency = (id: string) => {
+    setTaggedSB803Competencies((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
 
   const handleApplyFourPartNote = (noteData: FourPartNoteData) => {
     setGoalAddressed(noteData.goalAddressed);
@@ -585,6 +600,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       placeOfServiceCode,
       locationDetails,
       focusDomains,
+      sb803Competencies: taggedSB803Competencies,
       goalAddressed,
       peerIntervention,
       clientResponse,
@@ -1147,8 +1163,77 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             <BookOpen className="w-4 h-4 text-amber-300 shrink-0" />
             <span>H0038 Templates (8)</span>
           </button>
+
+          {/* Interactive Compliance Checklist Trigger Button */}
+          <button
+            type="button"
+            onClick={() => setIsChecklistOpen(true)}
+            className="min-h-[44px] px-3.5 py-2 bg-white hover:bg-slate-50 text-[#0F766E] font-bold rounded-full text-xs shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 border border-slate-300"
+            title="Audit encounter against CalAIM 7-Point Quality Checklist"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#0F766E] shrink-0" />
+            <span>Audit Checklist</span>
+          </button>
+
+          {/* California SB 803 17 Core Competencies Selector Button */}
+          <button
+            type="button"
+            onClick={() => setIsSB803GuideOpen(true)}
+            className={`min-h-[44px] px-3.5 py-2 font-bold rounded-full text-xs shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 border ${
+              taggedSB803Competencies.length > 0
+                ? 'bg-blue-50 text-[#1E3A8A] border-blue-300 ring-1 ring-blue-300'
+                : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+            }`}
+            title="Tag California SB 803 & CalMHSA 17 Core Competencies"
+          >
+            <Award className="w-3.5 h-3.5 text-[#1E3A8A] shrink-0" />
+            <span>SB 803 Competencies{taggedSB803Competencies.length > 0 ? ` (${taggedSB803Competencies.length})` : ''}</span>
+          </button>
         </div>
       </div>
+
+      {/* Tagged SB 803 Competency Badges */}
+      {taggedSB803Competencies.length > 0 && (
+        <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-[#1E3A8A] uppercase tracking-wider flex items-center gap-1.5">
+              <Award className="w-3.5 h-3.5" />
+              <span>California SB 803 Competencies Tagged ({taggedSB803Competencies.length})</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsSB803GuideOpen(true)}
+              className="text-xs text-[#0F766E] font-bold hover:underline"
+            >
+              Manage Tags
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {taggedSB803Competencies.map((cId) => {
+              const comp = SB_803_CORE_COMPETENCIES.find((c) => c.id === cId);
+              return (
+                <span
+                  key={cId}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-blue-200 rounded-lg text-xs font-semibold text-slate-800 shadow-2xs"
+                >
+                  <span className="w-4 h-4 rounded-full bg-[#1E3A8A] text-white text-[10px] flex items-center justify-center font-bold">
+                    {comp?.number || '#'}
+                  </span>
+                  <span className="truncate max-w-[200px]">{comp?.title || cId}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleSB803Competency(cId)}
+                    className="text-slate-400 hover:text-slate-700 ml-0.5 cursor-pointer"
+                    title="Remove Tag"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Quick template starters and dictation toolbar (Symmetrical 2x2 grid on mobile, streamlined row on desktop) */}
       <div className="bg-[#FEF3C7]/60 p-2.5 sm:p-2 rounded-2xl border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-2.5 w-full">
@@ -1641,6 +1726,22 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           </div>
         </div>
       )}
+
+      {/* Interactive Compliance Checklist Modal */}
+      <InteractiveChecklistWidget
+        isModal
+        isOpen={isChecklistOpen}
+        onClose={() => setIsChecklistOpen(false)}
+      />
+
+      {/* California SB 803 17 Core Competencies Guide & Selector Modal */}
+      <SB803CompetencyGuide
+        isOpen={isSB803GuideOpen}
+        onClose={() => setIsSB803GuideOpen(false)}
+        selectedCompetencyIds={taggedSB803Competencies}
+        onToggleCompetency={handleToggleSB803Competency}
+        isSelectorMode
+      />
     </div>
   );
 };

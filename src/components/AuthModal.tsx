@@ -7,8 +7,8 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { UserRole, AccountType } from '../db/peerNotebookDatabase';
-import { HeartHandshake, ShieldCheck, Lock, Mail, UserCheck, ArrowRight, X, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { UserRole, AccountType, EmploymentType } from '../db/peerNotebookDatabase';
+import { HeartHandshake, ShieldCheck, Lock, Mail, UserCheck, ArrowRight, X, AlertCircle, CheckCircle2, Building2, Briefcase } from 'lucide-react';
 import { VerifyEmailModal } from './VerifyEmailModal';
 
 interface AuthModalProps {
@@ -39,6 +39,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [regPassword, setRegPassword] = useState('');
   const [regRole, setRegRole] = useState<UserRole>('peer_specialist');
   const [regAccountType, setRegAccountType] = useState<AccountType>('agency_cbo');
+  const [regEmploymentType, setRegEmploymentType] = useState<EmploymentType>('w2_employee');
   const [regLicense, setRegLicense] = useState('CA-CPSS-2026-');
 
   // Mandatory Non-Bypassable Compliance Checkboxes
@@ -141,6 +142,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         fullName: regFullName,
         role: regRole,
         accountType: regAccountType,
+        employmentType: regEmploymentType,
+        isContractor1099: regEmploymentType === '1099_contractor',
         licenseNumber: regLicense,
         agreedBaaAt: new Date().toISOString()
       });
@@ -348,21 +351,52 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Account Structure
-                  </label>
-                  <select
-                    value={regAccountType}
-                    onChange={(e) => setRegAccountType(e.target.value as AccountType)}
-                    className="w-full min-h-[48px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white"
+              {/* 1099 vs. W-2 Onboarding Toggle */}
+              <div className="space-y-1.5 pt-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase">
+                  Employment &amp; Tax Classification
+                </label>
+                <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegEmploymentType('w2_employee');
+                      setRegAccountType('agency_cbo');
+                    }}
+                    className={`min-h-[44px] py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      regEmploymentType === 'w2_employee'
+                        ? 'bg-white text-[#1E3A8A] shadow-xs ring-1 ring-slate-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
                   >
-                    <option value="agency_cbo">Agency / CBO Team Member</option>
-                    <option value="solo_1099">Independent 1099 Contractor (Solo)</option>
-                  </select>
-                </div>
+                    <Building2 className="w-4 h-4" />
+                    <span>W-2 Employee</span>
+                  </button>
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegEmploymentType('1099_contractor');
+                      setRegAccountType('solo_1099');
+                    }}
+                    className={`min-h-[44px] py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      regEmploymentType === '1099_contractor'
+                        ? 'bg-white text-amber-900 shadow-xs ring-1 ring-amber-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Briefcase className="w-4 h-4 text-amber-600" />
+                    <span>1099 Contractor</span>
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-tight">
+                  {regEmploymentType === 'w2_employee'
+                    ? 'Agency employee with payroll tax withholding & supervisor sign-off routing.'
+                    : 'Independent contractor: tracks $0.67/mi travel mileage & multi-agency contracts.'}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Primary Role
@@ -376,6 +410,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <option value="supervisor">Clinical Supervisor (LCSW / LMFT)</option>
                     <option value="admin">Agency Administrator</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Credential Title
+                  </label>
+                  <input
+                    type="text"
+                    value={regLicense}
+                    onChange={(e) => setRegLicense(e.target.value)}
+                    placeholder="CA-CPSS-2026-XXXX"
+                    className="w-full min-h-[48px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white font-mono"
+                  />
                 </div>
               </div>
 
