@@ -1,4 +1,5 @@
 import { createRoot } from 'react-dom/client';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import App from './App.tsx';
 import { FieldErrorBoundary } from './components/FieldErrorBoundary.tsx';
 import './index.css';
@@ -8,6 +9,7 @@ if (rootEl) {
   createRoot(rootEl).render(
     <FieldErrorBoundary>
       <App />
+      <SpeedInsights />
     </FieldErrorBoundary>
   );
 }
