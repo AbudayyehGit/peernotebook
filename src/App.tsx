@@ -27,6 +27,7 @@ import { SubscriptionStatusBadge } from './components/SubscriptionStatusBadge';
 import { BillingModal } from './components/BillingModal';
 import { HeartHandshake, Sparkles, Globe, Mail, BookOpen, Eye, EyeOff, Lock, UserCheck } from 'lucide-react';
 import { safeStorage } from './utils/safeStorage';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 function AppContent() {
   const { currentOrg, currentUser, isLoading } = useAuth();
@@ -295,6 +296,7 @@ export default function App() {
       <AuthProvider>
         <PrivacyModeProvider>
           <AppContent />
+          <SpeedInsights />
         </PrivacyModeProvider>
       </AuthProvider>
     </FieldErrorBoundary>
