@@ -230,13 +230,20 @@ export const leadDigestService = {
 
     // 2. Dispatch to serverless endpoint /api/lead-capture
     try {
-      await fetch('/api/lead-capture', {
+      const response = await fetch('/api/lead-capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(leadRecord)
       });
-    } catch {
-      // Offline fallback: lead is safely queued locally
+      if (response.ok) {
+        const json = await response.json();
+        console.log('[LEAD_CAPTURE_SUCCESS] Dispatched to Brevo/backend:', json);
+      } else {
+        const errText = await response.text();
+        console.warn('[LEAD_CAPTURE_BACKEND_WARNING] Backend returned non-200:', errText);
+      }
+    } catch (netErr) {
+      console.warn('[LEAD_CAPTURE_OFFLINE_QUEUED] Network drop; lead safely queued in local storage:', netErr);
     }
 
     return { ok: true, message: 'Welcome to the Peer Notebook beta cohort!' };

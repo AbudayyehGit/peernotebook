@@ -43,11 +43,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   const [agreeBaa, setAgreeBaa] = useState(false);
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const allConsentGiven = agreeTos && agreePrivacy && agreeBaa;
 
-  const handleSubmitLeadCapture = (e: React.FormEvent) => {
+  const handleSubmitLeadCapture = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@') || !email.includes('.')) {
       setFormError('Please enter a valid work or personal email address.');
@@ -58,15 +59,24 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       return;
     }
     setFormError(null);
-    setIsSubmitted(true);
+    setIsSubmitting(true);
 
-    leadDigestService.submitLead({
-      email,
-      name: specialistName || 'Colleague',
-      roleTitle,
-      county,
-      wantsBetaCohort
-    });
+    try {
+      await leadDigestService.submitLead({
+        email,
+        name: specialistName || 'Colleague',
+        roleTitle,
+        county,
+        wantsBetaCohort
+      });
+      setIsSubmitted(true);
+    } catch (err: unknown) {
+      console.error('[LEAD_SUBMISSION_ERROR]', err);
+      // Fallback: still show submission confirmed as local storage queued the record
+      setIsSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -312,16 +322,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     <div className="pt-1">
                       <button
                         type="submit"
-                        disabled={!allConsentGiven}
+                        disabled={!allConsentGiven || isSubmitting}
                         className={`w-full min-h-[48px] px-6 py-3.5 rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 ${
-                          allConsentGiven
+                          allConsentGiven && !isSubmitting
                             ? 'bg-[#0F766E] hover:bg-teal-800 text-white cursor-pointer hover:shadow-md'
                             : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                         }`}
                       >
                         <Download className="w-4 h-4" />
                         <span>
-                          {!allConsentGiven
+                          {isSubmitting
+                            ? 'Securing Pilot Spot...'
+                            : !allConsentGiven
                             ? 'Check All 3 Required Boxes'
                             : 'Get Free Checklist + Pilot Invite'}
                         </span>
