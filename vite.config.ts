@@ -11,6 +11,7 @@ import { executeDailyDigest } from './api/daily-digest.ts';
 import { executeLeadCapture } from './api/lead-capture.ts';
 import { executeTestEmail } from './api/test-email.ts';
 import { executeVerifyEmail } from './api/verify-email.ts';
+import { executePipelineAudit } from './api/email-pipeline-audit.ts';
 
 function getRequestBody(req: IncomingMessage): Promise<any> {
   const method = (req.method || 'GET').toUpperCase();
@@ -154,6 +155,30 @@ function devApiPlugin() {
             res.statusCode = 500;
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ error: 'Failed to dispatch test email', details: errorMsg }));
+            return;
+          }
+        }
+
+        if (requestUrl.startsWith('/api/email-pipeline-audit')) {
+          try {
+            const body = await getRequestBody(req);
+            const parsedUrl = new URL(requestUrl, 'http://localhost:3000');
+            const domain = body?.domain || parsedUrl.searchParams.get('domain') || 'peernotebook.com';
+            const to = body?.to || parsedUrl.searchParams.get('to') || 'amunrael@gmail.com';
+            const sendTest = body?.sendTest === true || parsedUrl.searchParams.get('sendTest') === 'true';
+            const apiKey = body?.apiKey || parsedUrl.searchParams.get('apiKey') || undefined;
+
+            const response = await executePipelineAudit({ domain, to, sendTest, apiKey });
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'no-store');
+            res.end(JSON.stringify(response));
+            return;
+          } catch (err: unknown) {
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: 'Failed to run pipeline audit', details: errorMsg }));
             return;
           }
         }
