@@ -420,6 +420,13 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       badge: null
     },
     {
+      id: 'curriculum' as WorkspaceTab,
+      label: 'Curriculum & STAR Lab',
+      shortLabel: 'Curriculum',
+      icon: GraduationCap,
+      badge: null
+    },
+    {
       id: 'new_note' as WorkspaceTab,
       label: 'New CalAIM Note',
       shortLabel: 'Log Note',
@@ -585,6 +592,20 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
               >
                 <Target className={`w-3.5 h-3.5 ${activeTab === 'goalpath' ? 'text-white' : 'text-slate-500'}`} />
                 <span>GoalPath™</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigateToTab('curriculum')}
+                className={`min-h-[40px] flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'curriculum'
+                    ? 'bg-[#1E3A8A] text-white shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                }`}
+                title="CalMHSA / SB 803 80h & 40h Tracks and STAR Interview Simulation"
+              >
+                <GraduationCap className={`w-3.5 h-3.5 ${activeTab === 'curriculum' ? 'text-white' : 'text-slate-500'}`} />
+                <span>Curriculum &amp; STAR</span>
               </button>
 
               {canApproveNotes && (
