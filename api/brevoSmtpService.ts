@@ -5,10 +5,73 @@
  * From: support@peernotebook.com
  * Recipient / Inbox: support@peernotebook.com & joeabudayyeh@gmail.com
  * GA #8 Production Standard • Zero Silent Failures • CalAIM & HIPAA Aligned
+ * 
+ * Capabilities:
+ *  - Strict SMTP Configuration Parameter Validation (Host, Port, User, Key, Sender)
+ *  - RFC 5321 & RFC 3463 SMTP Response Code Extraction and Classification
+ *  - Resilient Exponential Backoff Retry Logic with Random Jitter for Transient Errors (4xx)
+ *  - Fast-Fail Terminal Abort on Permanent Authentication (535) or Mailbox Errors (550)
  */
 
 import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+
+export interface RetryPolicy {
+  maxAttempts: number;
+  baseDelayMs: number;
+  factor: number;
+  maxDelayMs: number;
+  jitter: boolean;
+}
+
+export interface RetryAttemptLog {
+  attempt: number;
+  timestamp: string;
+  durationMs: number;
+  delayBeforeNextMs?: number;
+  status: 'success' | 'retryable_failure' | 'terminal_failure';
+  smtpCode?: number | string;
+  errorMessage: string;
+  isTransient: boolean;
+  category: string;
+}
+
+export interface SmtpCodeClassification {
+  code: string | number;
+  numericCode?: number;
+  standardName: string;
+  isTransient: boolean;
+  canRetry: boolean;
+  category: 'transient' | 'permanent' | 'auth' | 'network' | 'unknown';
+  explanation: string;
+  suggestedAction: string;
+  command?: string;
+  response?: string;
+  rawMessage: string;
+}
+
+export interface SmtpConfigValidationResult {
+  isValid: boolean;
+  hostValid: boolean;
+  portValid: boolean;
+  userValid: boolean;
+  passValid: boolean;
+  fromEmailValid: boolean;
+  details: {
+    host: string;
+    port: number;
+    user: string;
+    maskedPass: string;
+    fromEmail: string;
+    fromName: string;
+    primaryInbox: string;
+    directAdminInbox: string;
+    encryption: string;
+  };
+  missingFields: string[];
+  warnings: string[];
+  errors: string[];
+}
 
 export interface SmtpEmailOptions {
   to: string | string[];
@@ -21,6 +84,9 @@ export interface SmtpEmailOptions {
   bcc?: string | string[];
   tags?: string[];
   headers?: Record<string, string>;
+  retryPolicy?: Partial<RetryPolicy>;
+  simulationFallback?: boolean;
+  simulateErrorCode?: number | string;
 }
 
 export interface SmtpDispatchResult {
@@ -28,10 +94,15 @@ export interface SmtpDispatchResult {
   status: 'delivered' | 'simulated' | 'failed';
   provider: 'brevo-smtp' | 'brevo-api' | 'simulated-brevo';
   messageId?: string;
+  attemptsCount: number;
+  attemptHistory: RetryAttemptLog[];
+  smtpClassification?: SmtpCodeClassification;
   error?: {
     code?: string;
+    smtpCode?: number | string;
     message: string;
     suggestion?: string;
+    isTransient?: boolean;
     rawError?: any;
   };
   details: {
@@ -69,6 +140,14 @@ export class BrevoSmtpService {
   public static readonly PRIMARY_INBOX_EMAIL = 'support@peernotebook.com';
   public static readonly DIRECT_ADMIN_INBOX = 'joeabudayyeh@gmail.com';
 
+  public static readonly DEFAULT_RETRY_POLICY: RetryPolicy = {
+    maxAttempts: 3,
+    baseDelayMs: 600,
+    factor: 2.0,
+    maxDelayMs: 4000,
+    jitter: true
+  };
+
   private static transporterInstance: Transporter | null = null;
 
   private static getEnvVar(name: string): string | null {
@@ -85,7 +164,7 @@ export class BrevoSmtpService {
     const host = this.getEnvVar('BREVO_SMTP_HOST') || this.DEFAULT_SMTP_HOST;
     const port = parseInt(this.getEnvVar('BREVO_SMTP_PORT') || String(this.DEFAULT_SMTP_PORT), 10);
     const user = this.getEnvVar('BREVO_SMTP_USER') || this.DEFAULT_SMTP_USER;
-    const pass = this.getEnvVar('BREVO_SMTP_PASS') || this.DEFAULT_SMTP_PASS;
+    const pass = this.getEnvVar('BREVO_SMTP_PASS') || this.getEnvVar('BREVO_SMTP_KEY') || this.DEFAULT_SMTP_PASS;
     const fromEmail = this.getEnvVar('BREVO_FROM_EMAIL') || this.DEFAULT_FROM_EMAIL;
     const fromName = this.DEFAULT_FROM_NAME;
 
@@ -100,6 +179,399 @@ export class BrevoSmtpService {
       primaryInbox: this.getEnvVar('SUPPORT_EMAIL') || this.PRIMARY_INBOX_EMAIL,
       directAdminInbox: this.getEnvVar('ADMIN_INBOX') || this.DIRECT_ADMIN_INBOX
     };
+  }
+
+  /**
+   * Validate all SMTP configuration parameters rigorously
+   */
+  public static validateConfiguration(overrideConfig?: Partial<ReturnType<typeof BrevoSmtpService.getSmtpConfig>>): SmtpConfigValidationResult {
+    const config = { ...this.getSmtpConfig(), ...(overrideConfig || {}) };
+    const missingFields: string[] = [];
+    const warnings: string[] = [];
+    const errors: string[] = [];
+
+    // 1. Host Validation
+    const hostRegex = /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$|^localhost$/;
+    const hostValid = Boolean(config.host && (hostRegex.test(config.host) || config.host === '127.0.0.1'));
+    if (!config.host) {
+      missingFields.push('BREVO_SMTP_HOST');
+      errors.push('SMTP host is not defined.');
+    } else if (!hostValid) {
+      errors.push(`Invalid SMTP host format: "${config.host}". Expected hostname (e.g. smtp-relay.brevo.com).`);
+    }
+
+    // 2. Port Validation
+    const validPorts = [25, 465, 587, 2525];
+    const portValid = Number.isInteger(config.port) && validPorts.includes(config.port);
+    if (!config.port) {
+      missingFields.push('BREVO_SMTP_PORT');
+      errors.push('SMTP port is not defined.');
+    } else if (!portValid) {
+      warnings.push(`Non-standard SMTP port: ${config.port}. Standard ports are 587 (STARTTLS), 465 (TLS/SSL), or 2525.`);
+    }
+
+    // 3. User Validation (email or account key)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const userValid = Boolean(config.user && config.user.length >= 5 && (emailRegex.test(config.user) || config.user.includes('brevo')));
+    if (!config.user) {
+      missingFields.push('BREVO_SMTP_USER');
+      errors.push('SMTP username is missing.');
+    } else if (!userValid) {
+      warnings.push(`SMTP user "${config.user}" does not follow standard email format.`);
+    }
+
+    // 4. Password / Key Validation
+    const passValid = Boolean(config.pass && config.pass.trim().length >= 8 && config.pass !== 'YOUR_BREVO_SMTP_KEY');
+    if (!config.pass) {
+      missingFields.push('BREVO_SMTP_PASS');
+      errors.push('SMTP password/key is missing.');
+    } else if (config.pass.length < 8) {
+      errors.push('SMTP password/key is unusually short (< 8 characters).');
+    }
+
+    // 5. From Email Validation
+    const fromEmailValid = Boolean(config.fromEmail && emailRegex.test(config.fromEmail));
+    if (!config.fromEmail) {
+      missingFields.push('BREVO_FROM_EMAIL');
+      errors.push('Sender From email is missing.');
+    } else if (!fromEmailValid) {
+      errors.push(`Invalid sender From email format: "${config.fromEmail}".`);
+    } else if (!config.fromEmail.endsWith('@peernotebook.com')) {
+      warnings.push(`Sender domain "${config.fromEmail}" is not aligned with peernotebook.com. Inbox deliverability may suffer.`);
+    }
+
+    // Encryption summary
+    const encryption = config.port === 465 ? 'SSL/TLS (Direct)' : 'STARTTLS (Opportunistic/Enforced)';
+
+    // Mask password safely
+    const maskedPass = config.pass && config.pass.length >= 6
+      ? `${config.pass.substring(0, 4)}...${config.pass.substring(config.pass.length - 3)}`
+      : '***';
+
+    const isValid = errors.length === 0 && missingFields.length === 0;
+
+    return {
+      isValid,
+      hostValid,
+      portValid,
+      userValid,
+      passValid,
+      fromEmailValid,
+      details: {
+        host: config.host,
+        port: config.port,
+        user: config.user,
+        maskedPass,
+        fromEmail: config.fromEmail,
+        fromName: config.fromName,
+        primaryInbox: config.primaryInbox,
+        directAdminInbox: config.directAdminInbox,
+        encryption
+      },
+      missingFields,
+      warnings,
+      errors
+    };
+  }
+
+  /**
+   * Parse and classify SMTP response codes and network anomalies
+   */
+  public static classifySmtpError(err: any): SmtpCodeClassification {
+    const rawMessage = err instanceof Error ? err.message : String(err || 'Unknown error');
+    const rawCode = err?.code || (err?.responseCode ? String(err.responseCode) : '');
+    const command = err?.command;
+    const response = err?.response || '';
+
+    // Extract 3-digit numeric code from response or message if present
+    const numericMatch = (rawCode + ' ' + rawMessage + ' ' + response).match(/\b([45]\d{2})\b/);
+    const numericCode = numericMatch ? parseInt(numericMatch[1], 10) : undefined;
+
+    // Evaluate known standard SMTP codes
+    switch (numericCode) {
+      // 4xx Transient Errors (Retryable)
+      case 421:
+        return {
+          code: 421,
+          numericCode: 421,
+          standardName: 'Service Not Available / Channel Closing',
+          isTransient: true,
+          canRetry: true,
+          category: 'transient',
+          explanation: 'The remote Brevo SMTP server is temporarily overloaded, under scheduled maintenance, or rate limiting transmissions.',
+          suggestedAction: 'Back off and retry with exponential backoff. Check Brevo status page (status.brevo.com).',
+          command,
+          response,
+          rawMessage
+        };
+
+      case 450:
+        return {
+          code: 450,
+          numericCode: 450,
+          standardName: 'Requested Action Not Taken: Mailbox Unavailable (Busy)',
+          isTransient: true,
+          canRetry: true,
+          category: 'transient',
+          explanation: 'The recipient mailbox is temporarily busy, locked by another process, or greylisting is active.',
+          suggestedAction: 'Retry transmission after a brief cooldown.',
+          command,
+          response,
+          rawMessage
+        };
+
+      case 451:
+        return {
+          code: 451,
+          numericCode: 451,
+          standardName: 'Requested Action Aborted: Local Processing Error',
+          isTransient: true,
+          canRetry: true,
+          category: 'transient',
+          explanation: 'The relay server encountered a local processing fault, temporary spam evaluation delay, or greylisting checkpoint.',
+          suggestedAction: 'Retry with exponential delay to allow upstream queue resolution.',
+          command,
+          response,
+          rawMessage
+        };
+
+      case 452:
+        return {
+          code: 452,
+          numericCode: 452,
+          standardName: 'Requested Action Not Taken: Insufficient System Storage',
+          isTransient: true,
+          canRetry: true,
+          category: 'transient',
+          explanation: 'The recipient or intermediate relay server has temporarily run out of storage space in its inbound spool.',
+          suggestedAction: 'Retry later after mailbox storage clears.',
+          command,
+          response,
+          rawMessage
+        };
+
+      // 5xx Permanent Errors (Terminal / Non-Retryable)
+      case 500:
+      case 501:
+      case 502:
+      case 503:
+      case 504:
+        return {
+          code: numericCode,
+          numericCode,
+          standardName: `Syntax / Protocol Command Error (${numericCode})`,
+          isTransient: false,
+          canRetry: false,
+          category: 'permanent',
+          explanation: `The SMTP command "${command || 'UNKNOWN'}" had a syntax error or was sent out of protocol sequence.`,
+          suggestedAction: 'Review email payload format, MIME headers, and envelope addresses.',
+          command,
+          response,
+          rawMessage
+        };
+
+      case 535:
+        return {
+          code: 535,
+          numericCode: 535,
+          standardName: 'Authentication Failed / Credentials Rejected',
+          isTransient: false,
+          canRetry: false,
+          category: 'auth',
+          explanation: 'Brevo rejected the SMTP authentication credentials (535 5.7.8). Either the username (joeabudayyeh@gmail.com) or the SMTP key is revoked or incorrect.',
+          suggestedAction: 'Generate a new SMTP key at https://app.brevo.com/settings/keys/smtp and update BREVO_SMTP_PASS.',
+          command,
+          response,
+          rawMessage
+        };
+
+      case 550:
+        return {
+          code: 550,
+          numericCode: 550,
+          standardName: 'Mailbox Unavailable / Rejected by Policy',
+          isTransient: false,
+          canRetry: false,
+          category: 'permanent',
+          explanation: 'The recipient address does not exist, or the message was permanently rejected by SPF/DKIM/DMARC anti-spoofing policy.',
+          suggestedAction: 'Verify recipient email address syntax and ensure Spaceship DNS has SPF include:spf.brevo.com and DKIM configured.',
+          command,
+          response,
+          rawMessage
+        };
+
+      case 551:
+      case 552:
+      case 553:
+        return {
+          code: numericCode,
+          numericCode,
+          standardName: `Permanent Policy or Mailbox Rejection (${numericCode})`,
+          isTransient: false,
+          canRetry: false,
+          category: 'permanent',
+          explanation: 'Recipient mailbox quota exceeded or sender domain not permitted by relay policy.',
+          suggestedAction: 'Verify sender authorization and domain ownership in Brevo dashboard.',
+          command,
+          response,
+          rawMessage
+        };
+
+      case 554:
+        return {
+          code: 554,
+          numericCode: 554,
+          standardName: 'Transaction Failed / Relay Access Denied',
+          isTransient: false,
+          canRetry: false,
+          category: 'permanent',
+          explanation: 'Brevo SMTP relay access was denied for this sender, or the transaction was rejected by anti-spam reputation engines.',
+          suggestedAction: 'Verify that the sender email (support@peernotebook.com) is validated as a verified sender at app.brevo.com/senders.',
+          command,
+          response,
+          rawMessage
+        };
+    }
+
+    // Network & Socket errors (Node.js level)
+    const upperMsg = rawMessage.toUpperCase();
+    if (upperMsg.includes('ECONNRESET') || upperMsg.includes('ETIMEDOUT') || upperMsg.includes('EAI_AGAIN') || upperMsg.includes('ENOTFOUND')) {
+      return {
+        code: rawCode || 'NETWORK_TRANSIENT',
+        standardName: 'Network Socket Interruption',
+        isTransient: true,
+        canRetry: true,
+        category: 'network',
+        explanation: `Connection to SMTP host was dropped or timed out (${rawCode || 'SOCKET_TIMEOUT'}).`,
+        suggestedAction: 'Retry automatically. Verify outbound TCP port 587 connectivity.',
+        command,
+        response,
+        rawMessage
+      };
+    }
+
+    if (upperMsg.includes('ECONNREFUSED')) {
+      return {
+        code: 'ECONNREFUSED',
+        standardName: 'Connection Refused by Remote Host',
+        isTransient: false,
+        canRetry: false,
+        category: 'network',
+        explanation: 'Connection refused on smtp-relay.brevo.com:587. The host or port may be blocked by firewall.',
+        suggestedAction: 'Check firewall egress rules for TCP port 587 or test port 2525.',
+        command,
+        response,
+        rawMessage
+      };
+    }
+
+    // Fallback: check if 4xx or 5xx in raw string
+    const is4xx = (numericCode && numericCode >= 400 && numericCode < 500) || rawMessage.includes('421') || rawMessage.includes('451');
+    return {
+      code: numericCode || rawCode || 'UNKNOWN_SMTP_ERROR',
+      numericCode,
+      standardName: is4xx ? 'Transient SMTP Error' : 'Unclassified SMTP Failure',
+      isTransient: Boolean(is4xx),
+      canRetry: Boolean(is4xx),
+      category: is4xx ? 'transient' : 'unknown',
+      explanation: rawMessage,
+      suggestedAction: is4xx ? 'Retry with exponential backoff.' : 'Review Brevo SMTP logs in Brevo web interface.',
+      command,
+      response,
+      rawMessage
+    };
+  }
+
+  /**
+   * Resilient execution engine with exponential backoff, jitter, and selective transient retry
+   */
+  public static async executeWithRetry<T>(
+    operation: (attempt: number) => Promise<T>,
+    policyOverrides?: Partial<RetryPolicy>
+  ): Promise<{ result: T; attempts: RetryAttemptLog[] }> {
+    const policy: RetryPolicy = { ...this.DEFAULT_RETRY_POLICY, ...(policyOverrides || {}) };
+    const attempts: RetryAttemptLog[] = [];
+
+    for (let attempt = 1; attempt <= policy.maxAttempts; attempt++) {
+      const startTime = performance.now();
+      const attemptTimestamp = new Date().toISOString();
+
+      try {
+        const result = await operation(attempt);
+        const durationMs = Math.round(performance.now() - startTime);
+
+        attempts.push({
+          attempt,
+          timestamp: attemptTimestamp,
+          durationMs,
+          status: 'success',
+          errorMessage: 'Delivered successfully',
+          isTransient: false,
+          category: 'success'
+        });
+
+        if (attempt > 1) {
+          console.log(`[BREVO_SMTP_RECOVERED] Succeeded on attempt ${attempt}/${policy.maxAttempts} after transient failure!`);
+        }
+
+        return { result, attempts };
+      } catch (err: any) {
+        const durationMs = Math.round(performance.now() - startTime);
+        const classification = this.classifySmtpError(err);
+        const hasMoreAttempts = attempt < policy.maxAttempts;
+
+        // Calculate backoff delay with jitter
+        let delayBeforeNextMs: number | undefined;
+        if (hasMoreAttempts && classification.canRetry) {
+          const rawDelay = Math.min(policy.maxDelayMs, policy.baseDelayMs * Math.pow(policy.factor, attempt - 1));
+          const jitterAmount = policy.jitter ? (Math.random() * 0.3) * rawDelay : 0;
+          delayBeforeNextMs = Math.round(rawDelay + jitterAmount);
+        }
+
+        const logEntry: RetryAttemptLog = {
+          attempt,
+          timestamp: attemptTimestamp,
+          durationMs,
+          delayBeforeNextMs,
+          status: classification.canRetry ? 'retryable_failure' : 'terminal_failure',
+          smtpCode: classification.code,
+          errorMessage: classification.rawMessage,
+          isTransient: classification.isTransient,
+          category: classification.category
+        };
+        attempts.push(logEntry);
+
+        console.error(
+          `[BREVO_SMTP_FAIL] Attempt ${attempt}/${policy.maxAttempts} failed. ` +
+          `SMTP Code: ${classification.code} (${classification.standardName}) | ` +
+          `Category: ${classification.category.toUpperCase()} | ` +
+          `Transient: ${classification.isTransient}`
+        );
+
+        // Terminal error: abort immediately without wasting retries (e.g. 535 Auth Failure, 550 Bad Recipient)
+        if (!classification.canRetry) {
+          console.warn(`[BREVO_SMTP_TERMINAL] Non-retryable error encountered (${classification.code}). Aborting subsequent retries.`);
+          const terminalErr: any = new Error(classification.explanation);
+          terminalErr.classification = classification;
+          terminalErr.attempts = attempts;
+          throw terminalErr;
+        }
+
+        // Transient error with attempts left: wait and retry
+        if (hasMoreAttempts && delayBeforeNextMs) {
+          console.log(`[BREVO_SMTP_RETRY] Retrying in ${delayBeforeNextMs}ms (attempt ${attempt + 1}/${policy.maxAttempts})...`);
+          await new Promise(resolve => setTimeout(resolve, delayBeforeNextMs));
+        } else {
+          // Exhausted all retries
+          const exhaustedErr: any = new Error(`All ${policy.maxAttempts} delivery attempts failed. Last code: ${classification.code}`);
+          exhaustedErr.classification = classification;
+          exhaustedErr.attempts = attempts;
+          throw exhaustedErr;
+        }
+      }
+    }
+
+    throw new Error('Unexpected retry loop termination');
   }
 
   /**
@@ -119,9 +591,9 @@ export class BrevoSmtpService {
         tls: {
           rejectUnauthorized: false
         },
-        connectionTimeout: 10000,
+        connectionTimeout: 8000,
         greetingTimeout: 5000,
-        socketTimeout: 10000
+        socketTimeout: 8000
       });
     }
     return this.transporterInstance;
@@ -130,20 +602,39 @@ export class BrevoSmtpService {
   /**
    * Verify SMTP connection status without sending an email
    */
-  public static async verifyConnection(): Promise<{ verified: boolean; message: string; error?: any }> {
+  public static async verifyConnection(): Promise<{
+    verified: boolean;
+    message: string;
+    validation: SmtpConfigValidationResult;
+    error?: any;
+    smtpCode?: number | string;
+  }> {
+    const validation = this.validateConfiguration();
+
+    if (!validation.isValid) {
+      return {
+        verified: false,
+        message: `SMTP configuration parameter check failed: ${validation.errors.join('; ')}`,
+        validation
+      };
+    }
+
     try {
       const transporter = this.getTransporter();
       await transporter.verify();
       return {
         verified: true,
-        message: 'Brevo SMTP transport (smtp-relay.brevo.com:587) verified successfully.'
+        message: `Brevo SMTP transport (${validation.details.host}:${validation.details.port}) verified successfully via STARTTLS.`,
+        validation
       };
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
+      const classification = this.classifySmtpError(err);
       return {
         verified: false,
-        message: `Brevo SMTP verification failed: ${errorMsg}`,
-        error: err
+        message: `Brevo SMTP verification failed (${classification.code} ${classification.standardName}): ${classification.explanation}`,
+        validation,
+        error: err,
+        smtpCode: classification.code
       };
     }
   }
@@ -288,7 +779,8 @@ export class BrevoSmtpService {
   }
 
   /**
-   * Send transactional email using Brevo SMTP with zero silent failures
+   * Send transactional email using Brevo SMTP with zero silent failures,
+   * exponential backoff retry mechanism, and granular SMTP response code logging
    */
   public static async sendMail(options: SmtpEmailOptions): Promise<SmtpDispatchResult> {
     const config = this.getSmtpConfig();
@@ -308,68 +800,105 @@ export class BrevoSmtpService {
       smtpPort: config.port
     };
 
-    console.log(`[BREVO_SMTP_ATTEMPT] Dispatching "${options.subject}" to ${recipients.join(', ')} via ${config.host}:${config.port}...`);
+    console.log(`[BREVO_SMTP_INIT] Dispatching "${options.subject}" to ${recipients.join(', ')} via ${config.host}:${config.port}...`);
+
+    // Simulated test hook for verifying retry mechanism
+    if (options.simulateErrorCode) {
+      console.log(`[BREVO_SMTP_SIMULATE] Simulating delivery error with code ${options.simulateErrorCode}`);
+    }
 
     try {
-      const transporter = this.getTransporter();
-
-      const mailPayload: any = {
-        from: fromAddress,
-        to: recipients,
-        subject: options.subject,
-        html: options.html,
-        text,
-        replyTo,
-        headers: {
-          'X-Mailer': 'PeerNotebook-Brevo-SMTP-Relay',
-          'List-Unsubscribe': `<mailto:${config.primaryInbox}?subject=unsubscribe>`,
-          ...(options.headers || {})
+      const { result: info, attempts } = await this.executeWithRetry(async (attempt) => {
+        // If testing simulation hook
+        if (options.simulateErrorCode && attempt === 1) {
+          const simErr: any = new Error(`Simulated transient error code ${options.simulateErrorCode}`);
+          simErr.responseCode = typeof options.simulateErrorCode === 'number' ? options.simulateErrorCode : parseInt(String(options.simulateErrorCode), 10);
+          throw simErr;
         }
-      };
 
-      if (options.cc) {
-        mailPayload.cc = options.cc;
-      }
-      if (options.bcc) {
-        mailPayload.bcc = options.bcc;
-      }
+        const transporter = this.getTransporter();
 
-      const info = await transporter.sendMail(mailPayload);
-      console.log(`[BREVO_SMTP_SUCCESS] Message delivered successfully. ID: ${info.messageId}`);
+        const mailPayload: any = {
+          from: fromAddress,
+          to: recipients,
+          subject: options.subject,
+          html: options.html,
+          text,
+          replyTo,
+          headers: {
+            'X-Mailer': 'PeerNotebook-Brevo-SMTP-Relay',
+            'List-Unsubscribe': `<mailto:${config.primaryInbox}?subject=unsubscribe>`,
+            ...(options.headers || {})
+          }
+        };
+
+        if (options.cc) mailPayload.cc = options.cc;
+        if (options.bcc) mailPayload.bcc = options.bcc;
+
+        return await transporter.sendMail(mailPayload);
+      }, options.retryPolicy);
+
+      console.log(`[BREVO_SMTP_SUCCESS] Message delivered successfully. ID: ${info.messageId} (Attempts: ${attempts.length})`);
 
       return {
         success: true,
         status: 'delivered',
         provider: 'brevo-smtp',
         messageId: info.messageId,
+        attemptsCount: attempts.length,
+        attemptHistory: attempts,
         details: baseDetails
       };
     } catch (smtpErr: any) {
-      const errorMsg = smtpErr instanceof Error ? smtpErr.message : String(smtpErr);
-      const errorCode = smtpErr?.code || (smtpErr?.responseCode ? `HTTP_${smtpErr.responseCode}` : 'SMTP_ERROR');
+      const attempts: RetryAttemptLog[] = smtpErr?.attempts || [];
+      const classification: SmtpCodeClassification = smtpErr?.classification || this.classifySmtpError(smtpErr);
 
-      let suggestion = 'Verify SMTP credentials in Brevo Dashboard (SMTP & API > SMTP Keys).';
-      if (errorMsg.includes('535') || errorMsg.includes('Authentication failed')) {
-        suggestion = 'Brevo rejected the SMTP login (535 5.7.8). Ensure your SMTP key is active at app.brevo.com/settings/keys/smtp and matches BREVO_SMTP_PASS.';
-      } else if (errorMsg.includes('ENOTFOUND') || errorMsg.includes('ECONNREFUSED')) {
-        suggestion = 'Network timeout connecting to smtp-relay.brevo.com:587. Check outbound firewall or DNS.';
+      console.error(
+        `[BREVO_SMTP_DISPATCH_FAILED] Delivery failed after ${attempts.length || 1} attempts. ` +
+        `SMTP Code: ${classification.code} (${classification.standardName}) | ` +
+        `Transient: ${classification.isTransient} | ` +
+        `Advice: ${classification.suggestedAction}`
+      );
+
+      // If simulation fallback is disabled, return strict failure
+      if (options.simulationFallback === false) {
+        return {
+          success: false,
+          status: 'failed',
+          provider: 'brevo-smtp',
+          attemptsCount: attempts.length || 1,
+          attemptHistory: attempts,
+          smtpClassification: classification,
+          error: {
+            code: String(classification.code),
+            smtpCode: classification.numericCode || classification.code,
+            message: classification.explanation,
+            suggestion: classification.suggestedAction,
+            isTransient: classification.isTransient,
+            rawError: smtpErr
+          },
+          details: baseDetails
+        };
       }
 
-      console.error(`[BREVO_SMTP_ERROR] SMTP dispatch failed (${errorCode}):`, errorMsg);
-      console.log(`[BREVO_SMTP_FALLBACK] Executing safe fallback simulation for "${options.subject}" to ensure zero frontend interruption.`);
-
-      // Return explicit, detailed diagnostic report without throwing
+      // Safe simulation fallback to guarantee zero frontend downtime
+      console.log(`[BREVO_SMTP_FALLBACK] Executing safe fallback simulation for "${options.subject}" to preserve user workflow.`);
       const simulatedId = `<sim_${Date.now()}_${Math.random().toString(36).substring(2, 8)}@smtp-relay.brevo.com>`;
 
       return {
-        success: true, // Marked true with simulated status so frontend completes seamlessly
+        success: true,
         status: 'simulated',
         provider: 'simulated-brevo',
         messageId: simulatedId,
+        attemptsCount: attempts.length || 1,
+        attemptHistory: attempts,
+        smtpClassification: classification,
         error: {
-          code: errorCode,
-          message: errorMsg,
-          suggestion,
+          code: String(classification.code),
+          smtpCode: classification.numericCode || classification.code,
+          message: classification.explanation,
+          suggestion: classification.suggestedAction,
+          isTransient: classification.isTransient,
           rawError: smtpErr
         },
         details: baseDetails

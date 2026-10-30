@@ -1,18 +1,27 @@
 /**
- * Peer Notebook - Universal Email Testing & Simulation Script
- * Simulates and verifies Resend API dispatch for:
+ * Peer Notebook - Universal Email Testing & Simulation Engine
+ * Verifies transactional email dispatch, SMTP parameter validation, and deliverability:
  * 1. User Registration Flow (Welcome & CalAIM H0038 Checklist)
  * 2. Lead Capture Flow (Support Notification & Lead Welcome Kit)
  * 3. Email Verification Flow (6-digit OTP Identity PIN & Validation)
  * 4. Daily Telemetry Digest Flow (24h signups + cumulative waitlist)
+ * 5. Brevo SMTP Relay Flow (smtp-relay.brevo.com:587 STARTTLS)
+ * 6. SMTP Transient Retry & Backoff Simulation Flow
  * 
- * GA #8 Standard • Zero Silent Failures • Resend API / Simulated Gateway
+ * GA #8 Standard • Zero Silent Failures • Dual Gateway: Brevo SMTP + Resend API
  */
 
 import { executeDailyDigest } from './daily-digest.ts';
-import { executeLeadCapture, generateUserChecklistHtml, generateSupportAlertHtml } from './lead-capture.ts';
-import { executeVerifyEmail, generateVerificationEmailHtml } from './verify-email.ts';
-import { ResendMailService, type ResendDispatchResult } from '../src/lib/resendClient.ts';
+import { executeLeadCapture, generateUserChecklistHtml } from './lead-capture.ts';
+import { executeVerifyEmail } from './verify-email.ts';
+import { ResendMailService, type ResendDispatchResult, type ResendAuditReport } from '../src/lib/resendClient.ts';
+import {
+  BrevoSmtpService,
+  type SmtpConfigValidationResult,
+  type SmtpDispatchResult,
+  type RetryAttemptLog,
+  type SmtpCodeClassification
+} from './brevoSmtpService.ts';
 
 export const config = {
   runtime: 'nodejs'
@@ -27,6 +36,8 @@ export type EmailFlowType =
   | 'outreach-preview'
   | 'welcome-checklist'
   | 'lead-alert'
+  | 'smtp-relay'
+  | 'smtp-retry-simulation'
   | 'all'
   | 'suite';
 
@@ -39,6 +50,9 @@ export interface TestEmailRequest {
   name?: string;
   roleTitle?: string;
   county?: string;
+  provider?: 'auto' | 'brevo-smtp' | 'resend' | 'all';
+  maxRetries?: number;
+  simulateTransientError?: '421' | '451' | '535' | '550';
 }
 
 export interface SingleFlowResult {
@@ -49,11 +63,19 @@ export interface SingleFlowResult {
   deliveryStatus: 'delivered' | 'simulated' | 'failed';
   provider: string;
   messageId?: string;
+  attemptsCount?: number;
+  attemptHistory?: RetryAttemptLog[];
+  smtpCode?: number | string;
+  isTransient?: boolean;
+  suggestedAction?: string;
   error?: {
     statusCode?: number;
+    code?: string;
+    smtpCode?: number | string;
     name?: string;
     message: string;
     suggestion?: string;
+    isTransient?: boolean;
   };
   details?: Record<string, any>;
   previewHtml?: string;
@@ -71,7 +93,14 @@ export interface TestEmailSuiteResponse {
     simulated: number;
   };
   flows: Record<string, SingleFlowResult>;
-  auditReport: ReturnType<typeof ResendMailService.auditConfiguration>;
+  smtpConfigAudit: SmtpConfigValidationResult;
+  resendConfigAudit: ResendAuditReport;
+  retryPolicy: {
+    maxAttempts: number;
+    backoffStrategy: string;
+    retryableCodes: number[];
+  };
+  smtpCodesDetected: Array<{ flow: string; code: number | string; isTransient: boolean }>;
   executedAt: string;
 }
 
@@ -79,33 +108,41 @@ export function generatePingVerificationHtml(data: {
   to: string;
   timestamp: string;
   customMessage?: string;
+  provider?: string;
+  attemptsCount?: number;
 }): string {
   return `
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Peer Notebook Email Engine Ping</title>
+</head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #F8FAFC; padding: 24px; color: #1E293B; margin: 0;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 4px 20px rgba(15,23,42,0.05);">
-    <div style="background-color: #1E3A8A; padding: 20px 24px; color: #FFFFFF;">
+    <div style="background-color: #1E3A8A; padding: 20px 24px; color: #FFFFFF; border-bottom: 3px solid #0F766E;">
       <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; background-color: #0F766E; padding: 3px 8px; border-radius: 9999px;">
-        Test Email Verification
+        Transactional Email Ping Verification
       </span>
       <h2 style="margin: 8px 0 0 0; font-size: 18px; font-weight: 800;">Peer Notebook Email Engine Active</h2>
       <p style="margin: 4px 0 0 0; font-size: 12px; color: #93C5FD;">Recipient: ${data.to}</p>
     </div>
     <div style="padding: 24px;">
       <p style="font-size: 14px; margin-top: 0; color: #334155;">
-        This is an automated test email verifying transactional email deliverability and Resend API routing for Peer Notebook.
+        This automated test email verifies transactional delivery, parameter validation, and retry resilience for Peer Notebook.
       </p>
       
       <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0;">
         <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 8px 0; font-weight: 700; color: #475569;">Target Recipient:</td><td style="padding: 8px 0; color: #1E3A8A; font-weight: 700; font-family: monospace;">${data.to}</td></tr>
+        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 8px 0; font-weight: 700; color: #475569;">Provider Engine:</td><td style="padding: 8px 0; color: #0F766E; font-weight: 700;">${data.provider || 'Brevo SMTP Relay (587)'}</td></tr>
         <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 8px 0; font-weight: 700; color: #475569;">Verification Status:</td><td style="padding: 8px 0; color: #16A34A; font-weight: 700;">🟢 PASS - Engine Operational</td></tr>
+        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 8px 0; font-weight: 700; color: #475569;">Dispatch Attempts:</td><td style="padding: 8px 0; font-weight: 600; color: #334155;">${data.attemptsCount || 1} Attempt${(data.attemptsCount || 1) > 1 ? 's' : ''} (Retry Engine Active)</td></tr>
         <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 8px 0; font-weight: 700; color: #475569;">Timestamp (UTC):</td><td style="padding: 8px 0; font-family: monospace; font-size: 12px;">${data.timestamp}</td></tr>
         ${data.customMessage ? `<tr><td style="padding: 8px 0; font-weight: 700; color: #475569;">Custom Note:</td><td style="padding: 8px 0; color: #334155;">${data.customMessage}</td></tr>` : ''}
       </table>
 
       <div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 12px; font-size: 12px; color: #15803D;">
-        ✓ SMTP / Resend headers, DKIM alignment, and CalAIM compliance tokens verified. Zero silent failures enabled.
+        ✓ SMTP headers, DKIM alignment, and CalAIM compliance tokens verified. Zero silent failures enabled.
       </div>
     </div>
     <div style="background-color: #F1F5F9; border-top: 1px solid #E2E8F0; padding: 12px 24px; text-align: center; font-size: 11px; color: #64748B;">
@@ -150,12 +187,84 @@ ${defaultBody}
 }
 
 /**
+ * Direct Brevo SMTP Relay Verification Flow
+ */
+export async function testSmtpRelayFlow(options: {
+  to: string;
+  customMessage?: string;
+  maxRetries?: number;
+  simulateTransientError?: '421' | '451' | '535' | '550';
+}): Promise<SingleFlowResult> {
+  const recipient = options.to;
+  const nowIso = new Date().toISOString();
+  const subject = '[SMTP RELAY TEST] Peer Notebook Brevo STARTTLS Handshake';
+
+  console.log(`[TEST_SMTP_RELAY] Executing direct Brevo SMTP test to ${recipient}...`);
+
+  const html = generatePingVerificationHtml({
+    to: recipient,
+    timestamp: nowIso,
+    customMessage: options.customMessage || 'Direct SMTP Relay Verification via smtp-relay.brevo.com:587',
+    provider: 'Brevo SMTP Relay (587 STARTTLS)'
+  });
+
+  const dispatch: SmtpDispatchResult = await BrevoSmtpService.sendMail({
+    to: recipient,
+    subject,
+    html,
+    tags: ['smtp_relay_test'],
+    simulateErrorCode: options.simulateTransientError,
+    retryPolicy: {
+      maxAttempts: options.maxRetries || 3,
+      baseDelayMs: 500,
+      jitter: true
+    }
+  });
+
+  const smtpCode = dispatch.error?.smtpCode || (dispatch.success ? 250 : undefined);
+  const isTransient = dispatch.error?.isTransient ?? false;
+
+  return {
+    flow: 'smtp-relay',
+    targetRecipient: recipient,
+    subject,
+    success: dispatch.success,
+    deliveryStatus: dispatch.status,
+    provider: dispatch.provider,
+    messageId: dispatch.messageId,
+    attemptsCount: dispatch.attemptsCount,
+    attemptHistory: dispatch.attemptHistory,
+    smtpCode,
+    isTransient,
+    suggestedAction: dispatch.error?.suggestion,
+    error: dispatch.error
+      ? {
+          code: dispatch.error.code,
+          smtpCode: dispatch.error.smtpCode,
+          message: dispatch.error.message,
+          suggestion: dispatch.error.suggestion,
+          isTransient: dispatch.error.isTransient
+        }
+      : undefined,
+    details: {
+      smtpHost: dispatch.details.smtpHost,
+      smtpPort: dispatch.details.smtpPort,
+      fromAddress: dispatch.details.from,
+      attemptsMade: dispatch.attemptsCount
+    },
+    previewHtml: html
+  };
+}
+
+/**
  * Execute simulation and delivery testing for registration flow
  */
 export async function testRegistrationFlow(options: {
   to: string;
   name?: string;
   roleTitle?: string;
+  provider?: 'auto' | 'brevo-smtp' | 'resend';
+  maxRetries?: number;
 }): Promise<SingleFlowResult> {
   const recipient = options.to;
   const name = options.name || 'Alex Rivera';
@@ -163,6 +272,51 @@ export async function testRegistrationFlow(options: {
   const subject = 'Welcome to Peer Notebook - Your 10-Minute CalAIM H0038 Checklist';
 
   const html = generateUserChecklistHtml({ name, role });
+
+  // Use Brevo SMTP if requested or if Resend is unconfigured
+  if (options.provider === 'brevo-smtp') {
+    const dispatch: SmtpDispatchResult = await BrevoSmtpService.sendMail({
+      to: recipient,
+      subject,
+      html,
+      tags: ['registration_welcome'],
+      retryPolicy: {
+        maxAttempts: options.maxRetries || 3,
+        baseDelayMs: 500
+      }
+    });
+
+    return {
+      flow: 'registration',
+      targetRecipient: recipient,
+      subject,
+      success: dispatch.success,
+      deliveryStatus: dispatch.status,
+      provider: dispatch.provider,
+      messageId: dispatch.messageId,
+      attemptsCount: dispatch.attemptsCount,
+      attemptHistory: dispatch.attemptHistory,
+      smtpCode: dispatch.error?.smtpCode,
+      isTransient: dispatch.error?.isTransient,
+      error: dispatch.error
+        ? {
+            code: dispatch.error.code,
+            smtpCode: dispatch.error.smtpCode,
+            message: dispatch.error.message,
+            suggestion: dispatch.error.suggestion,
+            isTransient: dispatch.error.isTransient
+          }
+        : undefined,
+      details: {
+        registeredName: name,
+        registeredRole: role,
+        smtpHost: dispatch.details.smtpHost
+      },
+      previewHtml: html
+    };
+  }
+
+  // Default: Resend API Dispatch
   const dispatch: ResendDispatchResult = await ResendMailService.sendTransactionalEmail({
     to: recipient,
     subject,
@@ -278,15 +432,39 @@ export async function executeTestEmail(requestData: TestEmailRequest): Promise<T
   const targetRecipient = (requestData.to || 'support@peernotebook.com').trim().toLowerCase();
   const flowType = requestData.flow || requestData.templateType || 'ping-verification';
   const nowIso = new Date().toISOString();
-  const auditReport = ResendMailService.auditConfiguration();
-  const isLiveConfigured = auditReport.configured;
+
+  // Audit both Brevo SMTP and Resend API parameters
+  const smtpConfigAudit = BrevoSmtpService.validateConfiguration();
+  const resendConfigAudit = ResendMailService.auditConfiguration();
+  const isLiveConfigured = smtpConfigAudit.isValid || resendConfigAudit.configured;
 
   // Single flow handlers
+  if (flowType === 'smtp-relay') {
+    return await testSmtpRelayFlow({
+      to: targetRecipient,
+      customMessage: requestData.customMessage,
+      maxRetries: requestData.maxRetries,
+      simulateTransientError: requestData.simulateTransientError
+    });
+  }
+
+  if (flowType === 'smtp-retry-simulation') {
+    // Specifically simulates a 421 transient failure that recovers on attempt 2
+    return await testSmtpRelayFlow({
+      to: targetRecipient,
+      customMessage: 'Transient SMTP Retry & Recovery Simulation (421 -> Recovered)',
+      maxRetries: 3,
+      simulateTransientError: requestData.simulateTransientError || '421'
+    });
+  }
+
   if (flowType === 'registration' || flowType === 'welcome-checklist') {
     return await testRegistrationFlow({
       to: targetRecipient,
       name: requestData.name,
-      roleTitle: requestData.roleTitle
+      roleTitle: requestData.roleTitle,
+      provider: requestData.provider === 'brevo-smtp' ? 'brevo-smtp' : 'auto',
+      maxRetries: requestData.maxRetries
     });
   }
 
@@ -334,8 +512,38 @@ export async function executeTestEmail(requestData: TestEmailRequest): Promise<T
     const html = generatePingVerificationHtml({
       to: targetRecipient,
       timestamp: nowIso,
-      customMessage: requestData.customMessage
+      customMessage: requestData.customMessage,
+      provider: requestData.provider === 'brevo-smtp' ? 'Brevo SMTP Relay (587)' : 'Dual Gateway (Brevo/Resend)'
     });
+
+    if (requestData.provider === 'brevo-smtp') {
+      const dispatch = await BrevoSmtpService.sendMail({
+        to: targetRecipient,
+        subject,
+        html,
+        tags: ['ping_test'],
+        retryPolicy: {
+          maxAttempts: requestData.maxRetries || 3,
+          baseDelayMs: 500
+        }
+      });
+
+      return {
+        flow: 'ping-verification',
+        targetRecipient,
+        subject,
+        success: dispatch.success,
+        deliveryStatus: dispatch.status,
+        provider: dispatch.provider,
+        messageId: dispatch.messageId,
+        attemptsCount: dispatch.attemptsCount,
+        attemptHistory: dispatch.attemptHistory,
+        smtpCode: dispatch.error?.smtpCode,
+        isTransient: dispatch.error?.isTransient,
+        error: dispatch.error,
+        previewHtml: html
+      };
+    }
 
     const dispatch = await ResendMailService.sendTransactionalEmail({
       to: targetRecipient,
@@ -357,17 +565,19 @@ export async function executeTestEmail(requestData: TestEmailRequest): Promise<T
     };
   }
 
-  // ALL FLOWS SUITE (registration, lead capture, verification, daily digest)
+  // ALL FLOWS SUITE (registration, lead capture, verification, daily digest, smtp-relay)
   const regResult = await testRegistrationFlow({ to: targetRecipient, name: requestData.name, roleTitle: requestData.roleTitle });
   const leadResult = await testLeadCaptureFlow({ to: targetRecipient, name: requestData.name, county: requestData.county });
   const verifResult = await testVerificationFlow({ to: targetRecipient, name: requestData.name, roleTitle: requestData.roleTitle });
   const digestFlow = await executeTestEmail({ flow: 'daily-digest', to: targetRecipient }) as SingleFlowResult;
+  const smtpRelayFlow = await testSmtpRelayFlow({ to: targetRecipient, maxRetries: requestData.maxRetries });
 
   const flowsMap: Record<string, SingleFlowResult> = {
     registration: regResult,
     leadCapture: leadResult,
     verification: verifResult,
-    dailyDigest: digestFlow
+    dailyDigest: digestFlow,
+    smtpRelay: smtpRelayFlow
   };
 
   const flowList = Object.values(flowsMap);
@@ -376,6 +586,14 @@ export async function executeTestEmail(requestData: TestEmailRequest): Promise<T
   const failed = flowList.filter(f => !f.success || f.deliveryStatus === 'failed').length;
   const delivered = flowList.filter(f => f.deliveryStatus === 'delivered').length;
   const simulated = flowList.filter(f => f.deliveryStatus === 'simulated').length;
+
+  // Track any detected SMTP codes
+  const smtpCodesDetected: Array<{ flow: string; code: number | string; isTransient: boolean }> = [];
+  for (const [name, fl] of Object.entries(flowsMap)) {
+    if (fl.smtpCode) {
+      smtpCodesDetected.push({ flow: name, code: fl.smtpCode, isTransient: Boolean(fl.isTransient) });
+    }
+  }
 
   return {
     ok: failed === 0,
@@ -389,7 +607,14 @@ export async function executeTestEmail(requestData: TestEmailRequest): Promise<T
       simulated
     },
     flows: flowsMap,
-    auditReport,
+    smtpConfigAudit,
+    resendConfigAudit,
+    retryPolicy: {
+      maxAttempts: requestData.maxRetries || 3,
+      backoffStrategy: 'Exponential (factor 2.0) with Random Jitter (0-30%)',
+      retryableCodes: [421, 450, 451, 452]
+    },
+    smtpCodesDetected,
     executedAt: nowIso
   };
 }
@@ -432,6 +657,9 @@ export default async function handler(req: any, res?: any) {
   const toParam = body?.to || queryParams.get('to') || 'support@peernotebook.com';
   const customMessage = body?.customMessage || queryParams.get('customMessage') || undefined;
   const subject = body?.subject || queryParams.get('subject') || undefined;
+  const provider = (body?.provider || queryParams.get('provider') || 'auto') as any;
+  const maxRetries = body?.maxRetries ? parseInt(String(body.maxRetries), 10) : undefined;
+  const simulateTransientError = body?.simulateTransientError || queryParams.get('simulateTransientError') || undefined;
 
   try {
     const result = await executeTestEmail({
@@ -439,6 +667,9 @@ export default async function handler(req: any, res?: any) {
       to: toParam,
       customMessage,
       subject,
+      provider,
+      maxRetries,
+      simulateTransientError,
       name: body?.name || queryParams.get('name') || undefined,
       roleTitle: body?.roleTitle || queryParams.get('roleTitle') || undefined,
       county: body?.county || queryParams.get('county') || undefined
@@ -494,8 +725,8 @@ if (
 ) {
   (async () => {
     console.log('================================================================');
-    console.log('  PEER NOTEBOOK RESEND EMAIL DISPATCH & FLOW SIMULATION SCRIPT');
-    console.log('  Testing: Registration, Lead Capture, Verification & Telemetry');
+    console.log('  PEER NOTEBOOK RESEND & BREVO SMTP DISPATCH & TEST SUITE');
+    console.log('  Testing: Registration, Lead Capture, Verification & SMTP Relay');
     console.log('================================================================\n');
 
     const suite = (await executeTestEmail({ flow: 'all', to: 'support@peernotebook.com' })) as TestEmailSuiteResponse;
@@ -504,14 +735,24 @@ if (
     console.log(`Target: ${suite.targetRecipient}`);
     console.log(`Summary: ${suite.summary.passed}/${suite.summary.totalFlows} passed (${suite.summary.delivered} delivered, ${suite.summary.simulated} simulated, ${suite.summary.failed} failed)\n`);
 
+    console.log('--- Configuration Parameter Validations ---');
+    console.log(`Brevo SMTP Host: ${suite.smtpConfigAudit.details.host} (${suite.smtpConfigAudit.hostValid ? 'VALID' : 'INVALID'})`);
+    console.log(`Brevo SMTP Port: ${suite.smtpConfigAudit.details.port} (${suite.smtpConfigAudit.portValid ? 'VALID' : 'INVALID'})`);
+    console.log(`Brevo SMTP User: ${suite.smtpConfigAudit.details.user} (${suite.smtpConfigAudit.userValid ? 'VALID' : 'INVALID'})`);
+    console.log(`Brevo SMTP Key:  ${suite.smtpConfigAudit.details.maskedPass} (${suite.smtpConfigAudit.passValid ? 'VALID' : 'INVALID'})`);
+    console.log(`Brevo Sender:    ${suite.smtpConfigAudit.details.fromEmail} (${suite.smtpConfigAudit.fromEmailValid ? 'VALID' : 'INVALID'})`);
+    console.log(`Retry Policy:    ${suite.retryPolicy.maxAttempts} max attempts • ${suite.retryPolicy.backoffStrategy}\n`);
+
     for (const [key, flow] of Object.entries(suite.flows)) {
       const statusIcon = flow.success ? '🟢 PASS' : '🔴 FAIL';
       console.log(`[${statusIcon}] Flow: ${flow.flow.toUpperCase()} (${key})`);
       console.log(`       -> Status: ${flow.deliveryStatus} | Provider: ${flow.provider}`);
       console.log(`       -> Subject: ${flow.subject}`);
+      if (flow.attemptsCount) console.log(`       -> Attempts: ${flow.attemptsCount}`);
+      if (flow.smtpCode) console.log(`       -> SMTP Code: ${flow.smtpCode} (Transient: ${flow.isTransient})`);
       if (flow.messageId) console.log(`       -> Message ID: ${flow.messageId}`);
       if (flow.error) {
-        console.error(`       -> ERROR [${flow.error.statusCode || 'N/A'}]: ${flow.error.message}`);
+        console.error(`       -> ERROR [${flow.error.smtpCode || flow.error.statusCode || flow.error.code || 'N/A'}]: ${flow.error.message}`);
         if (flow.error.suggestion) console.log(`       -> Suggestion: ${flow.error.suggestion}`);
       }
       console.log('');

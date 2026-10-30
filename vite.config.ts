@@ -135,6 +135,10 @@ function devApiPlugin() {
             const roleTitle = body?.roleTitle || parsedUrl.searchParams.get('roleTitle') || undefined;
             const county = body?.county || parsedUrl.searchParams.get('county') || undefined;
 
+            const provider = body?.provider || parsedUrl.searchParams.get('provider') || undefined;
+            const maxRetries = body?.maxRetries ? parseInt(String(body.maxRetries), 10) : (parsedUrl.searchParams.get('maxRetries') ? parseInt(parsedUrl.searchParams.get('maxRetries')!, 10) : undefined);
+            const simulateTransientError = body?.simulateTransientError || parsedUrl.searchParams.get('simulateTransientError') || undefined;
+
             const result = await executeTestEmail({
               flow: flow as any,
               to,
@@ -142,7 +146,10 @@ function devApiPlugin() {
               subject,
               name,
               roleTitle,
-              county
+              county,
+              provider,
+              maxRetries,
+              simulateTransientError: simulateTransientError as any
             });
             const statusCode = (result as any).ok === false || (result as any).deliveryStatus === 'failed' ? 502 : 200;
             res.statusCode = statusCode;
@@ -167,8 +174,19 @@ function devApiPlugin() {
             const to = body?.to || parsedUrl.searchParams.get('to') || 'amunrael@gmail.com';
             const sendTest = body?.sendTest === true || parsedUrl.searchParams.get('sendTest') === 'true';
             const apiKey = body?.apiKey || parsedUrl.searchParams.get('apiKey') || undefined;
+            const provider = body?.provider || parsedUrl.searchParams.get('provider') || undefined;
+            const simulateTransientError = body?.simulateTransientError || parsedUrl.searchParams.get('simulateTransientError') || undefined;
+            const maxRetries = body?.maxRetries ? parseInt(String(body.maxRetries), 10) : (parsedUrl.searchParams.get('maxRetries') ? parseInt(parsedUrl.searchParams.get('maxRetries')!, 10) : undefined);
 
-            const response = await executePipelineAudit({ domain, to, sendTest, apiKey });
+            const response = await executePipelineAudit({
+              domain,
+              to,
+              sendTest,
+              apiKey,
+              provider,
+              simulateTransientError: simulateTransientError as any,
+              maxRetries
+            });
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
             res.setHeader('Cache-Control', 'no-store');
