@@ -4,7 +4,7 @@
  * Validates Google & Yahoo 2024 Authentication Compliance Standards
  */
 
-import { BrevoMailService, PipelineAuditReport } from './brevoClient';
+import { BrevoMailService, PipelineAuditReport } from './brevoClient.ts';
 
 export interface SpaceshipDnsRecordDirective {
   recordType: 'TXT' | 'CNAME' | 'MX' | 'A';

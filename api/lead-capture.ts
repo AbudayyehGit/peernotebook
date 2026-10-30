@@ -8,6 +8,7 @@
  */
 
 import { ResendMailService } from '../src/lib/resendClient.ts';
+import { BrevoMailService } from '../src/lib/brevoClient.ts';
 
 export const config = {
   runtime: 'nodejs'
@@ -203,21 +204,126 @@ export async function executeLeadCapture(leadData: LeadCapturePayload) {
     role: cleanedRole
   });
 
-  // 1. Dispatch support alert to support@peernotebook.com
-  const supportDispatch = await ResendMailService.sendTransactionalEmail({
-    to: 'support@peernotebook.com',
-    subject: `[New Lead] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
-    html: supportAlertHtml,
-    tags: [{ name: 'flow', value: 'lead_alert' }]
-  });
+  // 1. Attempt writing to Supabase waitlist_subscribers and lead_captures tables
+  try {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+    if (supabaseUrl && supabaseKey) {
+      const sbRecord = {
+        id: leadId,
+        email: cleanedEmail,
+        name: cleanedName,
+        role_title: cleanedRole,
+        county: cleanedCounty,
+        wants_beta_cohort: isBeta,
+        submitted_at: nowIso,
+        status: 'active'
+      };
 
-  // 2. Dispatch onboarding checklist to registrant
-  const userDispatch = await ResendMailService.sendTransactionalEmail({
-    to: cleanedEmail,
-    subject: 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome',
-    html: userChecklistHtml,
-    tags: [{ name: 'flow', value: 'lead_checklist' }]
-  });
+      // Post to waitlist_subscribers
+      await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/waitlist_subscribers`, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(sbRecord)
+      }).catch(() => {});
+
+      // Post to lead_captures
+      await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/lead_captures`, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(sbRecord)
+      }).catch(() => {});
+    }
+  } catch (err) {
+    console.warn('[LEAD_CAPTURE_SUPABASE_DEFERRED]', err);
+  }
+
+  // 2. Dispatch support alert to support@peernotebook.com via Brevo (or Resend fallback)
+  let supportDispatch: any;
+  let userDispatch: any;
+
+  if (BrevoMailService.getApiKey()) {
+    const sRes = await BrevoMailService.sendTransactionalEmail({
+      to: 'support@peernotebook.com',
+      subject: `[New Lead] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
+      html: supportAlertHtml,
+      tags: ['lead_alert']
+    });
+    supportDispatch = {
+      success: sRes.success,
+      status: sRes.status,
+      provider: sRes.provider,
+      messageId: sRes.messageId,
+      error: sRes.error
+    };
+
+    const uRes = await BrevoMailService.sendTransactionalEmail({
+      to: cleanedEmail,
+      subject: 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome',
+      html: userChecklistHtml,
+      tags: ['lead_checklist']
+    });
+    userDispatch = {
+      success: uRes.success,
+      status: uRes.status,
+      provider: uRes.provider,
+      messageId: uRes.messageId,
+      error: uRes.error
+    };
+  } else if (ResendMailService.getApiKey()) {
+    supportDispatch = await ResendMailService.sendTransactionalEmail({
+      to: 'support@peernotebook.com',
+      subject: `[New Lead] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
+      html: supportAlertHtml,
+      tags: [{ name: 'flow', value: 'lead_alert' }]
+    });
+
+    userDispatch = await ResendMailService.sendTransactionalEmail({
+      to: cleanedEmail,
+      subject: 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome',
+      html: userChecklistHtml,
+      tags: [{ name: 'flow', value: 'lead_checklist' }]
+    });
+  } else {
+    // Default safe simulation mode via BrevoMailService
+    const sRes = await BrevoMailService.sendTransactionalEmail({
+      to: 'support@peernotebook.com',
+      subject: `[New Lead] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
+      html: supportAlertHtml,
+      tags: ['lead_alert']
+    });
+    supportDispatch = {
+      success: sRes.success,
+      status: sRes.status,
+      provider: sRes.provider,
+      messageId: sRes.messageId,
+      error: sRes.error
+    };
+
+    const uRes = await BrevoMailService.sendTransactionalEmail({
+      to: cleanedEmail,
+      subject: 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome',
+      html: userChecklistHtml,
+      tags: ['lead_checklist']
+    });
+    userDispatch = {
+      success: uRes.success,
+      status: uRes.status,
+      provider: uRes.provider,
+      messageId: uRes.messageId,
+      error: uRes.error
+    };
+  }
 
   const emailDeliveryStatus = (supportDispatch.status === 'failed' || userDispatch.status === 'failed')
     ? 'failed'

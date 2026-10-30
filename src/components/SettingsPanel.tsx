@@ -1983,7 +1983,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onReplayTutorial }
               title="Manually generate and dispatch 24h summary email to support@peernotebook.com"
             >
               <Send className={`w-4 h-4 shrink-0 ${digestLoading ? 'animate-bounce' : ''}`} />
-              <span>{digestLoading ? 'Generating & Dispatching...' : 'Trigger Daily Summary Email Now'}</span>
+              <span>{digestLoading ? 'Generating & Dispatching...' : 'Trigger Daily Digest Now'}</span>
             </button>
           </div>
         </div>

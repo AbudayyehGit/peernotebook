@@ -4,7 +4,7 @@
  * Dispatches 6-digit verification codes via Resend API & validates authenticity
  */
 
-import { ResendMailService } from '../src/lib/resendClient';
+import { ResendMailService } from '../src/lib/resendClient.ts';
 
 export const config = {
   runtime: 'edge'

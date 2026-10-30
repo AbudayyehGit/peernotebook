@@ -6,6 +6,7 @@
  */
 
 import { ResendMailService } from '../src/lib/resendClient.ts';
+import { BrevoMailService } from '../src/lib/brevoClient.ts';
 
 export const config = {
   runtime: 'nodejs'
@@ -415,7 +416,7 @@ export async function executeDailyDigest(options: {
     }
   ];
 
-  const recentLeads: LeadItem[] = [
+  let recentLeads: LeadItem[] = [
     {
       email: 'marcus.vance@alamedahealth.org',
       name: 'Marcus Vance',
@@ -445,7 +446,7 @@ export async function executeDailyDigest(options: {
     }
   ];
 
-  const historicalLeads: LeadItem[] = [
+  let historicalLeads: LeadItem[] = [
     {
       email: 'jamal.washington@cbohealth.org',
       name: 'Jamal Washington',
@@ -520,6 +521,41 @@ export async function executeDailyDigest(options: {
     }
   ];
 
+  // Attempt to query live leads from Supabase waitlist_subscribers / lead_captures
+  try {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+    if (supabaseUrl && supabaseKey) {
+      const resp = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/waitlist_subscribers?select=*&order=submitted_at.desc`, {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`
+        }
+      });
+      if (resp.ok) {
+        const rows: any[] = await resp.json();
+        if (Array.isArray(rows) && rows.length > 0) {
+          const liveLeads: LeadItem[] = rows.map(r => ({
+            email: r.email,
+            name: r.name,
+            roleTitle: r.role_title || r.roleTitle,
+            county: r.county,
+            wantsBetaCohort: r.wants_beta_cohort ?? r.wantsBetaCohort,
+            submittedAt: r.submitted_at || r.submittedAt || new Date().toISOString(),
+            isLast24Hours: new Date(r.submitted_at || r.submittedAt || Date.now()).getTime() >= yesterday.getTime()
+          }));
+          const existingEmails = new Set(liveLeads.map(l => l.email.toLowerCase()));
+          const extraRecent = recentLeads.filter(l => !existingEmails.has(l.email.toLowerCase()));
+          const extraHistorical = historicalLeads.filter(l => !existingEmails.has(l.email.toLowerCase()));
+          recentLeads = [...liveLeads.filter(l => l.isLast24Hours), ...extraRecent];
+          historicalLeads = [...liveLeads.filter(l => !l.isLast24Hours), ...extraHistorical];
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[DAILY_DIGEST_SUPABASE_QUERY_DEFERRED]', err);
+  }
+
   const allLeads: LeadItem[] = [...recentLeads, ...historicalLeads];
   const newLeadsCount = recentLeads.length;
   const totalLeadsCount = allLeads.length;
@@ -550,12 +586,44 @@ export async function executeDailyDigest(options: {
   });
 
   const subject = `[Daily Digest] ${newLeadsCount} New Leads | ${activeBacklog.length} Active Tasks | ${traffic.totalVisits} Visits (${dateStr})`;
-  const dispatchResult = await ResendMailService.sendTransactionalEmail({
-    to: targetRecipient,
-    subject,
-    html: htmlReport,
-    tags: [{ name: 'type', value: 'daily_digest' }]
-  });
+
+  // Primary dispatch via BrevoMailService with Resend fallback
+  let dispatchResult: any;
+  if (BrevoMailService.getApiKey()) {
+    const brevoRes = await BrevoMailService.sendTransactionalEmail({
+      to: targetRecipient,
+      subject,
+      html: htmlReport,
+      tags: ['daily_digest']
+    });
+    dispatchResult = {
+      success: brevoRes.success,
+      status: brevoRes.status,
+      provider: brevoRes.provider,
+      messageId: brevoRes.messageId
+    };
+  } else if (ResendMailService.getApiKey()) {
+    dispatchResult = await ResendMailService.sendTransactionalEmail({
+      to: targetRecipient,
+      subject,
+      html: htmlReport,
+      tags: [{ name: 'type', value: 'daily_digest' }]
+    });
+  } else {
+    // Brevo default engine (safe simulation mode)
+    const brevoRes = await BrevoMailService.sendTransactionalEmail({
+      to: targetRecipient,
+      subject,
+      html: htmlReport,
+      tags: ['daily_digest']
+    });
+    dispatchResult = {
+      success: brevoRes.success,
+      status: brevoRes.status,
+      provider: brevoRes.provider,
+      messageId: brevoRes.messageId
+    };
+  }
 
   const payload: DigestPayload = {
     ok: dispatchResult.success,

@@ -5,8 +5,8 @@
  * Standards: Google & Yahoo 2024 Email Sender Requirements • Zero Silent Failures
  */
 
-import { auditEmailPipeline, type LivePipelineDiagnosticResult } from '../src/lib/pipelineAuditor';
-import { BrevoMailService, type BrevoDispatchResult } from '../src/lib/brevoClient';
+import { auditEmailPipeline, type LivePipelineDiagnosticResult } from '../src/lib/pipelineAuditor.ts';
+import { BrevoMailService, type BrevoDispatchResult } from '../src/lib/brevoClient.ts';
 
 export const config = {
   runtime: 'nodejs'
