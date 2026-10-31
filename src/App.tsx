@@ -22,6 +22,7 @@ import { TrustCenterView } from './components/TrustCenterView';
 import { PrivacyConsentBanner } from './components/PrivacyConsentBanner';
 import { PrivacyModeProvider, usePrivacyMode } from './context/PrivacyModeContext';
 import { AuthModal } from './components/AuthModal';
+import { FreeSandboxTier } from './components/FreeSandboxTier';
 import { Navbar } from './components/Navbar';
 import { SubscriptionStatusBadge } from './components/SubscriptionStatusBadge';
 import { BillingModal } from './components/BillingModal';
@@ -30,10 +31,11 @@ import { safeStorage } from './utils/safeStorage';
 
 function AppContent() {
   const { currentOrg, currentUser, isLoading } = useAuth();
-  const [currentView, setCurrentView] = useState<'landing' | 'workspace' | 'docs' | 'trust'>(() => {
+  const [currentView, setCurrentView] = useState<'landing' | 'workspace' | 'docs' | 'trust' | 'sandbox'>(() => {
     if (typeof window !== 'undefined') {
       const pathname = window.location.pathname;
       const hash = window.location.hash;
+      if (pathname.startsWith('/sandbox') || hash.startsWith('#sandbox')) return 'sandbox';
       if (pathname.startsWith('/trust') || pathname.startsWith('/compliance') || hash.startsWith('#trust') || hash.startsWith('#compliance')) return 'trust';
       if (pathname.startsWith('/docs') || hash.startsWith('#docs')) return 'docs';
       if (
@@ -57,6 +59,7 @@ function AppContent() {
       ) return 'workspace';
       if (hash === '#landing' || hash === '#checklist' || hash === '#overview') return 'landing';
       const saved = safeStorage.getItem('peernotebook_active_view');
+      if (saved === 'sandbox') return 'sandbox';
       if (saved === 'workspace') return 'workspace';
       if (saved === 'docs') return 'docs';
       if (saved === 'trust') return 'trust';
@@ -115,7 +118,9 @@ function AppContent() {
     const handleHashOrRoute = () => {
       const pathname = window.location.pathname;
       const hash = window.location.hash;
-      if (pathname.startsWith('/trust') || pathname.startsWith('/compliance') || hash.startsWith('#trust') || hash.startsWith('#compliance')) {
+      if (pathname.startsWith('/sandbox') || hash.startsWith('#sandbox')) {
+        setCurrentView('sandbox');
+      } else if (pathname.startsWith('/trust') || pathname.startsWith('/compliance') || hash.startsWith('#trust') || hash.startsWith('#compliance')) {
         setCurrentView('trust');
       } else if (pathname.startsWith('/docs') || hash.startsWith('#docs')) {
         setCurrentView('docs');
@@ -155,11 +160,13 @@ function AppContent() {
     };
   }, []);
 
-  const switchView = (view: 'landing' | 'workspace' | 'docs' | 'trust', docSlug?: string) => {
+  const switchView = (view: 'landing' | 'workspace' | 'docs' | 'trust' | 'sandbox', docSlug?: string) => {
     setCurrentView(view);
     if (typeof window !== 'undefined') {
       safeStorage.setItem('peernotebook_active_view', view);
-      if (view === 'workspace') {
+      if (view === 'sandbox') {
+        window.location.hash = '#sandbox';
+      } else if (view === 'workspace') {
         window.location.hash = '#workspace';
       } else if (view === 'trust') {
         window.location.hash = '#trust';
@@ -193,6 +200,32 @@ function AppContent() {
         onReturnToWorkspace={() => switchView('workspace')}
         onReturnToLanding={() => switchView('landing')}
       />
+    );
+  }
+
+  if (currentView === 'sandbox') {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans selection:bg-[#0F766E] selection:text-white max-w-full overflow-x-hidden">
+        <Navbar
+          switchView={switchView}
+          onOpenOnboarding={() => setOnboardingOpen(true)}
+          onOpenOutreach={() => setOutreachOpen(true)}
+          onOpenAuthModal={() => setAuthModalOpen(true)}
+          onOpenBillingModal={() => setBillingModalOpen(true)}
+          isPrivacyMode={isPrivacyMode}
+          togglePrivacyMode={togglePrivacyMode}
+        />
+        <main className="flex-1 w-full max-w-full overflow-x-hidden">
+          <FreeSandboxTier
+            onLoginClick={() => setAuthModalOpen(true)}
+            onUpgradeClick={() => setBillingModalOpen(true)}
+            onBackToLanding={() => switchView('landing')}
+          />
+        </main>
+        <TrustComplianceFooter />
+        <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+        <BillingModal isOpen={billingModalOpen} onClose={() => setBillingModalOpen(false)} />
+      </div>
     );
   }
 

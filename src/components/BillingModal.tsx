@@ -1,7 +1,11 @@
 /**
- * Peer Notebook - Stripe Billing & 14-Day Free Trial Management Modal
- * GA #8 Standard • Trauma-Informed Clinical UI • Strict 8pt Spacing
- * Handles Plan Selection, Free Trial Countdown, Stripe Checkout & Self-Serve Portal
+ * Peer Notebook - Stripe Billing & 30-Day Free Trial Management Modal
+ * GA #8 Standard • 30-Day Trial with Automatic Rollover Guarantee
+ * Features:
+ *  - 30-Day Free Trial Countdown with Unused Days Rollover Credit
+ *  - Full Interactive Stripe Sandbox Payment Workflow
+ *  - Real Test Card Buttons (4242 Success, 4002 Decline, Expired)
+ *  - Instant Simulated Invoice Receipt Generation & Download
  */
 
 import React, { useState } from 'react';
@@ -15,7 +19,6 @@ import { SubscriptionTier, BillingInterval } from '../db/peerNotebookDatabase';
 import {
   Check,
   ShieldCheck,
-  ExternalLink,
   CreditCard,
   Sparkles,
   Clock,
@@ -23,7 +26,11 @@ import {
   HelpCircle,
   ArrowRight,
   RefreshCw,
-  Award
+  Award,
+  Download,
+  CheckCircle2,
+  X,
+  FileText
 } from 'lucide-react';
 
 interface BillingModalProps {
@@ -43,225 +50,172 @@ export const BillingModal: React.FC<BillingModalProps> = ({
     currentUser?.subscriptionTier || 'founding_specialist'
   );
   const [isProcessing, setIsProcessing] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSandboxCheckoutOpen, setIsSandboxCheckoutOpen] = useState(false);
+  const [cardNumber, setCardNumber] = useState('4242 4242 4242 4242');
+  const [expMonth, setExpMonth] = useState('12');
+  const [expYear, setExpYear] = useState('28');
+  const [cvc, setCvc] = useState('123');
+  const [postalCode, setPostalCode] = useState('94102');
+  const [successReceipt, setSuccessReceipt] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const trialDetails = StripeBillingService.getTrialDetails(currentUser);
-  const currentTierInfo = SUBSCRIPTION_TIERS[currentUser?.subscriptionTier || 'founding_specialist'];
+  const rollover = StripeBillingService.calculateTrialRollover(currentUser);
+  const currentTierInfo = SUBSCRIPTION_TIERS[selectedTier];
 
-  const handleInitiateCheckout = async (tier: SubscriptionTier) => {
+  const handleOpenSandbox = (tier: SubscriptionTier) => {
+    setSelectedTier(tier);
+    setErrorMessage(null);
+    setSuccessReceipt(null);
+    setIsSandboxCheckoutOpen(true);
+  };
+
+  const handleExecuteSandboxPayment = async () => {
     setIsProcessing(true);
     setErrorMessage(null);
-    setSuccessMessage(null);
 
     try {
-      const result = await StripeBillingService.createCheckoutSession({
-        tier,
-        interval: selectedInterval,
-        customerEmail: currentUser?.email || 'specialist@peernotebook.com',
-        userName: currentUser?.fullName,
-        organizationId: currentUser?.organizationId
-      });
+      const result = await StripeBillingService.executeSandboxCheckout(
+        {
+          cardNumber,
+          expMonth,
+          expYear,
+          cvc,
+          postalCode,
+          planTier: selectedTier,
+          interval: selectedInterval
+        },
+        currentUser
+      );
 
-      if (result.url && !result.isSimulated) {
-        // Redirect to live Stripe Checkout
-        window.location.href = result.url;
+      if (!result.success) {
+        setErrorMessage(result.errorMessage || 'Payment was declined by card issuer.');
+        setIsProcessing(false);
         return;
       }
 
-      // In sandbox/simulated mode, activate the subscription in local Dexie store
+      // Update user billing state with rollover credit
       await updateUserBilling({
-        subscriptionStatus: 'active',
-        subscriptionTier: tier,
+        subscriptionStatus: 'active_subscriber',
+        subscriptionTier: selectedTier,
         billingInterval: selectedInterval,
-        stripeCustomerId: currentUser?.stripeCustomerId || `cus_sim_${Date.now()}`,
-        stripeSubscriptionId: result.sessionId || `sub_sim_${Date.now()}`,
-        currentPeriodEnd: new Date(Date.now() + (selectedInterval === 'annual' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString(),
+        stripeCustomerId: result.customerId,
+        stripeSubscriptionId: result.subscriptionId,
+        trialEndsAt: currentUser?.trialEndsAt,
+        currentPeriodEnd: result.nextBillingDate,
         cancelAtPeriodEnd: false
       });
 
-      setSuccessMessage(`Subscription activated! You are now subscribed to the ${SUBSCRIPTION_TIERS[tier].name} (${selectedInterval}).`);
+      const receipt = StripeBillingService.generateSimulatedInvoice({
+        invoiceId: result.invoiceId,
+        customerEmail: currentUser?.email || 'specialist@peernotebook.com',
+        customerName: currentUser?.fullName || 'Certified Peer Specialist',
+        tierName: SUBSCRIPTION_TIERS[selectedTier].name,
+        amount: result.amountPaid,
+        interval: selectedInterval,
+        rolloverDays: result.rolloverDaysGranted,
+        nextBillingDate: result.nextBillingDate
+      });
+
+      setSuccessReceipt(receipt);
       setIsProcessing(false);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Checkout initiation failed. Please try again.');
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : 'Sandbox payment failed.');
       setIsProcessing(false);
     }
   };
 
-  const handleOpenStripePortal = async () => {
-    setIsProcessing(true);
-    try {
-      const result = await StripeBillingService.createCustomerPortalSession(
-        currentUser?.stripeCustomerId,
-        window.location.href
-      );
-      if (result.url && !result.isSimulated) {
-        window.location.href = result.url;
-      } else {
-        setSuccessMessage('Sandbox Portal: You can manage renewals, payment methods, or upgrade tiers directly from this panel.');
-      }
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Could not open billing portal.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleSimulateTrialDays = async (days: number) => {
-    const trialEndsAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
-    await updateUserBilling({
-      subscriptionStatus: days > 0 ? 'trialing' : 'canceled',
-      trialEndsAt,
-      currentPeriodEnd: trialEndsAt
-    });
-    setSuccessMessage(`Simulated trial state: ${days === 0 ? 'Expired' : `${days} days remaining`}`);
-  };
-
-  const handleSimulateState = async (state: 'active_subscriber' | 'trialing' | 'past_due' | 'canceled') => {
-    setIsProcessing(true);
-    setErrorMessage(null);
-    try {
-      const now = new Date();
-      if (state === 'active_subscriber') {
-        await updateUserBilling({
-          subscriptionStatus: 'active_subscriber',
-          subscriptionTier: selectedTier || 'founding_specialist',
-          stripeCustomerId: currentUser?.stripeCustomerId || `cus_sim_${Date.now()}`,
-          stripeSubscriptionId: currentUser?.stripeSubscriptionId || `sub_sim_${Date.now()}`,
-          currentPeriodEnd: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          cancelAtPeriodEnd: false
-        });
-        setSuccessMessage('Simulated state: active_subscriber (Full features and cloud access unlocked)');
-      } else if (state === 'trialing') {
-        const trialEndsAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
-        await updateUserBilling({
-          subscriptionStatus: 'trialing',
-          trialEndsAt,
-          currentPeriodEnd: trialEndsAt,
-          cancelAtPeriodEnd: false
-        });
-        setSuccessMessage('Simulated state: trialing (14-day CalAIM trial active)');
-      } else if (state === 'past_due') {
-        await updateUserBilling({
-          subscriptionStatus: 'past_due',
-          cancelAtPeriodEnd: false
-        });
-        setSuccessMessage('Simulated state: past_due (Payment retry banner enabled)');
-      } else if (state === 'canceled') {
-        await updateUserBilling({
-          subscriptionStatus: 'canceled',
-          cancelAtPeriodEnd: true
-        });
-        setSuccessMessage('Simulated state: canceled (Subscription ended, offline read/export active)');
-      }
-    } catch (err: any) {
-      setErrorMessage(err?.message || 'Simulation state update failed.');
-    } finally {
-      setIsProcessing(false);
-    }
+  const downloadReceipt = () => {
+    if (!successReceipt) return;
+    const blob = new Blob([successReceipt], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `PeerNotebook_Stripe_Receipt_${Date.now()}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full my-6 overflow-hidden flex flex-col max-h-[92vh]">
-        {/* Modal Header */}
-        <div className="p-4 sm:p-6 bg-gradient-to-r from-[#1E3A8A] to-blue-900 text-white flex items-start justify-between gap-4 shrink-0">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-teal-500/30 border border-teal-300/40 text-teal-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                Stripe Billing &amp; Subscription Portal
-              </span>
-              <span className="hidden sm:inline-flex text-xs font-mono text-blue-200">
-                14-Day Free Trial
-              </span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-              Invest in your practice. Reclaim your clinical time.
-            </h2>
-            <p className="text-xs sm:text-sm text-blue-100 max-w-2xl leading-relaxed">
-              Zero-risk 14-day full access trial. No credit card required upfront. Cancel anytime with 1-click note archive export.
-            </p>
-          </div>
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+    >
+      <div className="fixed inset-0" onClick={onClose} />
 
+      <div className="relative bg-white border border-slate-200 w-full max-w-4xl max-h-[92vh] rounded-3xl shadow-2xl overflow-y-auto z-10 flex flex-col text-slate-800">
+        {/* Modal Header */}
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0F766E] flex items-center justify-center text-white shadow-xs">
+              <CreditCard className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-[#1E3A8A]">Subscription &amp; Stripe Sandbox</h2>
+              <p className="text-xs text-slate-500">
+                Peer Notebook • 30-Day Free Trial with Rollover Guarantee • HIPAA Aligned
+              </p>
+            </div>
+          </div>
           <button
-            type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-            title="Close dialog"
+            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/80 rounded-xl transition-colors cursor-pointer"
+            title="Close"
           >
-            ✕
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Feature Gating Alert Notice */}
+        {/* 30-Day Trial & Rollover Notice Banner */}
+        <div className="bg-[#F0FDFA] border-b border-[#CCFBF1] px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[#0F766E]/10 flex items-center justify-center text-[#0F766E] shrink-0">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-[#0F766E] uppercase tracking-wider">
+                  30-Day Free Trial Rollover Guarantee
+                </span>
+                <span className="text-[10px] bg-[#0F766E] text-white px-2 py-0.5 rounded-full font-bold">
+                  Zero Lost Days
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                {trialDetails.rolloverNotice}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs font-semibold text-slate-500">Trial status:</span>
+            <span className={`text-xs px-2.5 py-1 rounded-full border ${trialDetails.statusBadgeColor}`}>
+              {trialDetails.statusBadgeText}
+            </span>
+          </div>
+        </div>
+
+        {/* Gated feature notice if triggered by locked action */}
         {gatedFeatureNotice && (
-          <div className="p-3 bg-amber-50 border-b border-amber-200 text-amber-900 text-xs flex items-center gap-2 px-6 shrink-0">
+          <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-xs text-amber-800">
             <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-            <span className="font-semibold">{gatedFeatureNotice}</span>
+            <span>{gatedFeatureNotice}</span>
           </div>
         )}
 
-        {/* Scrollable Content Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1 text-slate-800">
-          {/* Active Status & Trial Progress Bar */}
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Current Account Status
-                </span>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${trialDetails.statusBadgeColor}`}>
-                  {trialDetails.statusBadgeText}
-                </span>
-              </div>
-              <p className="text-xs text-slate-600">
-                Logged in as: <strong className="text-[#1E3A8A]">{currentUser?.email}</strong> · Current Tier:{' '}
-                <strong className="text-[#0F766E]">{currentTierInfo.name}</strong>
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              {currentUser?.subscriptionStatus === 'active' && (
-                <button
-                  type="button"
-                  onClick={handleOpenStripePortal}
-                  disabled={isProcessing}
-                  className="min-h-[48px] px-6 py-3.5 bg-white hover:bg-slate-100 text-[#1E3A8A] border border-slate-300 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
-                >
-                  <CreditCard className="w-3.5 h-3.5 text-[#0F766E]" />
-                  <span>Stripe Billing Portal</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Feedback Alerts */}
-          {successMessage && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs flex items-center gap-2">
-              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{successMessage}</span>
-            </div>
-          )}
-
-          {errorMessage && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
+        <div className="p-6 space-y-6">
           {/* Billing Interval Toggle */}
-          <div className="flex items-center justify-center gap-2 pt-2">
-            <div className="bg-slate-100 p-1 rounded-full border border-slate-200 flex items-center text-xs font-semibold">
+          <div className="flex justify-center">
+            <div className="bg-slate-100 p-1 rounded-full flex items-center border border-slate-200">
               <button
                 type="button"
                 onClick={() => setSelectedInterval('monthly')}
-                className={`min-h-[48px] px-6 py-3.5 rounded-full transition-all cursor-pointer ${
+                className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   selectedInterval === 'monthly'
-                    ? 'bg-white text-[#1E3A8A] font-bold shadow-xs'
+                    ? 'bg-[#1E3A8A] text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -270,111 +224,87 @@ export const BillingModal: React.FC<BillingModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedInterval('annual')}
-                className={`min-h-[48px] px-6 py-3.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-5 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   selectedInterval === 'annual'
-                    ? 'bg-white text-[#1E3A8A] font-bold shadow-xs'
+                    ? 'bg-[#1E3A8A] text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <span>Annual Billing</span>
-                <span className="px-2 py-0.5 bg-[#16A34A] text-white rounded-full text-[10px] font-bold">
-                  Save 17% (2 Mo Free)
+                <span className="bg-emerald-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">
+                  Save 20%
                 </span>
               </button>
             </div>
           </div>
 
-          {/* Tier Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 pt-2">
-            {(Object.keys(SUBSCRIPTION_TIERS) as SubscriptionTier[]).map((tierKey) => {
-              const tier = SUBSCRIPTION_TIERS[tierKey];
-              const isCurrent = currentUser?.subscriptionTier === tierKey && currentUser?.subscriptionStatus === 'active';
-              const price = selectedInterval === 'monthly' ? tier.monthlyPrice : Math.round(tier.annualPrice / 12);
-              const totalAnnual = tier.annualPrice;
+          {/* Pricing Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {Object.values(SUBSCRIPTION_TIERS).map((plan) => {
+              const isCurrent = currentUser?.subscriptionTier === plan.id;
+              const isSelected = selectedTier === plan.id;
+              const price = selectedInterval === 'annual' ? Math.round(plan.annualPrice / 12) : plan.monthlyPrice;
 
               return (
                 <div
-                  key={tier.id}
-                  className={`rounded-2xl border p-5 flex flex-col justify-between transition-all relative ${
-                    tierKey === 'founding_specialist'
-                      ? 'border-[#0F766E] ring-2 ring-[#0F766E]/20 bg-teal-50/20'
+                  key={plan.id}
+                  onClick={() => setSelectedTier(plan.id)}
+                  className={`rounded-2xl p-5 border-2 flex flex-col justify-between transition-all cursor-pointer ${
+                    isSelected
+                      ? 'border-[#0F766E] bg-teal-50/20 shadow-md ring-2 ring-[#0F766E]/20'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
-                  {tier.badge && (
-                    <div className="absolute -top-3 right-4">
-                      <span className="px-2.5 py-0.5 bg-[#0F766E] text-white text-[10px] font-bold rounded-full uppercase tracking-wider shadow-xs">
-                        {tier.badge}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                        {plan.badge || 'Plan'}
                       </span>
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-base font-bold text-[#1E3A8A]">{tier.name}</h3>
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                        {tier.description}
-                      </p>
+                      {isCurrent && (
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                          Your Active Plan
+                        </span>
+                      )}
                     </div>
 
-                    <div className="pt-2 border-t border-slate-100">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-extrabold text-[#1E3A8A]">${price}</span>
-                        <span className="text-xs text-slate-500 font-medium">/ month</span>
-                      </div>
+                    <h3 className="text-base font-bold text-[#1E3A8A]">{plan.name}</h3>
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">{plan.description}</p>
+
+                    <div className="my-4">
+                      <span className="text-3xl font-extrabold text-[#1E3A8A]">${price}</span>
+                      <span className="text-xs text-slate-500 font-medium">/month</span>
                       {selectedInterval === 'annual' && (
-                        <p className="text-[11px] text-[#16A34A] font-semibold mt-0.5">
-                          Billed annually at ${totalAnnual}/year
+                        <p className="text-[11px] text-[#0F766E] font-semibold mt-0.5">
+                          Billed annually (${plan.annualPrice}/yr)
                         </p>
                       )}
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        Includes 14-day zero-risk trial
-                      </p>
                     </div>
 
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
-                      <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                        Included Features
-                      </span>
-                      <ul className="space-y-1.5 text-xs text-slate-600">
-                        {tier.features.map((feature, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <Check className="w-3.5 h-3.5 text-[#16A34A] shrink-0 mt-0.5" />
-                            <span className="leading-tight">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <ul className="space-y-2 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                      {plan.features.map((feat, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <Check className="w-3.5 h-3.5 text-[#0F766E] shrink-0 mt-0.5" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  <div className="pt-5 mt-4 border-t border-slate-100">
+                  <div className="pt-5 mt-3 border-t border-slate-100">
                     <button
                       type="button"
-                      disabled={isProcessing || isCurrent}
-                      onClick={() => handleInitiateCheckout(tierKey)}
-                      className={`w-full min-h-[48px] px-6 py-3.5 rounded-full text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                        isCurrent
-                          ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                          : tierKey === 'founding_specialist'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenSandbox(plan.id);
+                      }}
+                      className={`w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        isSelected
                           ? 'bg-[#0F766E] hover:bg-teal-700 text-white shadow-xs'
-                          : 'bg-[#1E3A8A] hover:bg-blue-900 text-white shadow-xs'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                       }`}
                     >
-                      {isCurrent ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Active Current Plan</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>
-                            {currentUser?.subscriptionStatus === 'active'
-                              ? `Switch to ${tier.name}`
-                              : 'Start 14-Day Free Trial'}
-                          </span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </>
-                      )}
+                      <span>Launch Stripe Checkout</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -382,94 +312,171 @@ export const BillingModal: React.FC<BillingModalProps> = ({
             })}
           </div>
 
-          {/* Sandbox Diagnostic Simulator Buttons */}
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-[#0F766E]" />
-                Sandbox Testing &amp; Lifecycle Diagnostics
-              </span>
-              <span className="text-[10px] text-slate-400 font-mono">Real-Time State Simulation</span>
-            </div>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Test real-time subscription lifecycle states, feature gating, and Supabase cloud sync without live payment processing:
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => handleSimulateState('active_subscriber')}
-                disabled={isProcessing}
-                className="min-h-[48px] px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-300 font-bold text-center cursor-pointer flex flex-col items-center justify-center transition-colors"
-                title="Simulate active_subscriber: unblocks all features and updates user_profiles"
-              >
-                <span className="text-xs">active_subscriber</span>
-                <span className="text-[10px] font-normal text-emerald-700">Full Cloud Access</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSimulateState('trialing')}
-                disabled={isProcessing}
-                className="min-h-[48px] px-3 py-2.5 bg-teal-50 hover:bg-teal-100 text-[#0F766E] rounded-xl border border-teal-300 font-bold text-center cursor-pointer flex flex-col items-center justify-center transition-colors"
-                title="Simulate trialing: 14 days zero-risk free trial"
-              >
-                <span className="text-xs">trialing</span>
-                <span className="text-[10px] font-normal text-teal-700">14-Day Free Trial</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSimulateState('past_due')}
-                disabled={isProcessing}
-                className="min-h-[48px] px-3 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl border border-amber-300 font-bold text-center cursor-pointer flex flex-col items-center justify-center transition-colors"
-                title="Simulate past_due: shows retry banner and updates user_profiles"
-              >
-                <span className="text-xs">past_due</span>
-                <span className="text-[10px] font-normal text-amber-700">Grace Period</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSimulateState('canceled')}
-                disabled={isProcessing}
-                className="min-h-[48px] px-3 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-800 rounded-xl border border-rose-300 font-bold text-center cursor-pointer flex flex-col items-center justify-center transition-colors"
-                title="Simulate canceled: subscription ended, read-only mode"
-              >
-                <span className="text-xs">canceled</span>
-                <span className="text-[10px] font-normal text-rose-700">Subscription Ended</span>
-              </button>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-200/60">
-              <span className="text-[11px] text-slate-500 font-medium">Trial Countdown Fine-Tuning:</span>
-              <button
-                type="button"
-                onClick={() => handleSimulateTrialDays(2)}
-                className="min-h-[36px] px-3 py-1.5 bg-white hover:bg-slate-100 text-amber-800 rounded-lg border border-slate-200 text-xs font-semibold cursor-pointer"
-              >
-                2 Days Left
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSimulateTrialDays(0)}
-                className="min-h-[36px] px-3 py-1.5 bg-white hover:bg-slate-100 text-rose-800 rounded-lg border border-slate-200 text-xs font-semibold cursor-pointer"
-              >
-                0 Days (Expired)
-              </button>
-            </div>
-          </div>
-        </div>
+          {/* Stripe Sandbox Checkout Drawer */}
+          {isSandboxCheckoutOpen && (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4 animate-in fade-in">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-[#0F766E]" />
+                  <h3 className="text-sm font-bold text-[#1E3A8A]">
+                    Stripe Sandbox Relay • {SUBSCRIPTION_TIERS[selectedTier].name}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsSandboxCheckoutOpen(false)}
+                  className="text-xs text-slate-400 hover:text-slate-600"
+                >
+                  Cancel
+                </button>
+              </div>
 
-        {/* Modal Footer */}
-        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 shrink-0">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#16A34A] shrink-0" />
-            <span>Secure 256-bit encryption · Zero lock-in · Full note export anytime</span>
-          </div>
+              {/* Rollover Credit Banner */}
+              <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-800 flex items-center justify-between">
+                <span>
+                  <strong>Rollover Applied:</strong> {rollover.remainingTrialDays} days remaining on trial will roll over.
+                </span>
+                <span className="font-bold">Next renewal: {new Date(rollover.effectivePaidStartDate).toLocaleDateString()}</span>
+              </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full font-bold transition-colors cursor-pointer shadow-xs"
-          >
-            Close
-          </button>
+              {/* Quick Fill Test Cards */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Interactive Test Cards (Stripe Sandbox):
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCardNumber('4242 4242 4242 4242');
+                      setErrorMessage(null);
+                    }}
+                    className="text-xs px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-300 font-semibold hover:bg-emerald-100 cursor-pointer"
+                  >
+                    🟢 4242 (Success Payment)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCardNumber('4000 0000 0000 0002');
+                      setErrorMessage(null);
+                    }}
+                    className="text-xs px-2.5 py-1 rounded-lg bg-red-50 text-red-800 border border-red-300 font-semibold hover:bg-red-100 cursor-pointer"
+                  >
+                    🔴 4002 (Card Declined)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCardNumber('4000 0000 0000 0069');
+                      setErrorMessage(null);
+                    }}
+                    className="text-xs px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-300 font-semibold hover:bg-amber-100 cursor-pointer"
+                  >
+                    🟡 0069 (Expired Card)
+                  </button>
+                </div>
+              </div>
+
+              {/* Form Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Card Number</label>
+                  <input
+                    type="text"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value)}
+                    className="w-full text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Exp (MM/YY)</label>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      value={expMonth}
+                      onChange={(e) => setExpMonth(e.target.value)}
+                      className="w-1/2 text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-xl text-center"
+                    />
+                    <input
+                      type="text"
+                      value={expYear}
+                      onChange={(e) => setExpYear(e.target.value)}
+                      className="w-1/2 text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-xl text-center"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">CVC / ZIP</label>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      value={cvc}
+                      onChange={(e) => setCvc(e.target.value)}
+                      className="w-1/2 text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-xl text-center"
+                    />
+                    <input
+                      type="text"
+                      value={postalCode}
+                      onChange={(e) => setPostalCode(e.target.value)}
+                      className="w-1/2 text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-xl text-center"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {errorMessage && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
+              <button
+                type="button"
+                disabled={isProcessing}
+                onClick={handleExecuteSandboxPayment}
+                className="w-full py-3 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+              >
+                {isProcessing ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Processing Stripe Sandbox Transaction...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>
+                      Authorize ${selectedInterval === 'annual' ? currentTierInfo.annualPrice : currentTierInfo.monthlyPrice}.00 (Test Relay)
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Paid Invoice Receipt Preview */}
+          {successReceipt && (
+            <div className="bg-slate-900 text-emerald-400 p-5 rounded-2xl font-mono text-xs space-y-3 shadow-inner">
+              <div className="flex items-center justify-between text-white border-b border-slate-800 pb-2">
+                <span className="font-bold flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  Payment Succeeded • Sandbox Webhook Dispatched
+                </span>
+                <button
+                  type="button"
+                  onClick={downloadReceipt}
+                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1.5 font-sans font-bold text-xs cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download Invoice Receipt</span>
+                </button>
+              </div>
+              <pre className="whitespace-pre-wrap leading-relaxed text-[11px] overflow-x-auto">
+                {successReceipt}
+              </pre>
+            </div>
+          )}
         </div>
       </div>
     </div>

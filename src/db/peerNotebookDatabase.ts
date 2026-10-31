@@ -21,7 +21,7 @@ export interface Organization {
   allocatedMonthlyUnits?: number;
 }
 
-export type UserRole = 'peer_specialist' | 'supervisor' | 'admin' | 'compliance_officer';
+export type UserRole = 'peer_specialist' | 'supervisor' | 'admin' | 'compliance_officer' | 'super_admin';
 export type AccountType = 'agency_cbo' | 'solo_1099';
 export type EmploymentType = 'w2_employee' | '1099_contractor';
 export type SubscriptionStatus = 'trialing' | 'active' | 'active_subscriber' | 'past_due' | 'canceled' | 'incomplete' | 'unpaid';
@@ -265,30 +265,100 @@ class PeerNotebookDBManager {
       await dexieDB.organizations.put(defaultOrg);
     }
 
-    // 3. Initialize default specialist account if not present
+    // 3. Initialize default specialist, supervisor, admin, and super-admin accounts if not present
     const userCount = await dexieDB.users.count();
     if (userCount === 0) {
-      const defaultUser: User = {
-        id: 'user-cpss-01',
-        organizationId: 'org-calaim-01',
-        email: 'specialist@peernotebook.com',
-        fullName: 'Alex Rivera, CPSS-CA',
-        credentialTitle: 'Certified Peer Support Specialist (CPSS-CA)',
-        licenseNumber: 'CA-CPSS-2024-9182',
-        npi: '1487293810',
-        role: 'peer_specialist',
-        isActive: true,
-        isContractor1099: false,
-        hourlyContractRate: 45,
-        mileageReimbursementRate: 0.67,
-        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-        subscriptionStatus: 'trialing',
-        subscriptionTier: 'founding_specialist',
-        billingInterval: 'monthly',
-        currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-        cancelAtPeriodEnd: false
-      };
-      await dexieDB.users.put(defaultUser);
+      const now = Date.now();
+      const trialEndsAt = new Date(now + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+      const defaultUsers: User[] = [
+        {
+          id: 'user-superadmin-01',
+          organizationId: 'org-calaim-01',
+          email: 'engineering@peernotebook.com',
+          fullName: 'Principal Systems Architect & Lead Engineer',
+          credentialTitle: 'Principal Healthcare Systems Architect & Compliance Officer',
+          licenseNumber: 'CA-ARCH-2026-0001',
+          npi: '1999888777',
+          role: 'super_admin',
+          isActive: true,
+          isContractor1099: false,
+          hourlyContractRate: 150,
+          mileageReimbursementRate: 0.67,
+          trialEndsAt,
+          subscriptionStatus: 'active_subscriber',
+          subscriptionTier: 'agency_unlimited',
+          billingInterval: 'annual',
+          currentPeriodEnd: new Date(now + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          cancelAtPeriodEnd: false
+        },
+        {
+          id: 'user-admin-01',
+          organizationId: 'org-calaim-01',
+          email: 'admin@bayareapeer.org',
+          fullName: 'Marcus Vance, MSW (Agency Director)',
+          credentialTitle: 'CBO Program Director & CalAIM Billing Lead',
+          licenseNumber: 'CA-MSW-2022-8192',
+          npi: '1729103920',
+          role: 'admin',
+          isActive: true,
+          isContractor1099: false,
+          hourlyContractRate: 65,
+          mileageReimbursementRate: 0.67,
+          trialEndsAt,
+          subscriptionStatus: 'active_subscriber',
+          subscriptionTier: 'agency_unlimited',
+          billingInterval: 'monthly',
+          currentPeriodEnd: trialEndsAt,
+          cancelAtPeriodEnd: false
+        },
+        {
+          id: 'user-supervisor-01',
+          organizationId: 'org-calaim-01',
+          email: 'supervisor@bayareapeer.org',
+          fullName: 'Dr. Sarah Chen, LCSW',
+          credentialTitle: 'Licensed Clinical Social Worker & Certified Peer Supervisor',
+          licenseNumber: 'CA-LCSW-2018-4912',
+          npi: '1628192039',
+          role: 'supervisor',
+          isActive: true,
+          isContractor1099: false,
+          hourlyContractRate: 75,
+          mileageReimbursementRate: 0.67,
+          trialEndsAt,
+          subscriptionStatus: 'active_subscriber',
+          subscriptionTier: 'agency_unlimited',
+          billingInterval: 'monthly',
+          currentPeriodEnd: trialEndsAt,
+          cancelAtPeriodEnd: false
+        },
+        {
+          id: 'user-cpss-01',
+          organizationId: 'org-calaim-01',
+          email: 'specialist@peernotebook.com',
+          fullName: 'Alex Rivera, CPSS-CA',
+          credentialTitle: 'Certified Peer Support Specialist (CPSS-CA)',
+          licenseNumber: 'CA-CPSS-2024-9182',
+          npi: '1487293810',
+          role: 'peer_specialist',
+          isActive: true,
+          isContractor1099: true,
+          contractAgencyName: 'Bay Area Peer Recovery Collaborative',
+          contractorTaxId: 'EIN-94-3891029',
+          hourlyContractRate: 48,
+          mileageReimbursementRate: 0.67,
+          trialEndsAt,
+          subscriptionStatus: 'trialing',
+          subscriptionTier: 'solo_1099_pro',
+          billingInterval: 'monthly',
+          currentPeriodEnd: trialEndsAt,
+          cancelAtPeriodEnd: false
+        }
+      ];
+
+      for (const u of defaultUsers) {
+        await dexieDB.users.put(u);
+      }
     }
 
     // Zero mock clients and zero mock notes seeded: Clean Slate GA #8 Production Standard

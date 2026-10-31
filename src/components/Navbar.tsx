@@ -33,7 +33,7 @@ import { OrgSelect } from './OrgSelect';
 import { InteractiveChecklistWidget } from './InteractiveChecklistWidget';
 
 export interface NavbarProps {
-  switchView: (view: 'landing' | 'workspace' | 'docs' | 'trust', docSlug?: string) => void;
+  switchView: (view: 'landing' | 'workspace' | 'docs' | 'trust' | 'sandbox', docSlug?: string) => void;
   onOpenOnboarding: () => void;
   onOpenOutreach: () => void;
   onOpenAuthModal: () => void;
@@ -55,12 +55,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
 
-  // Explicit label: Replaces any legacy 'Specialist' label with 'Login'
   const getAuthButtonLabel = () => {
     if (!currentUser) return 'Login';
+    if (currentUser.role === 'super_admin') return 'Super Admin';
     if (currentUser.role === 'admin') return 'Admin';
     if (currentUser.role === 'supervisor') return 'Supervisor';
-    return 'Login';
+    return 'Specialist';
   };
 
   return (
@@ -97,14 +97,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           <nav className="hidden lg:flex items-center gap-3">
             <button
               onClick={() => switchView('landing')}
-              className="min-h-[48px] px-6 py-3.5 rounded-full bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-colors cursor-pointer shadow-xs"
+              className="min-h-[48px] px-5 py-3.5 rounded-full bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-colors cursor-pointer shadow-xs"
             >
               <Globe className="w-4 h-4 text-teal-300" />
               <span>Landing &amp; Checklist</span>
             </button>
             <button
+              onClick={() => switchView('sandbox')}
+              className="min-h-[48px] px-5 py-3.5 rounded-full bg-[#0F766E]/90 hover:bg-[#0F766E] text-white border border-teal-400/60 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-colors cursor-pointer shadow-xs"
+              title="Frictionless 1099 Contractor Note Sandbox (No Login Required)"
+            >
+              <Sparkles className="w-4 h-4 text-teal-200" />
+              <span>Free Sandbox (1099)</span>
+            </button>
+            <button
               onClick={() => switchView('docs')}
-              className="min-h-[48px] px-6 py-3.5 rounded-full bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-colors cursor-pointer shadow-xs"
+              className="min-h-[48px] px-5 py-3.5 rounded-full bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/60 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-colors cursor-pointer shadow-xs"
             >
               <BookOpen className="w-4 h-4 text-teal-300" />
               <span>Docs Hub (27)</span>

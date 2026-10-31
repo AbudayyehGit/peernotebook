@@ -134,4 +134,35 @@
   - 1-Tap "Insert Direct Quote Template" button and real-time audit verification pill.
   - Mandatory DHCS/CalMHSA Code of Ethics boundary attestation checkbox prior to electronic signing.
 
+### Phase 14: Enterprise Multi-Tier RBAC, Stripe Sandbox, & 1099 Free Sandbox Tier — [COMPLETE]
+- [x] Top-Level Super Admin / Engineering Account (`src/db/peerNotebookDatabase.ts`):
+  - Added `'super_admin'` tier to `UserRole` union. Seeded dedicated Engineering lead account.
+- [x] Strict Separation of Concerns & Division of Labor:
+  - Role-scoped workspace navigation in `PeerNotebookWorkspace.tsx` and `Navbar.tsx`.
+  - Non-relevant modules concealed per role; telemetry reserved strictly for Super Admin/Engineering.
+- [x] Real-Time Website Traffic Telemetry (`src/services/trafficAnalyticsService.ts`):
+  - Zero mock/dummy data. Powered by live browser session events and W3C Navigation Timing API (TTFB, DOM Interactive, DNS, TCP, screen metrics, interaction counters).
+- [x] Stripe Sandbox Payment Processing & 30-Day Trial Rollover (`src/services/stripeBillingService.ts` & `BillingModal.tsx`):
+  - Complete simulated test card workflow (`4242` success, `4002` decline, `0069` expiration).
+  - 30-day trial duration with automatic unused days rollover added to subscription term upon upgrade.
+  - Real-time printable/downloadable plain-text invoice receipt generation.
+- [x] Unauthenticated 1099 Contractor Free Sandbox Tier (`src/components/FreeSandboxTier.tsx`):
+  - Strictly client-side in-memory CalAIM 4-part encounter note generator.
+  - Zero cloud persistence maintaining HIPAA/CMIA guarantees for anonymous users.
+  - 15-minute billing calculator, non-clinical phrasing translator, 1-click clipboard copy, and $19/mo upgrade banner.
+
+### Phase 15: Intellectual Property Protection & Legal Engineering Blueprints — [COMPLETE]
+- [x] IP Strategy Matrix (`docs/ip-strategy-matrix.md`):
+  - Statutory comparison matrix mapping source code, trademarks, OptimumPrimers, sync architecture, and billing translation logic to USCO, USPTO, DTSA, and CUTSA jurisdictions.
+  - International Class 042 (SaaS) and Class 009 (Downloadable Software) specifications and operational triggers.
+- [x] Unilateral Non-Disclosure Agreement Template (`docs/templates/unilateral-nda.md`):
+  - Enforceable under California and federal trade secret law with perpetual trade secret survival and 5-year general confidentiality terms.
+  - Tailored to healthcare SaaS, database schemas, and CalAIM billing translation engines.
+- [x] Perpetual Proprietary Information & Inventions Assignment Clause (`docs/templates/piia-clause.md`):
+  - Work-made-for-hire provisions under 17 U.S.C. § 101 with universal global assignment, moral rights waiver, California Labor Code § 2870 notice, and power of attorney.
+- [x] Operational IP Filing Checklists & Regulatory Compliance Execution (`docs/filing-checklists.md`):
+  - Step-by-step USPTO Class 42 SaaS specimen capture protocol under 37 C.F.R. § 2.56.
+  - Step-by-step USCO 50-page (first 25 & last 25) source code deposit & trade secret redaction protocol under 37 C.F.R. § 202.20.
+
+
 

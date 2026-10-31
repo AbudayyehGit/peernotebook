@@ -66,7 +66,17 @@ interface PeerNotebookWorkspaceProps {
 }
 
 export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ onReplayTutorial }) => {
-  const { currentOrg, currentUser, canApproveNotes, canManageAgency, role } = useAuth();
+  const {
+    currentOrg,
+    currentUser,
+    canApproveNotes,
+    canManageAgency,
+    canViewAuditLogs,
+    canAccessTelemetry,
+    canSignNotes,
+    isSuperAdmin,
+    role
+  } = useAuth();
   const { isPrivacyMode, maskName } = usePrivacyMode();
 
   // Parse route from window.location.pathname, search query, hash, or localStorage
@@ -412,28 +422,18 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       icon: FileText,
       badge: notes.length > 0 ? notes.length : null
     },
-    {
-      id: 'goalpath' as WorkspaceTab,
-      label: 'GoalPath™ Domains',
-      shortLabel: 'GoalPath',
-      icon: Target,
-      badge: null
-    },
-    {
-      id: 'curriculum' as WorkspaceTab,
-      label: 'Curriculum & STAR Lab',
-      shortLabel: 'Curriculum',
-      icon: GraduationCap,
-      badge: null
-    },
-    {
-      id: 'new_note' as WorkspaceTab,
-      label: 'New CalAIM Note',
-      shortLabel: 'Log Note',
-      icon: Plus,
-      badge: null,
-      isPrimary: true
-    },
+    ...((canSignNotes || isSuperAdmin)
+      ? [
+          {
+            id: 'new_note' as WorkspaceTab,
+            label: 'New CalAIM Note',
+            shortLabel: 'Log Note',
+            icon: Plus,
+            badge: null,
+            isPrimary: true
+          }
+        ]
+      : []),
     ...(canApproveNotes
       ? [
           {
@@ -446,27 +446,24 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
           }
         ]
       : []),
-    {
-      id: 'audit' as WorkspaceTab,
-      label: 'HIPAA Audit Trail',
-      shortLabel: 'Audit',
-      icon: History,
-      badge: null
-    },
-    {
-      id: 'architecture' as WorkspaceTab,
-      label: 'GA #8 White Papers',
-      shortLabel: 'Docs',
-      icon: BookOpen,
-      badge: null
-    },
-    {
-      id: 'settings' as WorkspaceTab,
-      label: 'Settings & BAA',
-      shortLabel: 'Settings',
-      icon: Settings,
-      badge: null
-    },
+    ...((role === 'peer_specialist' || role === 'supervisor' || isSuperAdmin)
+      ? [
+          {
+            id: 'goalpath' as WorkspaceTab,
+            label: 'GoalPath™ Domains',
+            shortLabel: 'GoalPath',
+            icon: Target,
+            badge: null
+          },
+          {
+            id: 'curriculum' as WorkspaceTab,
+            label: 'Curriculum & STAR Lab',
+            shortLabel: 'Curriculum',
+            icon: GraduationCap,
+            badge: null
+          }
+        ]
+      : []),
     ...(canManageAgency
       ? [
           {
@@ -485,13 +482,42 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
           }
         ]
       : []),
+    ...(canViewAuditLogs
+      ? [
+          {
+            id: 'audit' as WorkspaceTab,
+            label: 'HIPAA Audit Trail',
+            shortLabel: 'Audit',
+            icon: History,
+            badge: null
+          }
+        ]
+      : []),
     {
-      id: 'telemetry' as WorkspaceTab,
-      label: 'Engineering Telemetry',
-      shortLabel: 'Telemetry',
-      icon: Activity,
+      id: 'architecture' as WorkspaceTab,
+      label: 'GA #8 White Papers',
+      shortLabel: 'Docs',
+      icon: BookOpen,
       badge: null
-    }
+    },
+    {
+      id: 'settings' as WorkspaceTab,
+      label: 'Settings & BAA',
+      shortLabel: 'Settings',
+      icon: Settings,
+      badge: null
+    },
+    ...(canAccessTelemetry
+      ? [
+          {
+            id: 'telemetry' as WorkspaceTab,
+            label: 'Engineering Telemetry',
+            shortLabel: 'Telemetry',
+            icon: Activity,
+            badge: null
+          }
+        ]
+      : [])
   ];
 
   const currentActiveItem = navItems.find((item) => item.id === activeTab) || navItems[0];

@@ -50,6 +50,8 @@ interface AuthContextType {
   canApproveNotes: boolean;
   canViewAuditLogs: boolean;
   canManageAgency: boolean;
+  canAccessTelemetry: boolean;
+  isSuperAdmin: boolean;
   logout: () => void;
   isLoading: boolean;
 }
@@ -86,11 +88,11 @@ export const DEFAULT_FALLBACK_USER: User = {
   contractAgencyName: 'Bay Area Peer Recovery Collaborative',
   hourlyContractRate: 48,
   mileageReimbursementRate: 0.67,
-  trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+  trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
   subscriptionStatus: 'trialing',
   subscriptionTier: 'founding_specialist',
   billingInterval: 'monthly',
-  currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+  currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
   cancelAtPeriodEnd: false
 };
 
@@ -492,21 +494,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const canSignNotes = role === 'peer_specialist' || role === 'supervisor';
-  const canApproveNotes = role === 'supervisor' || role === 'admin';
-  const canViewAuditLogs = role === 'admin' || role === 'supervisor' || role === 'compliance_officer';
-  const canManageAgency = role === 'admin';
+  const isSuperAdmin = role === 'super_admin';
+  const canSignNotes = role === 'peer_specialist';
+  const canApproveNotes = role === 'supervisor' || role === 'super_admin';
+  const canViewAuditLogs = role === 'admin' || role === 'supervisor' || role === 'compliance_officer' || role === 'super_admin';
+  const canManageAgency = role === 'admin' || role === 'super_admin';
+  const canAccessTelemetry = role === 'super_admin';
   const isContractor1099 = Boolean(currentUser?.isContractor1099);
   // Peer Specialists are restricted to their personal clients and notes per HIPAA minimum necessary & RLS
   const isRestrictedToOwnData = role === 'peer_specialist';
 
-  // Stripe Subscription & 14-Day Free Trial Gating Calculations
-  const trialEndsTimestamp = currentUser?.trialEndsAt ? new Date(currentUser.trialEndsAt).getTime() : Date.now() + 14 * 24 * 60 * 60 * 1000;
+  // Stripe Subscription & 30-Day Free Trial Gating Calculations
+  const trialEndsTimestamp = currentUser?.trialEndsAt ? new Date(currentUser.trialEndsAt).getTime() : Date.now() + 30 * 24 * 60 * 60 * 1000;
   const nowTimestamp = Date.now();
   const trialDaysRemaining = Math.max(0, Math.ceil((trialEndsTimestamp - nowTimestamp) / (24 * 60 * 60 * 1000)));
   const isTrialActive = (currentUser?.subscriptionStatus === 'trialing' || !currentUser?.subscriptionStatus) && trialDaysRemaining > 0;
   const isSubscriptionActive = currentUser?.subscriptionStatus === 'active' || currentUser?.subscriptionStatus === 'active_subscriber';
-  const hasActiveAccess = currentUser ? (isTrialActive || isSubscriptionActive || role === 'admin') : false;
+  const hasActiveAccess = currentUser ? (isTrialActive || isSubscriptionActive || role === 'admin' || role === 'super_admin') : false;
 
   return (
     <AuthContext.Provider
@@ -537,6 +541,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         canApproveNotes,
         canViewAuditLogs,
         canManageAgency,
+        canAccessTelemetry,
+        isSuperAdmin,
         logout,
         isLoading
       }}
@@ -576,6 +582,8 @@ export const useAuth = (): AuthContextType => {
       canApproveNotes: false,
       canViewAuditLogs: false,
       canManageAgency: false,
+      canAccessTelemetry: false,
+      isSuperAdmin: false,
       logout: () => {},
       isLoading: false
     };
