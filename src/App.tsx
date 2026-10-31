@@ -25,6 +25,7 @@ import { AuthModal } from './components/AuthModal';
 import { Navbar } from './components/Navbar';
 import { SubscriptionStatusBadge } from './components/SubscriptionStatusBadge';
 import { BillingModal } from './components/BillingModal';
+import { ToastNotification } from './components/ui/ToastNotification';
 import { HeartHandshake, Sparkles, Globe, Mail, BookOpen, Eye, EyeOff, Lock, UserCheck } from 'lucide-react';
 import { safeStorage } from './utils/safeStorage';
 
@@ -285,6 +286,9 @@ function AppContent() {
 
       {/* HIPAA & CMIA Privacy Consent Disclosure */}
       <PrivacyConsentBanner />
+
+      {/* Global Toast Notification & Delivery Feedback System */}
+      <ToastNotification />
     </div>
   );
 }

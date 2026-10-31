@@ -157,6 +157,34 @@ async function runEmailTriggerTests() {
     assert(false, 'Brevo REST API Tests Exception', String(err));
   }
 
+  // --- TEST 6: Centralized Validation Utility & BREVO_SMTP_HOST Connectivity ---
+  console.log('\n--- Step 6: Testing Centralized Email Pipeline Audit & Host Connectivity ---');
+  try {
+    const {
+      verifyBrevoSmtpHostConnectivity,
+      validateEmailPipelineHooks,
+      formatFrontendToastFeedback
+    } = await import('../api/email-pipeline-audit.ts');
+
+    const hostConn = await verifyBrevoSmtpHostConnectivity();
+    assert(Boolean(hostConn.host), 'Host Connectivity: BREVO_SMTP_HOST defined', hostConn.host);
+    assert(hostConn.port === 587, 'Host Connectivity: Port 587 configured', String(hostConn.port));
+    assert(hostConn.dnsResolved === true, 'Host Connectivity: DNS resolution succeeded', hostConn.ipAddresses.join(', '));
+    assert(hostConn.latencyMs >= 0, 'Host Connectivity: Round-trip latency measured', `${hostConn.latencyMs}ms`);
+
+    const hooksAudit = await validateEmailPipelineHooks({ maxRetries: 1 });
+    assert(hooksAudit.hooksTestedCount >= 5, 'Centralized Hooks: Iterated through registration & lead dispatch hooks', `${hooksAudit.hooksTestedCount} hooks audited`);
+    assert(Array.isArray(hooksAudit.hooks) && hooksAudit.hooks.length > 0, 'Centralized Hooks: Returned structured hook results');
+    assert(Array.isArray(hooksAudit.toastQueue), 'Centralized Hooks: Toast feedback queue populated for frontend display');
+
+    const sampleToast = formatFrontendToastFeedback('Test Hook', new Error('Transient 421 Service Unavailable'), 421);
+    assert(sampleToast.shouldDisplay === true, 'Toast Feedback: Error forces frontend toast display');
+    assert(sampleToast.type === 'warning', 'Toast Feedback: Transient 421 categorized as warning');
+    assert(Boolean(sampleToast.userGuidance), 'Toast Feedback: Actionable plain-English guidance included', sampleToast.userGuidance);
+  } catch (err) {
+    assert(false, 'Centralized Validation Utility Exception', String(err));
+  }
+
   console.log('\n----------------------------------------------------------------');
   console.log(`TOTAL: ${passedTests}/${totalTests} EMAIL TRIGGER TESTS PASSED`);
   console.log('----------------------------------------------------------------\n');

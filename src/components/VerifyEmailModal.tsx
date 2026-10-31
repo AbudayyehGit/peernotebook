@@ -17,6 +17,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { UserRole } from '../db/peerNotebookDatabase';
+import { toastService } from '../services/toastService';
 
 interface VerifyEmailModalProps {
   isOpen: boolean;
@@ -91,12 +92,16 @@ export const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
           setSimulatedCode(data.simulatedCode);
         }
         setResendCooldown(60);
+        toastService.success('PIN Dispatched', `6-digit security PIN sent to ${email}`);
       } else {
-        setErrorMessage(data.error || 'Failed to dispatch verification email. Please try again.');
+        const errorText = data.error || 'Failed to dispatch verification email. Please try again.';
+        setErrorMessage(errorText);
+        toastService.error('PIN Delivery Failure', errorText, data.details, data.smtpCode);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorMessage(msg || 'Network error triggering verification email.');
+      toastService.error('Verification Network Error', 'Could not connect to verification server. Please verify your connection.', msg);
     } finally {
       setIsSendingCode(false);
     }
