@@ -138,6 +138,9 @@ export const BillingModal: React.FC<BillingModalProps> = ({
         const trialEndsAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
         await updateUserBilling({
           subscriptionStatus: 'trialing',
+          subscriptionTier: selectedTier || 'founding_specialist',
+          stripeCustomerId: currentUser?.stripeCustomerId || `cus_sim_${Date.now()}`,
+          stripeSubscriptionId: currentUser?.stripeSubscriptionId || `sub_sim_${Date.now()}`,
           trialEndsAt,
           currentPeriodEnd: trialEndsAt,
           cancelAtPeriodEnd: false
@@ -146,12 +149,20 @@ export const BillingModal: React.FC<BillingModalProps> = ({
       } else if (state === 'past_due') {
         await updateUserBilling({
           subscriptionStatus: 'past_due',
+          subscriptionTier: selectedTier || 'founding_specialist',
+          stripeCustomerId: currentUser?.stripeCustomerId || `cus_sim_${Date.now()}`,
+          stripeSubscriptionId: currentUser?.stripeSubscriptionId || `sub_sim_${Date.now()}`,
+          currentPeriodEnd: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
           cancelAtPeriodEnd: false
         });
         setSuccessMessage('Simulated state: past_due (Payment retry banner enabled)');
       } else if (state === 'canceled') {
         await updateUserBilling({
           subscriptionStatus: 'canceled',
+          subscriptionTier: selectedTier || 'founding_specialist',
+          stripeCustomerId: currentUser?.stripeCustomerId || `cus_sim_${Date.now()}`,
+          stripeSubscriptionId: currentUser?.stripeSubscriptionId || `sub_sim_${Date.now()}`,
+          currentPeriodEnd: now.toISOString(),
           cancelAtPeriodEnd: true
         });
         setSuccessMessage('Simulated state: canceled (Subscription ended, offline read/export active)');

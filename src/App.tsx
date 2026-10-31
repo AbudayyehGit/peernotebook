@@ -210,7 +210,7 @@ function AppContent() {
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-slate-600 px-4">
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="w-9 h-9 border-3 border-[#0F766E] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-mono font-medium text-slate-600">Initializing Dexie.js Persistence Engine...</p>
+          <p className="text-xs font-mono font-medium text-slate-600">Initializing Offline Persistence Engine...</p>
         </div>
       </div>
     );

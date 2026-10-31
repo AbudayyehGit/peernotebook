@@ -68,7 +68,7 @@ export const GA8EngineeringStatusBadges: React.FC = () => {
       id: 'GA8-PERSIST',
       name: 'Dual-Layer Store',
       category: 'Persistence',
-      label: 'Persistence: Dexie.js + Supabase',
+      label: 'Persistence: Offline-First + Cloud Sync',
       status: 'active',
       badgeColorClass: 'bg-emerald-50 border-emerald-200',
       textColorClass: 'text-emerald-800',

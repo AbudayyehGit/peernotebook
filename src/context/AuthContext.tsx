@@ -122,21 +122,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
-    // Zero Persistent Auth on Start: enforce clean slate upon app initialization
-    signOutUser().catch(() => {});
-    safeStorage.removeItem('peernotebook_active_user_id');
+    // Zero Persistent Auth on Start / Auto-Logout on Close: clear local auth tokens & active session
+    const handleSessionDestruction = () => {
+      safeStorage.removeItem('peernotebook_active_user_id');
+      safeStorage.removeItem('peernotebook_active_org_id');
+      try {
+        if (typeof window !== 'undefined') {
+          window.sessionStorage?.clear();
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const key = window.localStorage.key(i);
+            if (key && (key.startsWith('sb-') || key.includes('auth-token') || key.startsWith('supabase.'))) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach((k) => window.localStorage.removeItem(k));
+        }
+      } catch {
+        // Safe storage destruction
+      }
+      signOutUser().catch(() => {});
+    };
+
+    // Clean slate on initialization
+    handleSessionDestruction();
 
     const initializeAuth = async () => {
       await refreshUsersAndOrgs();
     };
 
     initializeAuth();
-
-    // Auto-Logout on Close / Tab Termination: clear local auth tokens and active session states
-    const handleSessionDestruction = () => {
-      safeStorage.removeItem('peernotebook_active_user_id');
-      signOutUser().catch(() => {});
-    };
 
     window.addEventListener('beforeunload', handleSessionDestruction);
     window.addEventListener('pagehide', handleSessionDestruction);
