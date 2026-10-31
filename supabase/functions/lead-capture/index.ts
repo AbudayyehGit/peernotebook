@@ -106,7 +106,7 @@ serve(async (req: Request) => {
     const cleanedCounty = county || "California";
     const isBeta = Boolean(wantsBetaCohort);
 
-    const brevoApiKey = Deno.env.get("BREVO_API_KEY") || Deno.env.get("BREVO_SMTP_PASS");
+    const brevoApiKey = Deno.env.get("BREVO_API_KEY") || "";
     const supportEmail = Deno.env.get("SUPPORT_EMAIL") || "support@peernotebook.com";
     const adminInbox = Deno.env.get("ADMIN_INBOX") || "joeabudayyeh@gmail.com";
 
@@ -124,21 +124,22 @@ serve(async (req: Request) => {
     let provider = "simulated-brevo";
     let messageId = `<sim_${Date.now()}@smtp-relay.brevo.com>`;
 
-    // If Brevo API key is available in Deno environment, dispatch via Brevo REST API v3
+    // Dispatch via Brevo REST API v3 using fetch() against https://api.brevo.com/v3/smtp/email
     if (brevoApiKey && brevoApiKey.startsWith("xkeysib-")) {
       try {
+        console.log(`[EDGE_LEAD_CAPTURE] Dispatching tabular lead capture via Brevo REST API to ${adminInbox} and ${supportEmail}...`);
         const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
           method: "POST",
           headers: {
-            "api-key": brevoApiKey,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": brevoApiKey
           },
           body: JSON.stringify({
             sender: { name: "Peer Notebook", email: "support@peernotebook.com" },
             to: [
-              { email: supportEmail, name: "Peer Notebook Support" },
-              { email: adminInbox, name: "Lead Admin" }
+              { email: adminInbox, name: "Joe Abudayyeh" },
+              { email: supportEmail, name: "Peer Notebook Support" }
             ],
             replyTo: { name: "Peer Notebook Support", email: "support@peernotebook.com" },
             subject: `[Lead Alert] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
@@ -146,14 +147,45 @@ serve(async (req: Request) => {
           })
         });
 
+        const resText = await brevoRes.text();
+        let resJson: any = {};
+        try {
+          resJson = JSON.parse(resText);
+        } catch {
+          resJson = { message: resText };
+        }
+
         if (brevoRes.ok) {
-          const resJson = await brevoRes.json();
           deliveryStatus = "delivered";
-          provider = "brevo";
+          provider = "brevo-rest-api";
           messageId = resJson.messageId || messageId;
+          console.log(`[EDGE_LEAD_CAPTURE_SUCCESS] Lead alert delivered via Brevo REST API. Message ID: ${messageId}`);
+
+          // Also dispatch welcome packet to registrant
+          try {
+            await fetch("https://api.brevo.com/v3/smtp/email", {
+              method: "POST",
+              headers: {
+                "accept": "application/json",
+                "content-type": "application/json",
+                "api-key": brevoApiKey
+              },
+              body: JSON.stringify({
+                sender: { name: "Peer Notebook", email: "support@peernotebook.com" },
+                to: [{ email: cleanedEmail, name: cleanedName }],
+                replyTo: { name: "Peer Notebook Support", email: "support@peernotebook.com" },
+                subject: "Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome",
+                htmlContent: `<div style="font-family:sans-serif;padding:24px;"><h2>Welcome to Peer Notebook</h2><p>Hi ${cleanedName}, thank you for joining our California pilot cohort! Your CalAIM H0038 checklist is active in your workspace.</p><p><a href="https://peernotebook.com">Open Workspace &rarr;</a></p></div>`
+              })
+            });
+          } catch (userDispatchErr) {
+            console.warn("[EDGE_LEAD_CAPTURE_USER_DEFERRED] User checklist dispatch error:", userDispatchErr);
+          }
+        } else {
+          console.error(`[EDGE_LEAD_CAPTURE_ERROR] Brevo REST API returned HTTP ${brevoRes.status}:`, resJson);
         }
       } catch (brevoErr) {
-        console.warn("[EDGE_LEAD_CAPTURE] Brevo dispatch attempt error:", brevoErr);
+        console.error("[EDGE_LEAD_CAPTURE_EXCEPTION] Network exception reaching Brevo REST API:", brevoErr);
       }
     }
 

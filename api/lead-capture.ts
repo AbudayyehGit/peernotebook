@@ -10,6 +10,8 @@
 import { ResendMailService } from '../src/lib/resendClient.ts';
 import { BrevoMailService } from '../src/lib/brevoClient.ts';
 import { BrevoSmtpService, type LeadCaptureRecord } from './brevoSmtpService.ts';
+import { BrevoRestService, type LeadCaptureData } from './brevoRestService.ts';
+
 
 export const config = {
   runtime: 'nodejs'
@@ -31,7 +33,7 @@ export function generateSupportAlertHtml(data: {
   isBeta: boolean;
   timestamp: string;
 }): string {
-  return BrevoSmtpService.generateTabularLeadSummaryHtml({
+  return BrevoRestService.generateTabularLeadSummaryHtml({
     name: data.name,
     email: data.email,
     roleTitle: data.role,
@@ -230,11 +232,11 @@ export async function executeLeadCapture(leadData: LeadCapturePayload) {
     console.warn('[LEAD_CAPTURE_SUPABASE_DEFERRED]', err);
   }
 
-  // 2. Dispatch tabular support alert & checklist via Brevo SMTP relay (smtp-relay.brevo.com:587)
+  // 2. Dispatch tabular support alert & checklist via Brevo REST API (https://api.brevo.com/v3/smtp/email)
   let supportDispatch: any;
   let userDispatch: any;
 
-  const leadRecord: LeadCaptureRecord = {
+  const leadRecord: LeadCaptureData = {
     id: leadId,
     name: cleanedName,
     email: cleanedEmail,
@@ -248,58 +250,53 @@ export async function executeLeadCapture(leadData: LeadCapturePayload) {
   };
 
   try {
-    // Primary path: Brevo SMTP relay with formatted tabular summary
-    const { adminResult, userResult } = await BrevoSmtpService.dispatchLeadCaptureNotification(leadRecord);
+    // Primary path: Brevo REST API v3 via fetch() with sender: support@peernotebook.com
+    console.log('[LEAD_CAPTURE] Initiating primary email dispatch via Brevo REST API v3...');
+    const { adminResult, userResult } = await BrevoRestService.dispatchLeadCaptureNotification(leadRecord);
     supportDispatch = adminResult;
     userDispatch = userResult;
-  } catch (smtpDispatchError: unknown) {
-    console.error('[LEAD_CAPTURE_SMTP_ERROR] Brevo SMTP attempt threw exception:', smtpDispatchError);
+  } catch (restDispatchError: unknown) {
+    console.error('[LEAD_CAPTURE_REST_ERROR] Brevo REST API attempt threw exception:', restDispatchError);
 
-    // Fallback path: Brevo REST API or Resend API if configured
-    if (BrevoMailService.getApiKey()) {
-      const sRes = await BrevoMailService.sendTransactionalEmail({
-        to: 'support@peernotebook.com',
-        subject: `[Lead Alert] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
-        html: BrevoSmtpService.generateTabularLeadSummaryHtml(leadRecord),
-        tags: ['lead_alert', 'tabular_summary']
-      });
-      supportDispatch = sRes;
+    // Fallback path 1: Brevo SMTP relay
+    try {
+      console.log('[LEAD_CAPTURE_FALLBACK] Attempting fallback via Brevo SMTP relay...');
+      const { adminResult: smtpAdmin, userResult: smtpUser } = await BrevoSmtpService.dispatchLeadCaptureNotification(leadRecord as any);
+      supportDispatch = smtpAdmin;
+      userDispatch = smtpUser;
+    } catch (smtpErr) {
+      console.error('[LEAD_CAPTURE_SMTP_ERROR] Brevo SMTP fallback also threw exception:', smtpErr);
 
-      const uRes = await BrevoMailService.sendTransactionalEmail({
-        to: cleanedEmail,
-        subject: 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome',
-        html: userChecklistHtml,
-        tags: ['lead_checklist']
-      });
-      userDispatch = uRes;
-    } else if (ResendMailService.getApiKey()) {
-      supportDispatch = await ResendMailService.sendTransactionalEmail({
-        to: 'support@peernotebook.com',
-        subject: `[Lead Alert] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
-        html: BrevoSmtpService.generateTabularLeadSummaryHtml(leadRecord),
-        tags: [{ name: 'flow', value: 'lead_alert' }]
-      });
+      // Fallback path 2: Resend API if configured
+      if (ResendMailService.getApiKey()) {
+        supportDispatch = await ResendMailService.sendTransactionalEmail({
+          to: 'support@peernotebook.com',
+          subject: `[Lead Alert] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
+          html: BrevoRestService.generateTabularLeadSummaryHtml(leadRecord),
+          tags: [{ name: 'flow', value: 'lead_alert' }]
+        });
 
-      userDispatch = await ResendMailService.sendTransactionalEmail({
-        to: cleanedEmail,
-        subject: 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome',
-        html: userChecklistHtml,
-        tags: [{ name: 'flow', value: 'lead_checklist' }]
-      });
-    } else {
-      const simId = `<sim_${Date.now()}_${Math.random().toString(36).substring(2, 8)}@smtp-relay.brevo.com>`;
-      supportDispatch = {
-        success: true,
-        status: 'simulated',
-        provider: 'simulated-brevo',
-        messageId: simId
-      };
-      userDispatch = {
-        success: true,
-        status: 'simulated',
-        provider: 'simulated-brevo',
-        messageId: simId
-      };
+        userDispatch = await ResendMailService.sendTransactionalEmail({
+          to: cleanedEmail,
+          subject: 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome',
+          html: userChecklistHtml,
+          tags: [{ name: 'flow', value: 'lead_checklist' }]
+        });
+      } else {
+        const simId = `<sim_${Date.now()}_${Math.random().toString(36).substring(2, 8)}@brevo.com>`;
+        supportDispatch = {
+          success: true,
+          status: 'simulated',
+          provider: 'simulated-brevo',
+          messageId: simId
+        };
+        userDispatch = {
+          success: true,
+          status: 'simulated',
+          provider: 'simulated-brevo',
+          messageId: simId
+        };
+      }
     }
   }
 
@@ -310,7 +307,7 @@ export async function executeLeadCapture(leadData: LeadCapturePayload) {
       : 'simulated';
 
   return {
-    ok: supportDispatch.success && userDispatch.success,
+    ok: Boolean(supportDispatch.success && userDispatch.success),
     message: 'Lead registration captured and CalAIM H0038 Checklist dispatched successfully.',
     leadId,
     capturedAt: nowIso,
@@ -318,7 +315,7 @@ export async function executeLeadCapture(leadData: LeadCapturePayload) {
     provider: supportDispatch.provider,
     supportNotificationId: supportDispatch.messageId || `msg_support_${Date.now()}`,
     checklistEmailId: userDispatch.messageId || `msg_checklist_${Date.now()}`,
-    targetRecipient: 'support@peernotebook.com',
+    targetRecipient: 'support@peernotebook.com & joeabudayyeh@gmail.com',
     userRecipient: cleanedEmail,
     ...(supportDispatch.error || userDispatch.error ? { emailError: supportDispatch.error || userDispatch.error } : {})
   };

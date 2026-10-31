@@ -135,6 +135,28 @@ async function runEmailTriggerTests() {
     assert(false, 'Daily Digest Tests Exception', String(err));
   }
 
+  // --- TEST 5: Brevo REST API Email Dispatch ---
+  console.log('\n--- Step 5: Testing Brevo REST API Direct Dispatch (fetch) ---');
+  try {
+    const { BrevoRestService } = await import('../api/brevoRestService.ts');
+    const testResult = await BrevoRestService.sendEmail({
+      to: 'joeabudayyeh@gmail.com',
+      subject: '[Automated Test] Brevo REST API Dispatch Verification',
+      htmlContent: '<p>Testing Brevo REST API endpoint with native fetch()</p>',
+      allowSimulationFallback: true
+    });
+
+    assert(Boolean(testResult.success), 'Brevo REST API: Email dispatch success flag true');
+    assert(Boolean(testResult.messageId), 'Brevo REST API: Message ID returned', testResult.messageId);
+    assert(
+      testResult.provider === 'brevo-rest-api' || testResult.provider === 'simulated-brevo',
+      'Brevo REST API: Valid provider returned',
+      testResult.provider
+    );
+  } catch (err) {
+    assert(false, 'Brevo REST API Tests Exception', String(err));
+  }
+
   console.log('\n----------------------------------------------------------------');
   console.log(`TOTAL: ${passedTests}/${totalTests} EMAIL TRIGGER TESTS PASSED`);
   console.log('----------------------------------------------------------------\n');

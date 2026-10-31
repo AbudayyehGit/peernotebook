@@ -22,6 +22,7 @@ import {
   type RetryAttemptLog,
   type SmtpCodeClassification
 } from './brevoSmtpService.ts';
+import { BrevoRestService, type BrevoRestDispatchResult } from './brevoRestService.ts';
 
 export const config = {
   runtime: 'nodejs'
@@ -38,8 +39,11 @@ export type EmailFlowType =
   | 'lead-alert'
   | 'smtp-relay'
   | 'smtp-retry-simulation'
+  | 'brevo-rest-api'
+  | 'brevo-api'
   | 'all'
   | 'suite';
+
 
 export interface TestEmailRequest {
   flow?: EmailFlowType;
@@ -257,9 +261,73 @@ export async function testSmtpRelayFlow(options: {
 }
 
 /**
+ * Direct Brevo REST API v3 Verification Flow
+ * Dispatches via native fetch() to https://api.brevo.com/v3/smtp/email
+ * Headers: { "accept": "application/json", "content-type": "application/json", "api-key": ... }
+ * Sender: { name: "Peer Notebook", email: "support@peernotebook.com" }
+ * Target Inboxes: joeabudayyeh@gmail.com / support@peernotebook.com
+ */
+export async function testBrevoRestApiFlow(options: {
+  to?: string;
+  customMessage?: string;
+}): Promise<SingleFlowResult> {
+  const recipient = (options.to || 'joeabudayyeh@gmail.com').trim();
+  const nowIso = new Date().toISOString();
+  const subject = '[BREVO REST API TEST] Peer Notebook REST Endpoint Handshake';
+
+  console.log(`[TEST_BREVO_REST] Executing Brevo REST API test to ${recipient} and support@peernotebook.com...`);
+
+  const html = generatePingVerificationHtml({
+    to: recipient,
+    timestamp: nowIso,
+    customMessage: options.customMessage || 'Direct Brevo REST API v3 Verification via https://api.brevo.com/v3/smtp/email',
+    provider: 'Brevo REST API v3 (fetch)'
+  });
+
+  const dispatch = await BrevoRestService.sendEmail({
+    to: [
+      { email: recipient, name: 'Joe Abudayyeh' },
+      { email: 'support@peernotebook.com', name: 'Peer Notebook Support' }
+    ],
+    sender: { name: 'Peer Notebook', email: 'support@peernotebook.com' },
+    subject,
+    htmlContent: html,
+    tags: ['brevo_rest_test'],
+    allowSimulationFallback: true
+  });
+
+  return {
+    flow: 'brevo-rest-api',
+    targetRecipient: `${recipient} & support@peernotebook.com`,
+    subject,
+    success: dispatch.success,
+    deliveryStatus: dispatch.status,
+    provider: dispatch.provider,
+    messageId: dispatch.messageId,
+    attemptsCount: 1,
+    suggestedAction: dispatch.error?.suggestion,
+    error: dispatch.error
+      ? {
+          statusCode: dispatch.error.statusCode,
+          code: dispatch.error.code,
+          message: dispatch.error.message,
+          suggestion: dispatch.error.suggestion
+        }
+      : undefined,
+    details: {
+      endpoint: BrevoRestService.ENDPOINT,
+      sender: BrevoRestService.DEFAULT_SENDER,
+      timestamp: dispatch.details.timestamp
+    },
+    previewHtml: html
+  };
+}
+
+/**
  * Execute simulation and delivery testing for registration flow
  */
 export async function testRegistrationFlow(options: {
+
   to: string;
   name?: string;
   roleTitle?: string;
@@ -439,6 +507,13 @@ export async function executeTestEmail(requestData: TestEmailRequest): Promise<T
   const isLiveConfigured = smtpConfigAudit.isValid || resendConfigAudit.configured;
 
   // Single flow handlers
+  if (flowType === 'brevo-rest-api' || flowType === 'brevo-api') {
+    return await testBrevoRestApiFlow({
+      to: targetRecipient,
+      customMessage: requestData.customMessage
+    });
+  }
+
   if (flowType === 'smtp-relay') {
     return await testSmtpRelayFlow({
       to: targetRecipient,
@@ -565,19 +640,21 @@ export async function executeTestEmail(requestData: TestEmailRequest): Promise<T
     };
   }
 
-  // ALL FLOWS SUITE (registration, lead capture, verification, daily digest, smtp-relay)
+  // ALL FLOWS SUITE (registration, lead capture, verification, daily digest, smtp-relay, brevo-rest-api)
   const regResult = await testRegistrationFlow({ to: targetRecipient, name: requestData.name, roleTitle: requestData.roleTitle });
   const leadResult = await testLeadCaptureFlow({ to: targetRecipient, name: requestData.name, county: requestData.county });
   const verifResult = await testVerificationFlow({ to: targetRecipient, name: requestData.name, roleTitle: requestData.roleTitle });
   const digestFlow = await executeTestEmail({ flow: 'daily-digest', to: targetRecipient }) as SingleFlowResult;
   const smtpRelayFlow = await testSmtpRelayFlow({ to: targetRecipient, maxRetries: requestData.maxRetries });
+  const brevoRestFlow = await testBrevoRestApiFlow({ to: targetRecipient, customMessage: 'Suite test dispatch' });
 
   const flowsMap: Record<string, SingleFlowResult> = {
     registration: regResult,
     leadCapture: leadResult,
     verification: verifResult,
     dailyDigest: digestFlow,
-    smtpRelay: smtpRelayFlow
+    smtpRelay: smtpRelayFlow,
+    brevoRestApi: brevoRestFlow
   };
 
   const flowList = Object.values(flowsMap);

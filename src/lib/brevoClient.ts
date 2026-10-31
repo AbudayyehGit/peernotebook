@@ -97,10 +97,10 @@ export interface PipelineAuditReport {
 
 export class BrevoMailService {
   public static readonly DEFAULT_DOMAIN = 'peernotebook.com';
-  public static readonly DEFAULT_SENDER_EMAIL = 'notifications@peernotebook.com';
+  public static readonly DEFAULT_SENDER_EMAIL = 'support@peernotebook.com';
   public static readonly DEFAULT_SENDER_NAME = 'Peer Notebook';
   public static readonly DEFAULT_SUPPORT_EMAIL = 'support@peernotebook.com';
-  public static readonly TARGET_DELIVERY_EMAIL = 'amunrael@gmail.com';
+  public static readonly TARGET_DELIVERY_EMAIL = 'joeabudayyeh@gmail.com';
   public static readonly BREVO_VERIFICATION_CODE = 'brevo-code:65093d763f8a900ca517d990a91bb87f';
 
   private static getEnvVar(name: string): string | null {
@@ -271,9 +271,9 @@ export class BrevoMailService {
     // 2. Live API Dispatch to Brevo API v3
     try {
       const headers: Record<string, string> = {
-        'api-key': apiKey,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'api-key': apiKey
       };
 
       // RFC 5322 & Google 2024 compliance headers
