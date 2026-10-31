@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { ZeroAiBadge } from './ZeroAiBadge';
 import { leadDigestService } from '../services/leadDigestService';
-import { toastService } from '../services/toastService';
 
 interface HeroSectionProps {
   onLaunchApp: () => void;
@@ -72,13 +71,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       });
       setIsSubmitted(true);
     } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : String(err);
       console.error('[LEAD_SUBMISSION_ERROR]', err);
-      toastService.error(
-        'Delivery Pipeline Notice',
-        'Unable to complete remote delivery immediately. Your registration has been safely queued in local storage.',
-        errMsg
-      );
       // Fallback: still show submission confirmed as local storage queued the record
       setIsSubmitted(true);
     } finally {

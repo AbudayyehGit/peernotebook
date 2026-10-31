@@ -96,35 +96,6 @@ export class BrevoRestService {
   }
 
   /**
-   * Validates runtime configuration and credentials for Brevo REST API v3
-   */
-  public static validateConfiguration(): {
-    isValid: boolean;
-    endpoint: string;
-    sender: BrevoSender;
-    hasKey: boolean;
-    maskedKey?: string;
-    details: Record<string, any>;
-  } {
-    const key = this.getApiKey();
-    const hasKey = Boolean(key && key.length > 5 && !key.includes('placeholder'));
-    return {
-      isValid: hasKey,
-      endpoint: this.ENDPOINT,
-      sender: this.DEFAULT_SENDER,
-      hasKey,
-      maskedKey: hasKey ? `${key.substring(0, 8)}...${key.slice(-4)}` : undefined,
-      details: {
-        endpoint: this.ENDPOINT,
-        fromEmail: this.DEFAULT_SENDER.email,
-        fromName: this.DEFAULT_SENDER.name,
-        adminInbox: this.PRIMARY_ADMIN_EMAIL,
-        supportInbox: this.PRIMARY_SUPPORT_EMAIL
-      }
-    };
-  }
-
-  /**
    * Strips HTML markup to generate compliant plain-text alternative
    */
   public static htmlToPlainText(html: string): string {

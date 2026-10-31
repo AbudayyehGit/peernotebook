@@ -9,7 +9,6 @@
 
 import { ResendMailService } from '../src/lib/resendClient.ts';
 import { BrevoMailService } from '../src/lib/brevoClient.ts';
-import { BrevoSmtpService, type LeadCaptureRecord } from './brevoSmtpService.ts';
 import { BrevoRestService, type LeadCaptureData } from './brevoRestService.ts';
 
 
@@ -250,53 +249,44 @@ export async function executeLeadCapture(leadData: LeadCapturePayload) {
   };
 
   try {
-    // Primary path: Brevo REST API v3 via fetch() with sender: support@peernotebook.com
-    console.log('[LEAD_CAPTURE] Initiating primary email dispatch via Brevo REST API v3...');
+    // Primary path: Pure Brevo REST API v3 via fetch() with sender: support@peernotebook.com
+    console.log('[LEAD_CAPTURE] Initiating primary email dispatch via Brevo REST API v3 (pure fetch on https://api.brevo.com/v3/smtp/email)...');
     const { adminResult, userResult } = await BrevoRestService.dispatchLeadCaptureNotification(leadRecord);
     supportDispatch = adminResult;
     userDispatch = userResult;
   } catch (restDispatchError: unknown) {
     console.error('[LEAD_CAPTURE_REST_ERROR] Brevo REST API attempt threw exception:', restDispatchError);
 
-    // Fallback path 1: Brevo SMTP relay
-    try {
-      console.log('[LEAD_CAPTURE_FALLBACK] Attempting fallback via Brevo SMTP relay...');
-      const { adminResult: smtpAdmin, userResult: smtpUser } = await BrevoSmtpService.dispatchLeadCaptureNotification(leadRecord as any);
-      supportDispatch = smtpAdmin;
-      userDispatch = smtpUser;
-    } catch (smtpErr) {
-      console.error('[LEAD_CAPTURE_SMTP_ERROR] Brevo SMTP fallback also threw exception:', smtpErr);
+    // Fallback: Resend API if configured
+    if (ResendMailService.getApiKey()) {
+      console.log('[LEAD_CAPTURE_FALLBACK] Attempting fallback via Resend API...');
+      supportDispatch = await ResendMailService.sendTransactionalEmail({
+        to: 'support@peernotebook.com',
+        subject: `[Lead Alert] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
+        html: BrevoRestService.generateTabularLeadSummaryHtml(leadRecord),
+        tags: [{ name: 'flow', value: 'lead_alert' }]
+      });
 
-      // Fallback path 2: Resend API if configured
-      if (ResendMailService.getApiKey()) {
-        supportDispatch = await ResendMailService.sendTransactionalEmail({
-          to: 'support@peernotebook.com',
-          subject: `[Lead Alert] ${cleanedName} (${cleanedRole}, ${cleanedCounty})`,
-          html: BrevoRestService.generateTabularLeadSummaryHtml(leadRecord),
-          tags: [{ name: 'flow', value: 'lead_alert' }]
-        });
-
-        userDispatch = await ResendMailService.sendTransactionalEmail({
-          to: cleanedEmail,
-          subject: 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome',
-          html: userChecklistHtml,
-          tags: [{ name: 'flow', value: 'lead_checklist' }]
-        });
-      } else {
-        const simId = `<sim_${Date.now()}_${Math.random().toString(36).substring(2, 8)}@brevo.com>`;
-        supportDispatch = {
-          success: true,
-          status: 'simulated',
-          provider: 'simulated-brevo',
-          messageId: simId
-        };
-        userDispatch = {
-          success: true,
-          status: 'simulated',
-          provider: 'simulated-brevo',
-          messageId: simId
-        };
-      }
+      userDispatch = await ResendMailService.sendTransactionalEmail({
+        to: cleanedEmail,
+        subject: 'Your 10-Minute CalAIM H0038 Note Checklist + Peer Notebook Welcome',
+        html: userChecklistHtml,
+        tags: [{ name: 'flow', value: 'lead_checklist' }]
+      });
+    } else {
+      const simId = `<sim_${Date.now()}_${Math.random().toString(36).substring(2, 8)}@brevo.com>`;
+      supportDispatch = {
+        success: true,
+        status: 'simulated',
+        provider: 'simulated-brevo',
+        messageId: simId
+      };
+      userDispatch = {
+        success: true,
+        status: 'simulated',
+        provider: 'simulated-brevo',
+        messageId: simId
+      };
     }
   }
 

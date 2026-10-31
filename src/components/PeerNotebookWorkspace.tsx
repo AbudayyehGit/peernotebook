@@ -162,7 +162,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     try {
       const res = await syncWorker.triggerManualSync();
       await refreshData();
-      setMobileSyncMsg(res.success ? `Synced ${res.syncedCount} item(s)!` : 'Offline - Queued Locally');
+      setMobileSyncMsg(res.success ? `Synced ${res.syncedCount} item(s)!` : 'Offline - Queued in Dexie');
     } catch {
       setMobileSyncMsg('Sync deferred');
     } finally {
@@ -1195,7 +1195,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 </span>
               </div>
               <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#1E3A8A] tracking-tight">
-                {pendingNotesCount} Pending Sign-Off
+                {pendingNotesCount} Notes Pending Sign-Off
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl leading-relaxed">
                 Medi-Cal H0038 billing justification requires explicit golden-thread linkage between client care plan milestones, peer interventions, and measurable recovery responses.
@@ -1225,7 +1225,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 <div className="flex items-center gap-1.5 mt-1">
                   <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse shrink-0" />
                   <span className="text-xs font-bold text-slate-800 truncate">
-                    Encrypted Local Storage
+                    Dexie.js AES-256
                   </span>
                 </div>
               </div>
@@ -1286,7 +1286,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
 
             <div className="hidden md:flex items-center gap-2 text-xs text-slate-500 font-mono">
               <Database className="w-3.5 h-3.5 text-[#0F766E]" />
-              <span>Local Storage ⇄ Secure Cloud</span>
+              <span>Local Dexie ⇄ Supabase RLS</span>
             </div>
           </div>
         </section>
@@ -1334,7 +1334,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 <option value="ALL">All Notes ({notes.length})</option>
                 <option value="approved">Approved & Cosigned</option>
                 <option value="pending_supervisor">Pending Supervisor</option>
-                <option value="draft">Local Drafts</option>
+                <option value="draft">Dexie Drafts</option>
                 <option value="revision_requested">Revision Requested</option>
               </select>
 
@@ -1466,7 +1466,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                             ? 'Awaiting Cosign'
                             : note.status === 'revision_requested'
                             ? 'Revision Needed'
-                            : 'Local Draft'}
+                            : 'Dexie Draft'}
                         </span>
                       </span>
                     </div>
@@ -2138,11 +2138,11 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
                 <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A] animate-pulse shrink-0" />
                 <div className="min-w-0 text-left">
                   <span className="text-xs font-bold text-slate-800 block truncate">
-                    Offline Storage Active
+                    Dexie.js Offline Store Active
                   </span>
                   <span className="text-[10px] text-slate-500 block">
                     {syncInfo.pendingCount > 0
-                      ? `${syncInfo.pendingCount} notes queued for cloud sync`
+                      ? `${syncInfo.pendingCount} notes queued for Supabase`
                       : '100% in-sync with cloud store'}
                   </span>
                 </div>

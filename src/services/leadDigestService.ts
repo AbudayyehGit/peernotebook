@@ -6,7 +6,6 @@
  */
 
 import { safeStorage } from '../utils/safeStorage';
-import { toastService } from './toastService';
 
 export interface LeadSubmission {
   email: string;
@@ -229,7 +228,7 @@ export const leadDigestService = {
       // Storage quota fallback
     }
 
-    // 2. Dispatch to serverless endpoint /api/lead-capture with robust try/catch & toast feedback
+    // 2. Dispatch to serverless endpoint /api/lead-capture
     try {
       const response = await fetch('/api/lead-capture', {
         method: 'POST',
@@ -239,35 +238,12 @@ export const leadDigestService = {
       if (response.ok) {
         const json = await response.json();
         console.log('[LEAD_CAPTURE_SUCCESS] Dispatched to Brevo/backend:', json);
-        if (json.emailDeliveryStatus === 'failed' || json.emailError) {
-          toastService.warning(
-            'Checklist Email Delivery Notice',
-            'Your registration was saved locally, but email delivery encountered an issue. Our team has been notified.',
-            json.emailError
-          );
-        } else {
-          toastService.success(
-            'Checklist Dispatched',
-            `Welcome to Peer Notebook! Your 10-Minute CalAIM H0038 Checklist has been sent to ${data.email}.`
-          );
-        }
       } else {
         const errText = await response.text();
         console.warn('[LEAD_CAPTURE_BACKEND_WARNING] Backend returned non-200:', errText);
-        toastService.error(
-          'Email Dispatch Delayed',
-          'We encountered an issue dispatching the confirmation email. Your registration is securely stored on this device.',
-          errText
-        );
       }
-    } catch (netErr: unknown) {
-      const msg = netErr instanceof Error ? netErr.message : String(netErr);
+    } catch (netErr) {
       console.warn('[LEAD_CAPTURE_OFFLINE_QUEUED] Network drop; lead safely queued in local storage:', netErr);
-      toastService.warning(
-        'Offline Mode: Registration Preserved',
-        'Network connection interrupted. Your registration is safely stored on this device and will sync upon reconnection.',
-        msg
-      );
     }
 
     return { ok: true, message: 'Welcome to the Peer Notebook beta cohort!' };

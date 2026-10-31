@@ -1693,7 +1693,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans selection:bg-[#0F766E] selection:text-white w-full max-w-full overflow-x-hidden">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans selection:bg-[#0F766E] selection:text-white">
       {/* Top Navigation Bar */}
       <header className="bg-[#1E3A8A] border-b border-blue-950 sticky top-0 z-40 shadow-sm text-white w-full max-w-full overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-18 sm:min-h-20 py-3 sm:py-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 w-full">

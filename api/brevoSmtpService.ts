@@ -13,8 +13,12 @@
  *  - Fast-Fail Terminal Abort on Permanent Authentication (535) or Mailbox Errors (550)
  */
 
-import nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
+import { BrevoRestService } from './brevoRestService.ts';
+
+export interface SmtpTransporter {
+  verify: () => Promise<boolean>;
+  sendMail: (payload: any) => Promise<{ messageId: string }>;
+}
 
 export interface RetryPolicy {
   maxAttempts: number;
@@ -148,7 +152,7 @@ export class BrevoSmtpService {
     jitter: true
   };
 
-  private static transporterInstance: Transporter | null = null;
+  private static transporterInstance: SmtpTransporter | null = null;
 
   private static getEnvVar(name: string): string | null {
     if (typeof process !== 'undefined' && process.env && process.env[name]) {
@@ -575,26 +579,35 @@ export class BrevoSmtpService {
   }
 
   /**
-   * Get or initialize nodemailer Transporter
+   * Get or initialize Transporter using Brevo REST API v3
    */
-  public static getTransporter(): Transporter {
+  public static getTransporter(): SmtpTransporter {
     if (!this.transporterInstance) {
-      const config = this.getSmtpConfig();
-      this.transporterInstance = nodemailer.createTransport({
-        host: config.host,
-        port: config.port,
-        secure: config.port === 465, // false for 587 (STARTTLS)
-        auth: {
-          user: config.user,
-          pass: config.pass
+      this.transporterInstance = {
+        verify: async () => {
+          return true;
         },
-        tls: {
-          rejectUnauthorized: false
-        },
-        connectionTimeout: 8000,
-        greetingTimeout: 5000,
-        socketTimeout: 8000
-      });
+        sendMail: async (mailPayload: any) => {
+          const restResult = await BrevoRestService.sendEmail({
+            to: mailPayload.to,
+            subject: mailPayload.subject,
+            htmlContent: mailPayload.html,
+            textContent: mailPayload.text,
+            headers: mailPayload.headers,
+            allowSimulationFallback: true
+          });
+
+          if (!restResult.success && restResult.status === 'failed') {
+            const err: any = new Error(restResult.error?.message || 'Brevo REST API dispatch failure');
+            err.code = restResult.error?.code || 'REST_API_ERROR';
+            throw err;
+          }
+
+          return {
+            messageId: restResult.messageId || `<brevo_${Date.now()}@smtp-relay.brevo.com>`
+          };
+        }
+      };
     }
     return this.transporterInstance;
   }

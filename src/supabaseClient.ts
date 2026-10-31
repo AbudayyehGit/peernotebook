@@ -55,10 +55,10 @@ export const getSupabaseClient = (): SupabaseClient | null => {
     try {
       activeClientInstance = createClient(config.url, config.anonKey, {
         auth: {
-          persistSession: false, // Zero persistent auth on start: sessions do not persist across browser restarts
-          autoRefreshToken: false,
+          persistSession: true,
+          autoRefreshToken: true,
           detectSessionInUrl: true,
-          storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
         },
       });
     } catch (err) {
@@ -152,23 +152,6 @@ export async function signUpWithEmail(
 }
 
 export async function signOutUser(): Promise<{ error: Error | null }> {
-  try {
-    if (typeof window !== 'undefined') {
-      window.sessionStorage?.clear();
-      // Clear any cached Supabase tokens in localStorage as well
-      const keysToRemove: string[] = [];
-      for (let i = 0; i < window.localStorage.length; i++) {
-        const key = window.localStorage.key(i);
-        if (key && (key.startsWith('sb-') || key.includes('auth-token') || key.startsWith('supabase.'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach((k) => window.localStorage.removeItem(k));
-    }
-  } catch {
-    // Ignore storage clearing exceptions
-  }
-
   const client = getSupabaseClient();
   if (!client) return { error: null };
 

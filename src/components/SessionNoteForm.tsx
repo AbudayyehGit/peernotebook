@@ -1807,7 +1807,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             className="w-full xs:w-auto min-h-[48px] flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 rounded-full text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
           >
             <Save className="w-4 h-4 text-slate-500 shrink-0" />
-            <span>Save Offline Draft</span>
+            <span>Save to Dexie.js (Offline Draft)</span>
           </button>
 
           <button
