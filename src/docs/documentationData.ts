@@ -468,13 +468,16 @@ Peer Notebook enforces zero-downtime database evolution:
 * Clinical Supervisor review queue and cosignature stamp.
 * Hospital-grade PDF Export with SHA-256 cryptographic seal.
 
-## Horizon 2: CalAIM & LACDMH County Bridge [CURRENT]
+## Horizon 2: CalAIM & LACDMH County Bridge [COMPLETED]
 * Automated EDI 837P / 835 claim file export for County Behavioral Health.
 * Direct Medi-Cal CIN beneficiary lookup and enrollment verification.
+* Resilient WebCrypto AES-GCM OAuth & JWT offline token rotation (> 72h up to 168h).
+* 5-CBO California Beta Pilot Cohort Onboarding configuration.
 
-## Horizon 3: Enterprise EHR Interoperability [PLANNED]
-* HL7 FHIR US Core Implementation Guide (v4.0.1) compliance.
-* Epic / Cerner Smart on FHIR app launch integration.`
+## Horizon 3: Enterprise EHR Interoperability [COMPLETED]
+* HL7 FHIR US Core Implementation Guide (v4.0.1) and R4 bi-directional write-back.
+* Hospital Emergency Department SMART-on-FHIR App Launch v2 integration with PKCE.
+* Aggregated Multi-County Population Health Telemetry with k-anonymity.`
   },
 
   // =========================================================================

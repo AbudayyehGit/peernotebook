@@ -17,21 +17,21 @@
 
 ---
 
-## Horizon 2: County Health & Multi-Tenant Agency Bridge — [75% COMPLETE]
+## Horizon 2: County Health & Multi-Tenant Agency Bridge — [100% COMPLETE]
 **Focus:** Medium-to-Large Community Behavioral Health Agencies
 
 * [x] **DONE** - **Role-Based Access Control (RBAC):** Agency Supervisor Review Queues, Specialist Cosigning, and Multi-Specialist Roster Management (`src/context/AuthContext.tsx`, `SupervisorQueue.tsx`).
 * [x] **DONE** - **Batch Claims Export:** Medi-Cal 837P EDI electronic billing export formatted for California county behavioral health clearinghouses (`src/services/ehrIntegrationService.ts`).
 * [x] **DONE** - **Automated County Audit Readiness:** 1-click generation of county compliance binders with CalMHSA core competency tags (`SB803CompetencyGuide.tsx`, `ExportSessionPDF.tsx`).
-* [ ] **BACKLOG** - **Enhanced Offline Token Refresh:** Resilient OAuth and JWT offline rotation for field tablets disconnected > 72 hours (tracked in Master Sprint Log).
+* [x] **DONE** - **Enhanced Offline Token Refresh:** Resilient WebCrypto AES-GCM OAuth and JWT offline rotation for field tablets disconnected > 72 hours up to 168 hours (`src/auth/offline_token_engine.ts`).
 
 ---
 
-## Horizon 3: Enterprise EHR Interoperability (Year 2) — [25% COMPLETE / ACTIVE BACKLOG]
+## Horizon 3: Enterprise EHR Interoperability — [100% COMPLETE]
 **Focus:** County Departments of Mental Health & Health Systems
 
 * [x] **DONE** - **HL7 FHIR R4 Bundle Export:** Formatted JSON DocumentReference / Encounter bundle generation (`src/services/ehrIntegrationService.ts`).
-* [ ] **BACKLOG** - **Bi-directional Direct EHR Sync:** Direct REST/FHIR write-back to Epic, Cerner Millennium, and Netsmart myAvatar (tracked in Master Sprint Log).
-* [ ] **BACKLOG** - **SMART-on-FHIR Peer Launchpad:** Launch Peer Notebook embedded within hospital emergency department triage dashboards (tracked in Master Sprint Log).
-* [ ] **BACKLOG** - **Aggregated Multi-County Population Telemetry:** Statewide recovery capital, housing stability, and harm reduction population health analytics (tracked in Master Sprint Log).
+* [x] **DONE** - **Bi-directional Direct EHR Sync:** Bi-directional HL7 FHIR R4 Encounter, Observation, and DocumentReference write-back to Epic, Cerner Millennium, and Netsmart myAvatar (`src/interop/fhir_r4_client.ts`).
+* [x] **DONE** - **SMART-on-FHIR Peer Launchpad:** Hospital Emergency Department SMART App Launch v2 flow with PKCE RFC 7636 challenge generation and crisis diversion note routing (`src/interop/smart_launchpad.ts`).
+* [x] **DONE** - **Aggregated Multi-County Population Telemetry:** Statewide recovery capital, housing stability, and harm reduction population health analytics with strict $k$-anonymity ($k \ge 5$) (`src/analytics/telemetry_aggregator.ts`).
 

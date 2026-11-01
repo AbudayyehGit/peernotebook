@@ -71,23 +71,24 @@ export const MASTER_DOCUMENTS: DocItem[] = [
 ---
 
 ## 1. Executive Summary & Reconciliation Audit
-This Master Sprint Log serves as the authoritative, centralized single point of truth reconciling all tasks, roadmaps, sprint schedules, and architectural specifications across the entire documentation binder against the live production code repository. All 15 development phases and all 11 operational backlog tasks are certified complete in code with 33/33 passing automated unit tests (`npm test`).
+This Master Sprint Log serves as the authoritative, centralized single point of truth reconciling all tasks, roadmaps, sprint schedules, and architectural specifications across the entire documentation binder against the live production code repository. All 15 development phases and all 11 operational backlog tasks are certified complete in code with 33/33 passing automated unit tests (\`npm test\`).
 
 ## 2. Multi-Sorted Master Backlog Summary (11/11 Verified Complete • 58 pts)
 * **Mandatory / Core Legal & Regulatory (High / P0 • 6 pts):**
-  - [x] USCO Form TX Electronic Filing & 50-Page Redacted Source Code Deposit (3 pts) — `scripts/compliance/generate_usco_deposit.sh`
-  - [x] USPTO Trademark Registration for "PEER NOTEBOOK" Class 042 & 009 (2 pts) — `config/legal/trademark_filing.json`
-  - [x] Formal State Registry Recordation & IRS EIN Confirmation (1 pt) — `config/legal/entity_meta.json`
+  - [x] USCO Form TX Electronic Filing & 50-Page Redacted Source Code Deposit (3 pts) — \`scripts/compliance/generate_usco_deposit.sh\`
+  - [x] USPTO Trademark Registration for "PEER NOTEBOOK" Class 042 & 009 (2 pts) — \`config/legal/trademark_filing.json\`
+  - [x] Formal State Registry Recordation & IRS EIN Confirmation (1 pt) — \`config/legal/entity_meta.json\`
 * **Secondary / Operational Reliability (High to Medium / P0-P1 • 20 pts):**
-  - [x] Enhanced Offline OAuth & JWT Token Rotation > 72 Hours (5 pts) — `src/auth/offline_token_engine.ts`
-  - [x] 5-CBO Beta Pilot Cohort Onboarding (5 pts) — `config/tenants/beta_cohort.json`
-  - [x] Third-Party SOC 2 Type 1 & ISO 27001 Independent Audit (8 pts) — `docs/compliance/security_matrix.json`
-  - [x] Production Incident Webhook Gateway for PagerDuty/Opsgenie (3 pts) — `src/alerts/webhook_gateway.ts`
-  - [x] Semi-Annual Cold Disaster Recovery Simulation Drill (2 pts) — `docs/compliance/dr_runbook.md`
+  - [x] Enhanced Offline OAuth & JWT Token Rotation > 72 Hours (5 pts) — \`src/auth/offline_token_engine.ts\`
+  - [x] 5-CBO Beta Pilot Cohort Onboarding (5 pts) — \`config/tenants/beta_cohort.json\`
+  - [x] Third-Party SOC 2 Type 1 & ISO 27001 Independent Audit (8 pts) — \`docs/compliance/security_matrix.json\`
+  - [x] Production Incident Webhook Gateway for PagerDuty/Opsgenie (3 pts) — \`src/alerts/webhook_gateway.ts\`
+  - [x] Semi-Annual Cold Disaster Recovery Simulation Drill (2 pts) — \`docs/compliance/dr_runbook.md\`
 * **Enhancement / Enterprise Interoperability (P0-P2 • 29 pts):**
-  - [x] Bi-Directional HL7 FHIR R4 Direct EHR Write-Back (13 pts) — `src/interop/fhir_r4_client.ts`
-  - [x] Hospital Emergency Department SMART-on-FHIR Peer Triage Launchpad (8 pts) — `src/interop/smart_launchpad.ts`
-  - [x] Aggregated Multi-County Population Outcome Telemetry (8 pts) — `src/analytics/telemetry_aggregator.ts``
+  - [x] Bi-Directional HL7 FHIR R4 Direct EHR Write-Back (13 pts) — \`src/interop/fhir_r4_client.ts\`
+  - [x] Hospital Emergency Department SMART-on-FHIR Peer Triage Launchpad (8 pts) — \`src/interop/smart_launchpad.ts\`
+  - [x] Aggregated Multi-County Population Outcome Telemetry (8 pts) — \`src/analytics/telemetry_aggregator.ts\`
+`
   },
   {
     id: '01-readme',
@@ -169,10 +170,12 @@ Legacy Electronic Health Records (EHR) fail peer specialists in three ways:
 * Supervisor Review Queues and Specialist Cosigning.
 * Medi-Cal 837P EDI electronic billing batch export for California county behavioral health clearinghouses.
 * Automated County Audit Readiness: 1-click compliance binders with CalMHSA core competency tags.
+* Enhanced Offline Token Refresh: Resilient WebCrypto AES-GCM OAuth and JWT offline rotation for field tablets (> 72h up to 168h).
 
 ## Horizon 3: Enterprise EHR Interoperability (Year 2)
 * HL7 FHIR R4 Integration: Bi-directional sync with Epic, Cerner Millennium, and Netsmart myAvatar.
-* SMART-on-FHIR Peer Launchpad: Launch Peer Notebook within hospital emergency department triage dashboards.`
+* SMART-on-FHIR Peer Launchpad: Launch Peer Notebook within hospital emergency department triage dashboards.
+* Aggregated Multi-County Population Telemetry: Statewide recovery capital and harm reduction analytics with k-anonymity.`
   },
   {
     id: '01-sprint',
