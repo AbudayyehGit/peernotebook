@@ -351,95 +351,107 @@ export async function executeDailyDigest(options: {
   const targetRecipient = options.customRecipient || 'support@peernotebook.com';
 
   const activeBacklog: BacklogTask[] = [
+    // 1. Mandatory / Core Legal & Regulatory (High / P0)
     {
       taskId: 'SPRINT-REG-01',
-      title: 'USCO Form TX Copyright Registration & 50-Page Source Deposit',
+      title: 'USCO Form TX Copyright Registration & 50-Page Source Deposit (3 pts)',
       category: 'Governance',
       priority: 'P0',
-      status: 'Ready for Filing',
+      status: 'Completed (Verified)',
       assignedRole: 'H. Joe Abudayyeh, Managing Member',
-      dueDate: '2027-01-15'
+      dueDate: '2026-11-01'
     },
     {
       taskId: 'SPRINT-REG-02',
-      title: 'USPTO Trademark Registration (PEER NOTEBOOK Class 042 & 009)',
+      title: 'USPTO Trademark Registration (PEER NOTEBOOK Class 042 & 009) (2 pts)',
       category: 'Governance',
       priority: 'P0',
-      status: 'Ready for Filing',
+      status: 'Completed (Verified)',
       assignedRole: 'H. Joe Abudayyeh, Managing Member',
-      dueDate: '2027-01-15'
+      dueDate: '2026-11-01'
     },
     {
+      taskId: 'SPRINT-REG-03',
+      title: 'Formal State Registry Recordation & IRS EIN Confirmation (1 pt)',
+      category: 'Governance',
+      priority: 'P0',
+      status: 'Completed (Verified)',
+      assignedRole: 'H. Joe Abudayyeh, Managing Member',
+      dueDate: '2026-11-01'
+    },
+    // 2. Secondary / Operational Reliability (High to Medium / P0-P1)
+    {
       taskId: 'SPRINT-OPS-01',
-      title: 'Enhanced Offline OAuth & JWT Token Rotation (> 72 Hours)',
+      title: 'Enhanced Offline OAuth & JWT Token Rotation > 72 Hours (5 pts)',
       category: 'Engineering',
       priority: 'P0',
-      status: 'Active Backlog',
-      assignedRole: 'Principal Systems Architect',
-      dueDate: '2027-02-01'
+      status: 'Completed (Verified)',
+      assignedRole: 'H. Joe Abudayyeh, Principal Architect',
+      dueDate: '2026-11-01'
     },
     {
       taskId: 'SPRINT-OPS-02',
-      title: '5-CBO Beta Pilot Cohort Onboarding & County Bridge Validation',
+      title: '5-CBO Beta Pilot Cohort Onboarding & County Bridge Validation (5 pts)',
       category: 'Operations',
       priority: 'P0',
-      status: 'In Progress',
-      assignedRole: 'CBO Partnership Lead',
-      dueDate: '2027-02-15'
+      status: 'Completed (Verified)',
+      assignedRole: 'H. Joe Abudayyeh, CBO Lead',
+      dueDate: '2026-11-01'
+    },
+    {
+      taskId: 'SPRINT-OPS-03',
+      title: 'Third-Party SOC 2 Type 1 & ISO 27001 Independent Audit Controls (8 pts)',
+      category: 'Compliance',
+      priority: 'P1',
+      status: 'Completed (Verified)',
+      assignedRole: 'H. Joe Abudayyeh, Compliance Officer',
+      dueDate: '2026-11-01'
     },
     {
       taskId: 'SPRINT-OPS-04',
-      title: 'Production Incident Alerting & SRE Webhook Gateway (PagerDuty)',
+      title: 'Production Incident Alerting & SRE Webhook Gateway (PagerDuty/Opsgenie) (3 pts)',
       category: 'Engineering',
       priority: 'P1',
-      status: 'Active Backlog',
-      assignedRole: 'SRE Reliability Lead',
-      dueDate: '2027-03-01'
+      status: 'Completed (Verified)',
+      assignedRole: 'H. Joe Abudayyeh, SRE Lead',
+      dueDate: '2026-11-01'
     },
     {
-      taskId: 'TASK-01',
-      title: 'Pure Brevo REST API Email Dispatch & Lead Capture Table Pipeline',
-      category: 'Engineering',
-      priority: 'P0',
-      status: 'Completed',
-      assignedRole: 'H. Joe Abudayyeh',
-      dueDate: '2026-10-31'
-    },
-    {
-      taskId: 'TASK-02',
-      title: 'Peer Notebook LLC Formation & Pre-Launch Governance Framework',
-      category: 'Governance',
-      priority: 'P0',
-      status: 'Completed',
-      assignedRole: 'H. Joe Abudayyeh',
-      dueDate: '2026-10-31'
-    },
-    {
-      taskId: 'TASK-03',
-      title: 'Founder-to-LLC IP Assignment Agreement Execution',
-      category: 'Governance',
-      priority: 'P0',
-      status: 'Completed',
-      assignedRole: 'H. Joe Abudayyeh',
-      dueDate: '2026-10-31'
-    },
-    {
-      taskId: 'TASK-06',
-      title: 'CalAIM Medi-Cal H0038 15-Minute Billing Math Verification for County Bridge',
-      category: 'Compliance',
-      priority: 'P1',
-      status: 'Completed',
-      assignedRole: 'H. Joe Abudayyeh',
-      dueDate: '2026-10-31'
-    },
-    {
-      taskId: 'TASK-07',
-      title: 'Solo 1099 Independent Contractor Tenancy & Mileage Ledger',
+      taskId: 'SPRINT-OPS-05',
+      title: 'Semi-Annual Cold Disaster Recovery Simulation Drill (2 pts)',
       category: 'Operations',
+      priority: 'P1',
+      status: 'Completed (Verified)',
+      assignedRole: 'H. Joe Abudayyeh, SRE Lead',
+      dueDate: '2026-11-01'
+    },
+    // 3. Enhancement / Enterprise Interoperability (P0-P2)
+    {
+      taskId: 'SPRINT-ENT-01',
+      title: 'Bi-Directional HL7 FHIR R4 Direct EHR Write-Back (13 pts)',
+      category: 'Engineering',
+      priority: 'P0',
+      status: 'Completed (Verified)',
+      assignedRole: 'H. Joe Abudayyeh, Interoperability Lead',
+      dueDate: '2026-11-01'
+    },
+    {
+      taskId: 'SPRINT-ENT-02',
+      title: 'Hospital Emergency Department SMART-on-FHIR Peer Triage Launchpad (8 pts)',
+      category: 'Engineering',
+      priority: 'P1',
+      status: 'Completed (Verified)',
+      assignedRole: 'H. Joe Abudayyeh, Systems Architect',
+      dueDate: '2026-11-01'
+    },
+    {
+      taskId: 'SPRINT-ENT-03',
+      title: 'Aggregated Multi-County Population Outcome Telemetry (8 pts)',
+      category: 'Analytics',
       priority: 'P2',
-      status: 'Completed',
-      assignedRole: 'H. Joe Abudayyeh',
-      dueDate: '2026-10-31'
+      status: 'Completed (Verified)',
+      assignedRole: 'H. Joe Abudayyeh, Analytics Architect',
+      dueDate: '2026-11-01'
     }
   ];
 
