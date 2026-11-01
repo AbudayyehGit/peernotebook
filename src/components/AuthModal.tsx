@@ -58,7 +58,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onSuccessRedirect(roleToRedirect);
     } else {
       if (typeof window !== 'undefined') {
-        if (roleToRedirect === 'admin') {
+        if (roleToRedirect === 'super_admin') {
+          window.location.hash = '#super_admin';
+        } else if (roleToRedirect === 'admin') {
           window.location.hash = '#admin';
         } else if (roleToRedirect === 'supervisor') {
           window.location.hash = '#supervisor';
@@ -101,8 +103,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         const matched = allUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
         handleRoleRedirect(matched?.role || 'peer_specialist');
       } else {
-        // Fallback for demo specialist accounts
-        const matchedLocal = allUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
+        // Fallback for demo specialist accounts and Super Admin email recognition
+        const normalizedEmail = email.trim().toLowerCase();
+        const isSuperAdminEmail = ['joeabudayyeh@gmail.com', 'joe@peernotebook.com', 'engineering@peernotebook.com'].includes(normalizedEmail);
+        const matchedLocal = allUsers.find((u) =>
+          u.email.toLowerCase() === normalizedEmail ||
+          (isSuperAdminEmail && u.role === 'super_admin')
+        );
+
         if (matchedLocal) {
           await switchUser(matchedLocal.id);
           handleRoleRedirect(matchedLocal.role);
@@ -233,37 +241,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {/* Quick Role Switcher for Evaluators / Specialists */}
               <div className="space-y-2">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                  Quick Role-Based Access:
+                  Quick Access by Role (Division of Labor):
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     type="button"
                     onClick={() => handleQuickSwitchRole('peer_specialist')}
                     disabled={isSubmitting}
-                    className="min-h-[48px] p-2.5 rounded-xl border border-teal-200 bg-teal-50/70 hover:bg-teal-100 text-[#0F766E] font-bold text-xs flex flex-col items-center justify-center transition-colors cursor-pointer text-center"
+                    className="min-h-[50px] p-2 rounded-xl border border-teal-200 bg-teal-50/70 hover:bg-teal-100 text-[#0F766E] font-bold text-xs flex flex-col items-center justify-center transition-colors cursor-pointer text-center"
                   >
                     <span>Peer Specialist</span>
-                    <span className="text-[10px] font-normal text-slate-600">Alex Rivera</span>
+                    <span className="text-[10px] font-normal text-slate-600 truncate max-w-full">Alex Rivera, CPSS</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleQuickSwitchRole('supervisor')}
                     disabled={isSubmitting}
-                    className="min-h-[48px] p-2.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-[#1E3A8A] font-bold text-xs flex flex-col items-center justify-center transition-colors cursor-pointer text-center"
+                    className="min-h-[50px] p-2 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-[#1E3A8A] font-bold text-xs flex flex-col items-center justify-center transition-colors cursor-pointer text-center"
                   >
                     <span>Supervisor</span>
-                    <span className="text-[10px] font-normal text-slate-600">Sarah Jenkins</span>
+                    <span className="text-[10px] font-normal text-slate-600 truncate max-w-full">Dr. Sarah Chen</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleQuickSwitchRole('admin')}
                     disabled={isSubmitting}
-                    className="min-h-[48px] p-2.5 rounded-xl border border-amber-300 bg-amber-50/70 hover:bg-amber-100 text-[#D97706] font-bold text-xs flex flex-col items-center justify-center transition-colors cursor-pointer text-center"
+                    className="min-h-[50px] p-2 rounded-xl border border-amber-300 bg-amber-50/70 hover:bg-amber-100 text-[#D97706] font-bold text-xs flex flex-col items-center justify-center transition-colors cursor-pointer text-center"
                   >
-                    <span>Admin</span>
-                    <span className="text-[10px] font-normal text-slate-600">Elena Rostova</span>
+                    <span>Agency Admin</span>
+                    <span className="text-[10px] font-normal text-slate-600 truncate max-w-full">Marcus Vance</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickSwitchRole('super_admin')}
+                    disabled={isSubmitting}
+                    className="min-h-[50px] p-2 rounded-xl border border-purple-300 bg-purple-50/90 hover:bg-purple-100 text-purple-900 font-bold text-xs flex flex-col items-center justify-center transition-colors cursor-pointer text-center ring-1 ring-purple-300"
+                  >
+                    <span className="text-purple-900 font-black">Super Admin</span>
+                    <span className="text-[10px] font-semibold text-purple-700 truncate max-w-full">H. Joe Abudayyeh</span>
                   </button>
                 </div>
               </div>
@@ -409,6 +427,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <option value="peer_specialist">Peer Support Specialist (CPSS-CA)</option>
                     <option value="supervisor">Clinical Supervisor (LCSW / LMFT)</option>
                     <option value="admin">Agency Administrator</option>
+                    <option value="super_admin">Super Administrator (Founder / Platform SRE)</option>
                   </select>
                 </div>
 

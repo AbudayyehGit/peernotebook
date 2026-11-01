@@ -275,9 +275,9 @@ class PeerNotebookDBManager {
         {
           id: 'user-superadmin-01',
           organizationId: 'org-calaim-01',
-          email: 'engineering@peernotebook.com',
-          fullName: 'Principal Systems Architect & Lead Engineer',
-          credentialTitle: 'Principal Healthcare Systems Architect & Compliance Officer',
+          email: 'joeabudayyeh@gmail.com',
+          fullName: 'H. Joe Abudayyeh',
+          credentialTitle: 'Founder, Super Administrator & Principal Systems Architect',
           licenseNumber: 'CA-ARCH-2026-0001',
           npi: '1999888777',
           role: 'super_admin',
@@ -358,6 +358,32 @@ class PeerNotebookDBManager {
 
       for (const u of defaultUsers) {
         await dexieDB.users.put(u);
+      }
+    } else {
+      // Ensure Super Administrator account (H. Joe Abudayyeh) is always present and synchronized
+      const existingSuperAdmin = await dexieDB.users.get('user-superadmin-01');
+      if (!existingSuperAdmin || existingSuperAdmin.fullName !== 'H. Joe Abudayyeh' || existingSuperAdmin.role !== 'super_admin') {
+        const now = Date.now();
+        await dexieDB.users.put({
+          id: 'user-superadmin-01',
+          organizationId: 'org-calaim-01',
+          email: 'joeabudayyeh@gmail.com',
+          fullName: 'H. Joe Abudayyeh',
+          credentialTitle: 'Founder, Super Administrator & Principal Systems Architect',
+          licenseNumber: 'CA-ARCH-2026-0001',
+          npi: '1999888777',
+          role: 'super_admin',
+          isActive: true,
+          isContractor1099: false,
+          hourlyContractRate: 150,
+          mileageReimbursementRate: 0.67,
+          trialEndsAt: new Date(now + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          subscriptionStatus: 'active_subscriber',
+          subscriptionTier: 'agency_unlimited',
+          billingInterval: 'annual',
+          currentPeriodEnd: new Date(now + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          cancelAtPeriodEnd: false
+        });
       }
     }
 

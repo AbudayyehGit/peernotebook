@@ -6,7 +6,7 @@
  * Minimum 44px touch targets & Trauma-Informed Clinical Container Cards
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { peerNotebookDB, Client, SessionNote, AuditLogEntry } from '../db/peerNotebookDatabase';
 import { ClientManager } from './ClientManager';
@@ -23,11 +23,13 @@ import { AdminUserManagement } from './AdminUserManagement';
 import { AdminDashboard } from './AdminDashboard';
 import { EngineeringMonitoring } from './EngineeringMonitoring';
 import { STARCurriculumView } from './STARCurriculumView';
+import { SuperAdminPortal } from './SuperAdminPortal';
 import { usePrivacyMode } from '../context/PrivacyModeContext';
 import {
   Users,
   FileText,
   ShieldCheck,
+  ShieldAlert,
   History,
   Settings,
   BookOpen,
@@ -56,10 +58,11 @@ import {
   Target,
   Building2,
   Cpu,
-  GraduationCap
+  GraduationCap,
+  Radio
 } from 'lucide-react';
 
-export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'curriculum' | 'supervisor' | 'audit' | 'architecture' | 'settings' | 'admin_users' | 'admin_dashboard' | 'telemetry';
+export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'curriculum' | 'supervisor' | 'audit' | 'architecture' | 'settings' | 'admin_users' | 'admin_dashboard' | 'telemetry' | 'super_admin';
 
 interface PeerNotebookWorkspaceProps {
   onReplayTutorial?: () => void;
@@ -89,6 +92,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       const slug = parts.length > 1 ? parts.slice(1).join('/') : undefined;
       return { tab: 'architecture', slug };
     }
+    if (path.startsWith('/super') || path.startsWith('/platform')) return { tab: 'super_admin' };
     if (path.startsWith('/clients')) return { tab: 'clients' };
     if (path.startsWith('/notes')) return { tab: 'notes' };
     if (path.startsWith('/goalpath')) return { tab: 'goalpath' };
@@ -105,7 +109,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     try {
       const searchParams = new URLSearchParams(window.location.search);
       const tabParam = searchParams.get('tab') as WorkspaceTab;
-      if (tabParam && ['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(tabParam)) {
+      if (tabParam && ['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry', 'super_admin'].includes(tabParam)) {
         return { tab: tabParam };
       }
     } catch {
@@ -116,7 +120,8 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     try {
       const hash = window.location.hash.replace('#/', '').replace('#', '').toLowerCase();
       if (hash.startsWith('docs')) return { tab: 'architecture' };
-      if (['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(hash)) {
+      if (hash.startsWith('super') || hash === 'platform') return { tab: 'super_admin' };
+      if (['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'settings', 'admin_users', 'admin_dashboard', 'telemetry', 'super_admin'].includes(hash)) {
         return { tab: hash as WorkspaceTab };
       }
       if (hash === 'new-note') return { tab: 'new_note' };
@@ -131,10 +136,14 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
 
     // Fallback to persisted tab from last active session
     const saved = safeStorage.getItem('peernotebook_active_tab') as WorkspaceTab;
-    if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry'].includes(saved)) {
+    if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry', 'super_admin'].includes(saved)) {
       return { tab: saved };
     }
 
+    // Enforce division of labor defaults when landing on workspace
+    if (role === 'super_admin') return { tab: 'super_admin' };
+    if (role === 'admin') return { tab: 'admin_dashboard' };
+    if (role === 'supervisor') return { tab: 'supervisor' };
     return { tab: 'clients' };
   };
 
@@ -238,6 +247,8 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       path = '/engineering/monitoring';
     } else if (tab === 'admin_users') {
       path = '/admin/users';
+    } else if (tab === 'super_admin') {
+      path = '/admin/super';
     }
 
     if (window.location.pathname !== path) {
@@ -407,118 +418,236 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     URL.revokeObjectURL(url);
   };
 
-  const navItems = [
-    {
-      id: 'clients' as WorkspaceTab,
-      label: 'Peer Roster',
-      shortLabel: 'Roster',
-      icon: Users,
-      badge: null
-    },
-    {
-      id: 'notes' as WorkspaceTab,
-      label: `Encounter Notes (${notes.length})`,
-      shortLabel: 'Notes',
-      icon: FileText,
-      badge: notes.length > 0 ? notes.length : null
-    },
-    ...((canSignNotes || isSuperAdmin)
-      ? [
-          {
-            id: 'new_note' as WorkspaceTab,
-            label: 'New CalAIM Note',
-            shortLabel: 'Log Note',
-            icon: Plus,
-            badge: null,
-            isPrimary: true
-          }
-        ]
-      : []),
-    ...(canApproveNotes
-      ? [
-          {
-            id: 'supervisor' as WorkspaceTab,
-            label: 'Supervisor QA',
-            shortLabel: 'QA',
-            icon: ShieldCheck,
-            badge: pendingNotesCount > 0 ? pendingNotesCount : null,
-            badgeAlert: true
-          }
-        ]
-      : []),
-    ...((role === 'peer_specialist' || role === 'supervisor' || isSuperAdmin)
-      ? [
-          {
-            id: 'goalpath' as WorkspaceTab,
-            label: 'GoalPath™ Domains',
-            shortLabel: 'GoalPath',
-            icon: Target,
-            badge: null
-          },
-          {
-            id: 'curriculum' as WorkspaceTab,
-            label: 'Curriculum & STAR Lab',
-            shortLabel: 'Curriculum',
-            icon: GraduationCap,
-            badge: null
-          }
-        ]
-      : []),
-    ...(canManageAgency
-      ? [
-          {
-            id: 'admin_dashboard' as WorkspaceTab,
-            label: 'CBO Dashboard',
-            shortLabel: 'CBO',
-            icon: Building2,
-            badge: null
-          },
-          {
-            id: 'admin_users' as WorkspaceTab,
-            label: 'Users & Staff',
-            shortLabel: 'Staff',
-            icon: Users,
-            badge: null
-          }
-        ]
-      : []),
-    ...(canViewAuditLogs
-      ? [
-          {
-            id: 'audit' as WorkspaceTab,
-            label: 'HIPAA Audit Trail',
-            shortLabel: 'Audit',
-            icon: History,
-            badge: null
-          }
-        ]
-      : []),
-    {
-      id: 'architecture' as WorkspaceTab,
-      label: 'GA #8 White Papers',
-      shortLabel: 'Docs',
-      icon: BookOpen,
-      badge: null
-    },
-    {
-      id: 'settings' as WorkspaceTab,
-      label: 'Settings & BAA',
-      shortLabel: 'Settings',
-      icon: Settings,
-      badge: null
-    },
-    ...(canAccessTelemetry
-      ? [
-          {
-            id: 'telemetry' as WorkspaceTab,
-            label: 'Engineering Telemetry',
-            shortLabel: 'Telemetry',
-            icon: Activity,
-            badge: null
-          }
-        ]
-      : [])
-  ];
+  // Strict Division of Labor per the 4 User Roles
+  const navItems = useMemo(() => {
+    if (role === 'peer_specialist') {
+      return [
+        {
+          id: 'clients' as WorkspaceTab,
+          label: 'My Peer Roster',
+          shortLabel: 'Roster',
+          icon: Users,
+          badge: null
+        },
+        {
+          id: 'notes' as WorkspaceTab,
+          label: `My Field Notes (${notes.length})`,
+          shortLabel: 'Notes',
+          icon: FileText,
+          badge: notes.length > 0 ? notes.length : null
+        },
+        {
+          id: 'new_note' as WorkspaceTab,
+          label: 'Log CalAIM Note',
+          shortLabel: 'Log Note',
+          icon: Plus,
+          badge: null,
+          isPrimary: true
+        },
+        {
+          id: 'goalpath' as WorkspaceTab,
+          label: 'GoalPath™ Domains',
+          shortLabel: 'GoalPath',
+          icon: Target,
+          badge: null
+        },
+        {
+          id: 'curriculum' as WorkspaceTab,
+          label: 'Curriculum & STAR Lab',
+          shortLabel: 'Curriculum',
+          icon: GraduationCap,
+          badge: null
+        },
+        {
+          id: 'settings' as WorkspaceTab,
+          label: 'Field Settings & Sync',
+          shortLabel: 'Settings',
+          icon: Settings,
+          badge: null
+        }
+      ];
+    }
+
+    if (role === 'supervisor') {
+      return [
+        {
+          id: 'supervisor' as WorkspaceTab,
+          label: 'Supervisor QA Queue',
+          shortLabel: 'QA Queue',
+          icon: ShieldCheck,
+          badge: pendingNotesCount > 0 ? pendingNotesCount : null,
+          badgeAlert: true,
+          isPrimary: true
+        },
+        {
+          id: 'notes' as WorkspaceTab,
+          label: `Supervised Notes (${notes.length})`,
+          shortLabel: 'Notes',
+          icon: FileText,
+          badge: notes.length > 0 ? notes.length : null
+        },
+        {
+          id: 'clients' as WorkspaceTab,
+          label: 'Caseload Roster',
+          shortLabel: 'Roster',
+          icon: Users,
+          badge: null
+        },
+        {
+          id: 'goalpath' as WorkspaceTab,
+          label: 'GoalPath™ Progress',
+          shortLabel: 'GoalPath',
+          icon: Target,
+          badge: null
+        },
+        {
+          id: 'curriculum' as WorkspaceTab,
+          label: 'Curriculum & Competency',
+          shortLabel: 'Curriculum',
+          icon: GraduationCap,
+          badge: null
+        },
+        {
+          id: 'audit' as WorkspaceTab,
+          label: 'Supervisory Audit Trail',
+          shortLabel: 'Audit',
+          icon: History,
+          badge: null
+        },
+        {
+          id: 'settings' as WorkspaceTab,
+          label: 'Supervisor Settings',
+          shortLabel: 'Settings',
+          icon: Settings,
+          badge: null
+        }
+      ];
+    }
+
+    if (role === 'admin') {
+      return [
+        {
+          id: 'admin_dashboard' as WorkspaceTab,
+          label: 'CBO Dashboard & 837P',
+          shortLabel: 'CBO Ops',
+          icon: Building2,
+          badge: null,
+          isPrimary: true
+        },
+        {
+          id: 'admin_users' as WorkspaceTab,
+          label: 'Staff & Specialists',
+          shortLabel: 'Staff',
+          icon: Users,
+          badge: null
+        },
+        {
+          id: 'clients' as WorkspaceTab,
+          label: 'Agency Client Roster',
+          shortLabel: 'Roster',
+          icon: Users,
+          badge: null
+        },
+        {
+          id: 'notes' as WorkspaceTab,
+          label: `Agency Notes (${notes.length})`,
+          shortLabel: 'Notes',
+          icon: FileText,
+          badge: notes.length > 0 ? notes.length : null
+        },
+        {
+          id: 'audit' as WorkspaceTab,
+          label: 'HIPAA Audit & Reports',
+          shortLabel: 'Audit',
+          icon: History,
+          badge: null
+        },
+        {
+          id: 'settings' as WorkspaceTab,
+          label: 'Agency Settings & BAA',
+          shortLabel: 'Settings',
+          icon: Settings,
+          badge: null
+        }
+      ];
+    }
+
+    // super_admin: Full Master Platform Access
+    return [
+      {
+        id: 'super_admin' as WorkspaceTab,
+        label: 'Platform Control Center',
+        shortLabel: 'Master Deck',
+        icon: Radio,
+        badge: 'Founder',
+        isPrimary: true
+      },
+      {
+        id: 'telemetry' as WorkspaceTab,
+        label: 'Engineering Telemetry',
+        shortLabel: 'SRE Monitor',
+        icon: Activity,
+        badge: null
+      },
+      {
+        id: 'admin_dashboard' as WorkspaceTab,
+        label: 'CBO Dashboard',
+        shortLabel: 'CBO Ops',
+        icon: Building2,
+        badge: null
+      },
+      {
+        id: 'admin_users' as WorkspaceTab,
+        label: 'Users & Staff',
+        shortLabel: 'Staff',
+        icon: Users,
+        badge: null
+      },
+      {
+        id: 'supervisor' as WorkspaceTab,
+        label: 'Supervisor QA',
+        shortLabel: 'QA',
+        icon: ShieldCheck,
+        badge: pendingNotesCount > 0 ? pendingNotesCount : null,
+        badgeAlert: true
+      },
+      {
+        id: 'clients' as WorkspaceTab,
+        label: 'All Rosters',
+        shortLabel: 'Roster',
+        icon: Users,
+        badge: null
+      },
+      {
+        id: 'notes' as WorkspaceTab,
+        label: `All Notes (${notes.length})`,
+        shortLabel: 'Notes',
+        icon: FileText,
+        badge: notes.length > 0 ? notes.length : null
+      },
+      {
+        id: 'audit' as WorkspaceTab,
+        label: 'Global Audit Trail',
+        shortLabel: 'Audit',
+        icon: History,
+        badge: null
+      },
+      {
+        id: 'architecture' as WorkspaceTab,
+        label: 'GA #8 White Papers',
+        shortLabel: 'Docs',
+        icon: BookOpen,
+        badge: null
+      },
+      {
+        id: 'settings' as WorkspaceTab,
+        label: 'Platform Settings & BAA',
+        shortLabel: 'Settings',
+        icon: Settings,
+        badge: null
+      }
+    ];
+  }, [role, notes.length, pendingNotesCount]);
 
   const currentActiveItem = navItems.find((item) => item.id === activeTab) || navItems[0];
   const CurrentIcon = currentActiveItem.icon;
@@ -1692,6 +1821,10 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
 
       {activeTab === 'telemetry' && (
         <EngineeringMonitoring />
+      )}
+
+      {activeTab === 'super_admin' && (
+        <SuperAdminPortal onSwitchToWorkspaceTab={(tab) => navigateToTab(tab as WorkspaceTab)} />
       )}
       </div>
 

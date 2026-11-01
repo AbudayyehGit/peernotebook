@@ -42,6 +42,7 @@ function AppContent() {
       if (pathname.startsWith('/trust') || pathname.startsWith('/compliance') || hash.startsWith('#trust') || hash.startsWith('#compliance')) return 'trust';
       if (pathname.startsWith('/docs') || hash.startsWith('#docs')) return 'docs';
       if (
+        pathname.startsWith('/super') ||
         pathname.startsWith('/admin') ||
         pathname.startsWith('/users') ||
         pathname.startsWith('/clients') ||
@@ -53,6 +54,7 @@ function AppContent() {
         pathname.startsWith('/engineering') ||
         pathname.startsWith('/monitoring') ||
         pathname.startsWith('/telemetry') ||
+        hash.startsWith('#super') ||
         hash.startsWith('#admin') ||
         hash.startsWith('#users') ||
         hash.startsWith('#engineering') ||
@@ -132,6 +134,7 @@ function AppContent() {
           : hash.replace(/^#docs\/?/, '');
         if (slug) setActiveDocSlug(slug);
       } else if (
+        pathname.startsWith('/super') ||
         pathname.startsWith('/admin') ||
         pathname.startsWith('/users') ||
         pathname.startsWith('/clients') ||
@@ -143,6 +146,7 @@ function AppContent() {
         pathname.startsWith('/engineering') ||
         pathname.startsWith('/monitoring') ||
         pathname.startsWith('/telemetry') ||
+        hash.startsWith('#super') ||
         hash.startsWith('#admin') ||
         hash.startsWith('#users') ||
         hash.startsWith('#engineering') ||
