@@ -48,6 +48,48 @@ export interface DocItem {
 export const MASTER_DOCUMENTS: DocItem[] = [
   // 01-project-management
   {
+    id: '01-master-sprint-log',
+    categoryNumber: '01',
+    categoryTitle: 'Project Management',
+    title: 'Master Sprint Log & Backlog Reconciliation',
+    slug: 'master-sprint-log',
+    path: '/docs/master-sprint-log.md',
+    badge: 'Multi-Sorted Backlog',
+    badgeColor: 'bg-emerald-100 text-emerald-800',
+    summary: 'Centralized single point of truth reconciling all tasks, roadmaps, and SDLC phases multi-sorted by Necessity, Importance, and Effort.',
+    content: `# Peer Notebook: Master Sprint Log & System Backlog Reconciliation
+
+**Document ID:** PN-DOCS-SPRINT-LOG-001  
+**Category:** Master Project Governance & SDLC Reconciliation  
+**Canonical Path:** \`/docs/master-sprint-log.md\`  
+**Engineering Standard:** H. Joe Abudayyeh Systems Production Standards  
+**Architect & Maintainer:** H. Joe Abudayyeh  
+**Regulatory Framework:** CalAIM / California Medi-Cal H0038 / Place of Service (POS) 15  
+**Effective Audit Timestamp:** 2026-11-01T04:36:59-08:00  
+**Copyright:** © 2026-2027 H. Joe Abudayyeh & Peer Notebook LLC. All Rights Reserved.  
+
+---
+
+## 1. Executive Summary & Reconciliation Audit
+This Master Sprint Log serves as the authoritative, centralized single point of truth reconciling all tasks, roadmaps, sprint schedules, and architectural specifications across the entire documentation binder against the live production code repository. All 15 development phases are certified complete in code, and all remaining items are multi-sorted by Necessity, Importance, and Effort.
+
+## 2. Multi-Sorted Master Backlog Summary
+* **Mandatory / Core Legal & Regulatory (High / P0):**
+  - USCO Form TX Electronic Filing & 50-Page Redacted Source Code Deposit (3 pts)
+  - USPTO Trademark Registration for "PEER NOTEBOOK" Class 042 & 009 (2 pts)
+  - Formal State Registry Recordation & IRS EIN Confirmation (1 pt)
+* **Secondary / Operational Reliability (High to Medium / P0-P1):**
+  - Enhanced Offline OAuth & JWT Token Rotation > 72 Hours (5 pts)
+  - 5-CBO Beta Pilot Cohort Onboarding (5 pts)
+  - Third-Party SOC 2 Type 1 & ISO 27001 Independent Audit (8 pts)
+  - Production Incident Webhook Gateway for PagerDuty/Opsgenie (3 pts)
+  - Semi-Annual Cold Disaster Recovery Simulation Drill (2 pts)
+* **Enhancement / Enterprise Interoperability (P0-P2):**
+  - Bi-Directional HL7 FHIR R4 Direct EHR Write-Back (13 pts)
+  - Hospital Emergency Department SMART-on-FHIR Peer Triage Launchpad (8 pts)
+  - Aggregated Multi-County Population Outcome Telemetry (8 pts)`
+  },
+  {
     id: '01-readme',
     categoryNumber: '01',
     categoryTitle: 'Project Management',
@@ -916,8 +958,8 @@ Users attest that Peer Notebook is a specialized documentation software platform
     content: `# Intellectual Property, Licensing & Open-Source Attribution
 
 **Document Version:** 1.0-GA  
-**Target Domain:** peernotebook.com  
-**Copyright:** (c) 2026 Peer Notebook LLC. All Rights Reserved.
+**Copyright:** © 2026-2027 H. Joe Abudayyeh & Peer Notebook LLC. All Rights Reserved.  
+**Architect & Lead:** H. Joe Abudayyeh
 
 ---
 
@@ -949,7 +991,7 @@ Users attest that Peer Notebook is a specialized documentation software platform
 ---
 
 ## 1. Parties to the Agreement
-* **Assignor (Individual Founder):** Hani Joe Abudayyeh
+* **Assignor (Individual Founder):** H. Joe Abudayyeh
 * **Assignee (Corporate Entity):** Peer Notebook LLC (California Limited Liability Company)
 
 ---

@@ -519,7 +519,7 @@ export class BrevoRestService {
     const adminResult = await this.sendEmail({
       sender: this.DEFAULT_SENDER,
       to: [
-        { email: this.PRIMARY_ADMIN_EMAIL, name: 'Joe Abudayyeh' },
+        { email: this.PRIMARY_ADMIN_EMAIL, name: 'H. Joe Abudayyeh' },
         { email: this.PRIMARY_SUPPORT_EMAIL, name: 'Peer Notebook Support' }
       ],
       replyTo: this.DEFAULT_REPLY_TO,

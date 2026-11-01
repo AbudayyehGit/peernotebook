@@ -43,4 +43,6 @@ Printed Legal Name: _________________________________________________
 Title: _____________________________________________________________  
 Date: ______________________________________________________________  
 Company Representative: **Peer Notebook LLC**  
-Name: Joe Abudayyeh | Title: Managing Member  
+Name: H. Joe Abudayyeh | Title: Managing Member  
+Date: November 1, 2026 (2026-2027 Term)  
+

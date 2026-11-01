@@ -352,57 +352,84 @@ export async function executeDailyDigest(options: {
 
   const activeBacklog: BacklogTask[] = [
     {
-      taskId: 'TASK-01',
-      title: 'Automated Daily Digest via Supabase Edge Function & Resend API',
+      taskId: 'SPRINT-REG-01',
+      title: 'USCO Form TX Copyright Registration & 50-Page Source Deposit',
+      category: 'Governance',
+      priority: 'P0',
+      status: 'Ready for Filing',
+      assignedRole: 'H. Joe Abudayyeh, Managing Member',
+      dueDate: '2027-01-15'
+    },
+    {
+      taskId: 'SPRINT-REG-02',
+      title: 'USPTO Trademark Registration (PEER NOTEBOOK Class 042 & 009)',
+      category: 'Governance',
+      priority: 'P0',
+      status: 'Ready for Filing',
+      assignedRole: 'H. Joe Abudayyeh, Managing Member',
+      dueDate: '2027-01-15'
+    },
+    {
+      taskId: 'SPRINT-OPS-01',
+      title: 'Enhanced Offline OAuth & JWT Token Rotation (> 72 Hours)',
       category: 'Engineering',
       priority: 'P0',
+      status: 'Active Backlog',
+      assignedRole: 'Principal Systems Architect',
+      dueDate: '2027-02-01'
+    },
+    {
+      taskId: 'SPRINT-OPS-02',
+      title: '5-CBO Beta Pilot Cohort Onboarding & County Bridge Validation',
+      category: 'Operations',
+      priority: 'P0',
       status: 'In Progress',
-      assignedRole: 'Principal Architect',
-      dueDate: '2026-10-27'
+      assignedRole: 'CBO Partnership Lead',
+      dueDate: '2027-02-15'
+    },
+    {
+      taskId: 'SPRINT-OPS-04',
+      title: 'Production Incident Alerting & SRE Webhook Gateway (PagerDuty)',
+      category: 'Engineering',
+      priority: 'P1',
+      status: 'Active Backlog',
+      assignedRole: 'SRE Reliability Lead',
+      dueDate: '2027-03-01'
+    },
+    {
+      taskId: 'TASK-01',
+      title: 'Pure Brevo REST API Email Dispatch & Lead Capture Table Pipeline',
+      category: 'Engineering',
+      priority: 'P0',
+      status: 'Completed',
+      assignedRole: 'H. Joe Abudayyeh',
+      dueDate: '2026-10-31'
     },
     {
       taskId: 'TASK-02',
-      title: 'Peer Notebook LLC Formation & Articles of Organization Filing',
+      title: 'Peer Notebook LLC Formation & Pre-Launch Governance Framework',
       category: 'Governance',
       priority: 'P0',
-      status: 'Pending',
-      assignedRole: 'Managing Member',
-      dueDate: '2026-11-09'
+      status: 'Completed',
+      assignedRole: 'H. Joe Abudayyeh',
+      dueDate: '2026-10-31'
     },
     {
       taskId: 'TASK-03',
-      title: 'Formal Execution of Founder-to-LLC IP Assignment Agreement',
+      title: 'Founder-to-LLC IP Assignment Agreement Execution',
       category: 'Governance',
       priority: 'P0',
-      status: 'Pending',
-      assignedRole: 'Managing Member & Counsel',
-      dueDate: '2026-11-10'
-    },
-    {
-      taskId: 'TASK-04',
-      title: 'Zero-Trust Field Privacy Pseudonymization & De-identification Audit',
-      category: 'Security',
-      priority: 'P1',
-      status: 'In Progress',
-      assignedRole: 'Security Architect',
-      dueDate: '2026-10-28'
-    },
-    {
-      taskId: 'TASK-05',
-      title: 'Client-Side 256-Bit AES-GCM Encrypted JSON Export & SHA-256 Stamp',
-      category: 'Compliance',
-      priority: 'P1',
-      status: 'In Progress',
-      assignedRole: 'Lead Frontend Engineer',
-      dueDate: '2026-10-29'
+      status: 'Completed',
+      assignedRole: 'H. Joe Abudayyeh',
+      dueDate: '2026-10-31'
     },
     {
       taskId: 'TASK-06',
       title: 'CalAIM Medi-Cal H0038 15-Minute Billing Math Verification for County Bridge',
       category: 'Compliance',
       priority: 'P1',
-      status: 'In Progress',
-      assignedRole: 'Compliance Specialist',
+      status: 'Completed',
+      assignedRole: 'H. Joe Abudayyeh',
       dueDate: '2026-10-31'
     },
     {
@@ -410,9 +437,9 @@ export async function executeDailyDigest(options: {
       title: 'Solo 1099 Independent Contractor Tenancy & Mileage Ledger',
       category: 'Operations',
       priority: 'P2',
-      status: 'In Progress',
-      assignedRole: 'Full-Stack Engineer',
-      dueDate: '2026-11-02'
+      status: 'Completed',
+      assignedRole: 'H. Joe Abudayyeh',
+      dueDate: '2026-10-31'
     }
   ];
 

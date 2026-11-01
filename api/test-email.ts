@@ -286,7 +286,7 @@ export async function testBrevoRestApiFlow(options: {
 
   const dispatch = await BrevoRestService.sendEmail({
     to: [
-      { email: recipient, name: 'Joe Abudayyeh' },
+      { email: recipient, name: 'H. Joe Abudayyeh' },
       { email: 'support@peernotebook.com', name: 'Peer Notebook Support' }
     ],
     sender: { name: 'Peer Notebook', email: 'support@peernotebook.com' },

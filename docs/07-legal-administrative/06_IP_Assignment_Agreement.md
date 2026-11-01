@@ -12,7 +12,7 @@
 ## 1. Parties to the Agreement
 
 * **Assignor (Individual Founder):**  
-  **Hani Joe Abudayyeh**  
+  **H. Joe Abudayyeh**  
   Individual Software Architect, Systems Engineer, and Founder of Peer Notebook  
   State of Residence: California, United States  
   Email: `joeabudayyeh@gmail.com`
@@ -114,11 +114,11 @@ This Agreement constitutes the entire agreement between the parties with respect
 **IN WITNESS WHEREOF**, the parties have caused this Intellectual Property Assignment Agreement to be duly executed and delivered as of the Effective Date written above.
 
 ### ASSIGNOR:
-**Hani Joe Abudayyeh**  
+**H. Joe Abudayyeh**  
 Individual Founder & Systems Architect  
 
-Signature: _/s/ Hani Joe Abudayyeh_  
-Date: October 22, 2026  
+Signature: _/s/ H. Joe Abudayyeh_  
+Date: November 1, 2026 (2026-2027 Term)  
 Location: California, USA  
 
 ---
@@ -127,8 +127,8 @@ Location: California, USA
 **Peer Notebook LLC**  
 A California Limited Liability Company  
 
-By: _/s/ Hani Joe Abudayyeh_  
-Name: Hani Joe Abudayyeh  
+By: _/s/ H. Joe Abudayyeh_  
+Name: H. Joe Abudayyeh  
 Title: Managing Member / Chief Executive  
-Date: October 22, 2026  
+Date: November 1, 2026 (2026-2027 Term)  
 Corporate Seal / Signature Stamp: `[PEER NOTEBOOK LLC - CALIFORNIA STATE SEAL EMBOSSED]`

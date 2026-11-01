@@ -1,7 +1,7 @@
 /**
  * Peer Notebook - Consolidated Technical Documentation & White Paper Repository
  * Canonical Source: https://www.peernotebook.com/docs
- * Master Index & Taxonomic Manifest: ISO 9001:2015 Clause 7.5 & Optimum Primers Grade Standards
+ * Master Index & Taxonomic Manifest: ISO 9001:2015 Clause 7.5 & H. Joe Abudayyeh Systems Production Standards
  */
 
 export interface DocArticle {
@@ -375,14 +375,16 @@ Peer Notebook enforces zero-downtime database evolution:
     subtitle: 'Document Version 1.2.0-GA • CalAIM / Medi-Cal H0038 / POS 15 Standards',
     specCode: 'SDLC-CHK-01',
     lastUpdated: '2026-10-19',
-    author: 'Optimum Primers Systems Architecture Team',
+    author: 'H. Joe Abudayyeh, Principal Systems Architect',
     readTime: '6 min',
     canonicalUrl: 'https://www.peernotebook.com/docs/checklist',
     content: `# Peer Notebook: Master Engineering & SDLC Checklist
 **Document Version:** 1.2.0-GA (Production Release)  
 **Target Domain:** peernotebook.com / www.peernotebook.com  
-**Engineering Standard:** OmniOps Systems Production Standards (Joe Abudayyeh)  
+**Engineering Standard:** H. Joe Abudayyeh Systems Production Standards  
+**Architect & Maintainer:** H. Joe Abudayyeh  
 **Regulatory Framework:** CalAIM / Medi-Cal H0038 / Place of Service (POS) 15  
+**Copyright:** © 2026-2027 H. Joe Abudayyeh & Peer Notebook LLC. All Rights Reserved.  
 
 ---
 

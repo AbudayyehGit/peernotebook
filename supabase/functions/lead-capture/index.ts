@@ -138,7 +138,7 @@ serve(async (req: Request) => {
           body: JSON.stringify({
             sender: { name: "Peer Notebook", email: "support@peernotebook.com" },
             to: [
-              { email: adminInbox, name: "Joe Abudayyeh" },
+              { email: adminInbox, name: "H. Joe Abudayyeh" },
               { email: supportEmail, name: "Peer Notebook Support" }
             ],
             replyTo: { name: "Peer Notebook Support", email: "support@peernotebook.com" },

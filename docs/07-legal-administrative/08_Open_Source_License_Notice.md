@@ -13,7 +13,7 @@
 Peer Notebook operates under a clean, institutional-grade dual-licensing structure:
 
 1. **Proprietary Commercial Codebase (Peer Notebook LLC):**  
-   The proprietary core of Peer Notebook—including the CalAIM H0038 billing calculation algorithms, the 4-part clinical note validation engine, the trauma-informed design tokens, the Supabase Row-Level Security configurations, and the Master Documentation Binder—is the exclusive intellectual property of **Peer Notebook LLC** (Copyright © 2026 Peer Notebook LLC. All rights reserved).  
+   The proprietary core of Peer Notebook—including the CalAIM H0038 billing calculation algorithms, the 4-part clinical note validation engine, the trauma-informed design tokens, the Supabase Row-Level Security configurations, and the Master Documentation Binder—is the exclusive intellectual property of **Peer Notebook LLC** (Copyright © 2026-2027 H. Joe Abudayyeh & Peer Notebook LLC. All rights reserved).  
    Commercial usage, sublicensing, white-labeling, or enterprise deployment requires a valid license agreement with Peer Notebook LLC.
 
 2. **Open Standards & Interoperability Specification (Apache License 2.0):**  

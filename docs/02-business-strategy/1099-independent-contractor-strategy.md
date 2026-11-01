@@ -37,3 +37,13 @@ Solo 1099 accounts do not require an agency tenant wrapper:
 - **Tenant Isolation:** Account records are partitioned with `account_type = 'solo_1099'` and `organization_id IS NULL`. Row-Level Security (RLS) dynamically scopes client records, session notes, and audit logs directly to `author_id = auth.uid()` / `assigned_specialist_id = auth.uid()`.
 - **Hybrid Agency Contracting:** A solo contractor can optionally link their 1099 billing profile to a CBO partner (`contractAgencyName`) while maintaining independent data sovereignty over their private client caseload.
 - **Portability & Export:** Solo specialists can generate encrypted JSON archives or printable PDF charts at any moment, satisfying independent client record retention mandates under California CMIA.
+
+---
+
+## 4. Go-To-Market & Monetization Structure
+
+1. **Frictionless Free Sandbox Tier (1099):** Unauthenticated client-side zero-persistence sandbox for immediate trial and rapid note drafting with clipboard export. Zero cloud storage maintains HIPAA/CMIA guarantees for anonymous users.
+2. **Solo Practitioner Tier ($19/mo):** Individual subscription including unlimited notes, client roster, 1099 tax rate ledger, offline sync, encrypted export, and a 30-day free trial with automatic remaining-day rollover upon upgrade.
+3. **Founding Beta Cohort:** Free lifetime tier for the first 3–5 peer specialists participating in product hardening.
+4. **Enterprise CBO Tier ($49/specialist/mo):** Multi-specialist supervisor QA dashboards, cosignature queues, county billing aggregates, and FHIR/EDI 837P export pipelines.
+

@@ -1,7 +1,8 @@
 # Software License & Copyright Notice
 
 **Peer Notebook (peernotebook.com)**  
-**Copyright © 2026 Peer Notebook LLC. All rights reserved.**
+**Copyright © 2026-2027 H. Joe Abudayyeh & Peer Notebook LLC. All rights reserved.**  
+**Architect & Lead:** H. Joe Abudayyeh
 
 ---
 

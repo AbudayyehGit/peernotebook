@@ -338,7 +338,7 @@ export const TrustComplianceFooter: React.FC = () => {
             {/* Brand & Copyright */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-1 text-slate-600 text-center lg:text-left">
               <span className="font-semibold text-slate-800">
-                © {new Date().getFullYear()} Peer Notebook (
+                © 2026-2027 Peer Notebook (
                 <a
                   href="https://peernotebook.com"
                   target="_blank"

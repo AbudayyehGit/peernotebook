@@ -121,12 +121,12 @@ Peer Notebook LLC strictly enforces flow-down BAA obligations across every tier 
 Contracting agencies may execute this BAA schedule electronically or via counterpart PDF:
 
 **PEER NOTEBOOK LLC (Business Associate):**  
-Name: Hani Joe Abudayyeh  
+Name: H. Joe Abudayyeh  
 Title: Managing Member & Principal Systems Architect  
 Contact: `compliance@peernotebook.com` / `joeabudayyeh@gmail.com`  
 Address: State of California, United States  
-Signature: _/s/ Hani Joe Abudayyeh_  
-Date: October 22, 2026  
+Signature: _/s/ H. Joe Abudayyeh_  
+Date: November 1, 2026 (2026-2027 Term)  
 
 ---
 

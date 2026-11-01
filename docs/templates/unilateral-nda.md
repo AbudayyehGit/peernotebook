@@ -90,9 +90,9 @@ Recipient acknowledges and agrees that any unauthorized use, disclosure, or diss
 **Peer Notebook LLC**  
 
 By: _________________________________________  
-Name: Joe Abudayyeh  
+Name: H. Joe Abudayyeh  
 Title: Founder & Managing Member  
-Date: _______________________________________  
+Date: November 1, 2026 (2026-2027 Term)  
 
 **RECIPIENT:**  
 

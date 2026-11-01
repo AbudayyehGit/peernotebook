@@ -1,8 +1,9 @@
 # Intellectual Property, Licensing & Open-Source Attribution
 
 **Document Version:** 1.0-GA  
-**Target Domain:** peernotebook.com  
-**Copyright:** (c) 2026 Optimum Primers & Peer Notebook Contributors. All Rights Reserved.
+**Copyright:** © 2026-2027 H. Joe Abudayyeh & Peer Notebook LLC. All Rights Reserved.  
+**Author & Systems Lead:** H. Joe Abudayyeh
+
 
 ---
 

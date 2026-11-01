@@ -3,7 +3,9 @@
 > **Status:** General Availability (GA #8) Production Standard  
 > **Target Domain:** [peernotebook.com](https://peernotebook.com)  
 > **Repository Path:** `/docs/`  
-> **Standard:** ISO 9001:2015 Clause 7.5 (Documented Information) & CalAIM Behavioral Health Governance  
+> **Standard:** H. Joe Abudayyeh Systems Production Standards (ISO 9001:2015 Clause 7.5 & CalAIM Governance)  
+> **Architect & Lead:** H. Joe Abudayyeh  
+> **Copyright:** © 2026-2027 H. Joe Abudayyeh & Peer Notebook LLC. All Rights Reserved.  
 > **Regulatory Alignment:** California SB 803 / CalMHSA / Medi-Cal CalAIM (HCPCS H0038) / HIPAA 45 CFR § 164
 
 ---
@@ -21,6 +23,12 @@ This centralized **Master Documentation Binder** provides the deterministic blue
 docs/
 ├── README.md                          # Master Binder Index & System Manifest
 ├── checklist.md                       # Master Engineering & SDLC Verification Checklist
+├── master-sprint-log.md               # Multi-Sorted Master Sprint Log & Backlog Reconciliation
+├── ip-strategy-matrix.md              # IP Mechanism Mapping (Copyright, Trademark, Trade Secret, Patent)
+├── filing-checklists.md               # USPTO Class 42 & USCO Source Code Deposit Checklists
+├── templates/                         # Master Legal Boilerplate Templates
+│   ├── unilateral-nda.md              # Unilateral Healthcare Software NDA Template
+│   └── piia-clause.md                 # Perpetual Proprietary Information & Inventions Assignment Clause
 ├── 01-project-management/             # Charters, roadmaps, sprint schedules, and governance
 │   ├── README.md                      # Section Overview & Governance Guide
 │   ├── project-charter.md             # Mission, scope, constraints, and success metrics
@@ -99,7 +107,7 @@ docs/
     ├── 01_Terms_of_Service.md         # Master Terms of Service with Non-Clinical Disclaimers
     ├── terms-of-service.md            # Standard Master Services Agreement (MSA) & Acceptable Use
     ├── privacy-policy-spec.md         # HIPAA Notice of Privacy Practices & CMIA Disclosures
-    ├── 06_IP_Assignment_Agreement.md  # Founder-to-LLC IP Assignment Agreement (Hani Joe Abudayyeh to Peer Notebook LLC)
+    ├── 06_IP_Assignment_Agreement.md  # Founder-to-LLC IP Assignment Agreement (H. Joe Abudayyeh to Peer Notebook LLC)
     ├── 07_Business_Associate_Agreement_BAA_Framework.md # Institutional BAA Framework (Supabase, AWS, Zero-AI Policy)
     ├── 08_Open_Source_License_Notice.md # Third-Party Dependency Attributions & Permissive License Matrix
     ├── compliance-matrix.md           # SOC 2 Type II, ISO 27001, HIPAA & CalMHSA crosswalk
@@ -199,7 +207,7 @@ docs/
 * [**01_Terms_of_Service.md**](./07-legal-administrative/01_Terms_of_Service.md): Master Terms of Service with explicit disclaimer: administrative formatting aid only, no guarantee against Medi-Cal billing audits.
 * [**terms-of-service.md**](./07-legal-administrative/terms-of-service.md): Standard enterprise SaaS agreements, acceptable use, and limitation of liability clauses.
 * [**privacy-policy-spec.md**](./07-legal-administrative/privacy-policy-spec.md): Comprehensive HIPAA Notice of Privacy Practices, California CMIA disclosures, data retention timelines (10-year Medi-Cal requirement), and client confidentiality rights.
-* [**06_IP_Assignment_Agreement.md**](./07-legal-administrative/06_IP_Assignment_Agreement.md): Executed Founder-to-LLC Intellectual Property Assignment Agreement transferring 100% of all source code, domain names (`peernotebook.com`), algorithms, and documentation from individual founder Hani Joe Abudayyeh to **Peer Notebook LLC**.
+* [**06_IP_Assignment_Agreement.md**](./07-legal-administrative/06_IP_Assignment_Agreement.md): Executed Founder-to-LLC Intellectual Property Assignment Agreement transferring 100% of all source code, domain names (`peernotebook.com`), algorithms, and documentation from individual founder H. Joe Abudayyeh to **Peer Notebook LLC**.
 * [**07_Business_Associate_Agreement_BAA_Framework.md**](./07-legal-administrative/07_Business_Associate_Agreement_BAA_Framework.md): Institutional BAA framework across Supabase, AWS S3 WORM storage, and Google Cloud zero-retention data logging policies.
 * [**08_Open_Source_License_Notice.md**](./07-legal-administrative/08_Open_Source_License_Notice.md): Open-source dependency attributions (React, Vite, Tailwind CSS, Dexie.js, Supabase, jsPDF) and commercial dual-licensing framework.
 * [**compliance-matrix.md**](./07-legal-administrative/compliance-matrix.md): Multi-framework audit crosswalk mapping SOC 2 Type II, ISO/IEC 27001, HIPAA 45 CFR § 164, and CalMHSA requirements.

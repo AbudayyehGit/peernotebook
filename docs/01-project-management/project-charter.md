@@ -3,8 +3,9 @@
 **Document Version:** 1.1-GA (Production Release)  
 **Classification:** Internal Governance & Systems Engineering  
 **Target Domain:** peernotebook.com  
-**Maintainer:** Optimum Primers Architecture & Governance Lead  
-**Regulatory Framework:** California SB 803 / CalMHSA / Medi-Cal CalAIM (HCPCS H0038)
+**Maintainer:** H. Joe Abudayyeh, Principal Systems Architect & Governance Lead  
+**Regulatory Framework:** California SB 803 / CalMHSA / Medi-Cal CalAIM (HCPCS H0038)  
+**Copyright:** © 2026-2027 H. Joe Abudayyeh & Peer Notebook LLC. All Rights Reserved.  
 
 ---
 
