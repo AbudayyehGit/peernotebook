@@ -38,7 +38,8 @@ if (fs.existsSync(path.resolve(__dirname, '../checklist.md'))) {
   );
 }
 
-if (fs.existsSync(path.resolve(__dirname, '../README.md'))) {
+// Preserve canonical docs/README.md index; do not overwrite with root README.md
+if (!fs.existsSync(path.join(docsDir, 'README.md')) && fs.existsSync(path.resolve(__dirname, '../README.md'))) {
   fs.copyFileSync(
     path.resolve(__dirname, '../README.md'),
     path.join(docsDir, 'README.md')

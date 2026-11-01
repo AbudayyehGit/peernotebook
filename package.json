@@ -16,6 +16,7 @@
     "test:emails": "npx tsx scripts/test-email-triggers.ts",
     "test:email-flows": "npx tsx api/test-email.ts",
     "audit:resend": "npx tsx scripts/audit-resend-emails.ts",
+    "git:resolve": "node scripts/resolve-git-conflicts.js",
     "git:sync": "bash scripts/sync-to-github.sh"
   },
   "dependencies": {
