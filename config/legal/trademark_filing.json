@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "trademarkFiling": {
+    "mark": "PEER NOTEBOOK",
+    "markType": "Standard Character Mark & Stylized Word Mark",
+    "applicant": {
+      "organization": "Peer Notebook LLC",
+      "authorizedRepresentative": "H. Joe Abudayyeh",
+      "address": {
+        "streetAddress": "100 Pine Street, Suite 1250",
+        "city": "San Francisco",
+        "state": "CA",
+        "postalCode": "94111",
+        "country": "USA"
+      },
+      "correspondenceEmail": "legal@peernotebook.com"
+    },
+    "internationalClasses": [
+      {
+        "classNumber": "009",
+        "classificationTitle": "Computer Software & Downloadable Mobile Applications",
+        "goodsDescription": "Downloadable computer software and downloadable mobile applications for behavioral health and mental health peer support specialists; downloadable software for offline-first clinical field progress note documentation, CalAIM compliance tracking, and Medi-Cal H0038 encounter logging; downloadable progressive web application (PWA) software with encrypted local synchronization.",
+        "filingBasis": "Section 1(a) - Use in Commerce",
+        "firstUseAnywhereDate": "2024-01-20",
+        "firstUseInCommerceDate": "2024-02-01",
+        "specimens": [
+          {
+            "specimenType": "Mobile PWA Application Interface Screenshot",
+            "description": "Screenshot of Peer Notebook Progressive Web App executing on mobile viewport showing mark in header and offline note capture controls",
+            "urlReference": "https://peernotebook.com"
+          }
+        ]
+      },
+      {
+        "classNumber": "042",
+        "classificationTitle": "Software as a Service (SaaS) & Cloud Computing Services",
+        "goodsDescription": "Providing temporary use of non-downloadable cloud-based computer software for behavioral health peer documentation, clinical supervisory cosigning workflows, 42 CFR Part 2 and HIPAA privacy safeguarding, electronic health records (EHR) HL7 FHIR interoperability, and automated Medi-Cal H0038 billing audit readiness reporting.",
+        "filingBasis": "Section 1(a) - Use in Commerce",
+        "firstUseAnywhereDate": "2024-01-20",
+        "firstUseInCommerceDate": "2024-02-01",
+        "specimens": [
+          {
+            "specimenType": "SaaS Platform Dashboard & Billing Export Screen",
+            "description": "Web browser screen capture of Peer Notebook SaaS portal displaying header trademark, CalAIM H0038 ledger, and active supervisory approval queue",
+            "urlReference": "https://peernotebook.com/admin/billing"
+          }
+        ]
+      }
+    ],
+    "usptoFilingMetadata": {
+      "filingOffice": "United States Patent and Trademark Office (USPTO)",
+      "teasFilingForm": "TEAS Plus Application",
+      "status": "Documented / Specimen Ready for Submission",
+      "statutoryDeclarations": {
+        "declarationOfUse": true,
+        "truthfulStatementUnder18USC1001": true
+      }
+    }
+  }
+}

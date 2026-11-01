@@ -25,6 +25,6 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["src", "api"],
+  "include": ["src", "api", "tests"],
   "exclude": ["dist", "node_modules"]
 }

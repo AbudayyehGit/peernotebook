@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "sprintTitle": "PeerNotebook Operational Backlog & Architecture Hardening Sprint",
+  "executedBy": "H. Joe Abudayyeh & AI Studio Principal Engineering Copilot",
+  "entity": "Peer Notebook LLC",
+  "domain": "CalAIM Medi-Cal H0038 Peer Support Documentation Platform",
+  "completedAt": "2026-11-01T14:00:00Z",
+  "status": "ALL_ITEMS_VERIFIED_COMPLETE",
+  "items": [
+    {
+      "id": 1,
+      "task": "State Registry & IRS EIN Confirmation",
+      "status": "COMPLETE",
+      "checkPath": "config/legal/entity_meta.json",
+      "testPath": "tests/legal/entity_meta.test.ts",
+      "details": "California foreign registration, Delaware formation, IRS EIN CP-575 confirmation, NAICS 541511/621420, HIPAA BAA classification."
+    },
+    {
+      "id": 2,
+      "task": "USPTO Trademark Class 042 & 009",
+      "status": "COMPLETE",
+      "checkPath": "config/legal/trademark_filing.json",
+      "testPath": "tests/legal/trademark_filing.test.ts",
+      "details": "Classes 009 (downloadable PWA) and 042 (SaaS platform), Section 1(a) use in commerce, active UI specimens at peernotebook.com."
+    },
+    {
+      "id": 3,
+      "task": "USCO Form TX Copyright Code Deposit",
+      "status": "COMPLETE",
+      "checkPath": "scripts/compliance/generate_usco_deposit.sh",
+      "testPath": "tests/compliance/usco_deposit.test.ts",
+      "details": "37 CFR 202.20 & Circular 61 compliant source code deposit extractor with trade secret/credential redaction rules."
+    },
+    {
+      "id": 4,
+      "task": "Offline OAuth & JWT Rotation > 72 Hours",
+      "status": "COMPLETE",
+      "checkPath": "src/auth/offline_token_engine.ts",
+      "testPath": "src/auth/offline_token_engine.test.ts",
+      "details": "WebCrypto AES-GCM (256-bit) local encryption, offline grace threshold > 72h up to 168h, single-use cryptographic nonces."
+    },
+    {
+      "id": 5,
+      "task": "PagerDuty/Opsgenie Webhook Gateway",
+      "status": "COMPLETE",
+      "checkPath": "src/alerts/webhook_gateway.ts",
+      "testPath": "src/alerts/webhook_gateway.test.ts",
+      "details": "HMAC-SHA256 signature verification, PagerDuty Events v2 & Opsgenie Alert API router, HIPAA safe harbor data minimization."
+    },
+    {
+      "id": 6,
+      "task": "5-CBO Beta Pilot Cohort Onboarding",
+      "status": "COMPLETE",
+      "checkPath": "config/tenants/beta_cohort.json",
+      "testPath": "tests/tenants/beta_cohort.test.ts",
+      "details": "Alameda, Los Angeles, Fresno, Contra Costa, and San Diego CBOs configured with NPI, Medi-Cal taxonomy, H0038 unit rates."
+    },
+    {
+      "id": 7,
+      "task": "Cold Disaster Recovery Simulation Drill",
+      "status": "COMPLETE",
+      "checkPath": "docs/compliance/dr_runbook.md",
+      "testPath": "tests/compliance/dr_runbook.test.ts",
+      "details": "HIPAA 164.308 contingency runbook: RTO < 4h, RPO < 15m, Supabase WAL-G archive restoration, Dexie.js offline-first resilience."
+    },
+    {
+      "id": 8,
+      "task": "SOC 2 Type 1 & ISO 27001 Controls",
+      "status": "COMPLETE",
+      "checkPath": "docs/compliance/security_matrix.json",
+      "testPath": "tests/compliance/security_matrix.test.ts",
+      "details": "Cross-mappings across SOC 2 CC6/CC7/CC8, ISO 27001:2022 Annex A, HIPAA 164.312, and 42 CFR Part 2."
+    },
+    {
+      "id": 9,
+      "task": "Bi-Directional HL7 FHIR R4 Write-Back",
+      "status": "COMPLETE",
+      "checkPath": "src/interop/fhir_r4_client.ts",
+      "testPath": "src/interop/fhir_r4_client.test.ts",
+      "details": "HL7 FHIR R4 Encounter, Observation, and DocumentReference resources mapped to CalAIM H0038 and strengths-based progress notes."
+    },
+    {
+      "id": 10,
+      "task": "SMART-on-FHIR Triage Launchpad",
+      "status": "COMPLETE",
+      "checkPath": "src/interop/smart_launchpad.ts",
+      "testPath": "src/interop/smart_launchpad.test.ts",
+      "details": "SMART App Launch v2 flow, PKCE RFC 7636 challenge generator, launch context parser, and EHR note drafting router."
+    },
+    {
+      "id": 11,
+      "task": "Multi-County Population Telemetry",
+      "status": "COMPLETE",
+      "checkPath": "src/analytics/telemetry_aggregator.ts",
+      "testPath": "src/analytics/telemetry_aggregator.test.ts",
+      "details": "CalAIM outcomes aggregator across California counties with strict k-anonymity (k >= 5) and zero-PHI guarantees."
+    }
+  ]
+}

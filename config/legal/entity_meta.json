@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "entity": {
+    "legalName": "Peer Notebook LLC",
+    "dba": "Peer Notebook",
+    "entityType": "Limited Liability Company (LLC)",
+    "formationState": "Delaware",
+    "formationDate": "2024-01-15",
+    "californiaRegistration": {
+      "sosEntityNumber": "202460110822",
+      "status": "Active / In Good Standing",
+      "filingType": "Application for Registration - Foreign LLC (Form LLC-5)",
+      "jurisdiction": "California Secretary of State",
+      "registeredAgent": {
+        "name": "California Corporate Agents, Inc.",
+        "address": {
+          "streetAddress": "100 Pine Street, Suite 1250",
+          "city": "San Francisco",
+          "state": "CA",
+          "postalCode": "94111",
+          "country": "USA"
+        }
+      }
+    },
+    "taxProfile": {
+      "irsEinStatus": "Confirmed / Issued",
+      "irsEinVerificationNotice": "CP 575 A (Notice of New Employer Identification Number Assigned)",
+      "einMasked": "XX-XXX4819",
+      "taxClassification": "Single-Member LLC / Pass-Through Entity",
+      "naicsCodes": [
+        {
+          "code": "541511",
+          "description": "Custom Computer Programming Services (Healthcare SaaS)"
+        },
+        {
+          "code": "621420",
+          "description": "Outpatient Mental Health and Substance Abuse Centers Support Technology"
+        }
+      ]
+    },
+    "principals": [
+      {
+        "name": "H. Joe Abudayyeh",
+        "title": "Founder & Principal Architect",
+        "role": "Authorized Representative & HIPAA Security Officer",
+        "email": "joe@peernotebook.com"
+      }
+    ],
+    "regulatoryClassifications": {
+      "hipaaClassification": "Business Associate (45 CFR § 160.103)",
+      "baaStandardTemplate": "docs/compliance/baa_master_template.md",
+      "part2Compliance": "42 CFR Part 2 Qualified Service Organization (QSO)",
+      "calAimVendorType": "Specialty Mental Health & DMC-ODS Peer Support SaaS Vendor",
+      "primaryBillingCode": "H0038 (Self-help/peer services, 15 minutes)"
+    },
+    "contact": {
+      "supportEmail": "support@peernotebook.com",
+      "legalEmail": "legal@peernotebook.com",
+      "domain": "peernotebook.com"
+    }
+  }
+}

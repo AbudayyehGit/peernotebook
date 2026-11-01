@@ -17,7 +17,8 @@
     "test:email-flows": "npx tsx api/test-email.ts",
     "audit:resend": "npx tsx scripts/audit-resend-emails.ts",
     "git:resolve": "node scripts/resolve-git-conflicts.js",
-    "git:sync": "bash scripts/sync-to-github.sh"
+    "git:sync": "bash scripts/sync-to-github.sh",
+    "test": "npx tsx tests/run-all-tests.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
