@@ -98,9 +98,9 @@ export const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ onSwitchToWo
       county: currentOrg?.countyCode ? currentOrg.countyCode.split('-')[1] || 'San Francisco' : 'San Francisco',
       durationMinutes: n.durationMinutes,
       billingUnits: n.billingUnits,
-      directMinutes: n.directMinutes,
-      travelMinutes: n.travelMinutes,
-      docMinutes: n.docMinutes,
+      directMinutes: n.faceToFaceMinutes || 0,
+      travelMinutes: n.travelMinutes || 0,
+      docMinutes: n.documentationMinutes || 0,
       domains: n.focusDomains || [],
       isApproved: n.status === 'approved'
     }))
@@ -155,9 +155,9 @@ export const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ onSwitchToWo
     }
   };
 
-  const handleTestPkce = async () => {
-    const pkce = await generatePkce();
-    setPkceTestResult(pkce);
+  const handleTestPkce = () => {
+    const pkce = generatePkce();
+    setPkceTestResult({ verifier: pkce.codeVerifier, challenge: pkce.codeChallenge });
   };
 
   return (

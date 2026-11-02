@@ -185,3 +185,16 @@ export class SmartLaunchpad {
     };
   }
 }
+
+export function generatePkce(): PkcePair {
+  return SmartLaunchpad.generatePkce();
+}
+
+export function buildAuthorizeUrl(
+  authEndpoint: string,
+  params: SmartLaunchParams,
+  pkce: PkcePair,
+  state: string
+): string {
+  return SmartLaunchpad.buildAuthorizeUrl(authEndpoint, params, pkce, state);
+}

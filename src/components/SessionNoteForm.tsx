@@ -11,6 +11,8 @@ import { useAuth } from '../context/AuthContext';
 import { usePrivacyMode } from '../context/PrivacyModeContext';
 import { AuditLogger } from '../services/auditLogger';
 import { syncWorker } from '../services/syncWorker';
+import { BillingValidator } from '../services/BillingValidator';
+import { AuditTrail } from '../services/AuditTrail';
 import {
   FileText,
   Save,
@@ -662,6 +664,13 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       updatedAt: now
     };
 
+    // SP1-01: Strict Client-Side CalAIM H0038 Time-Overlap & Daily Cap Validation
+    const validation = await BillingValidator.validateAgainstDB(noteToSave);
+    if (!validation.isValid) {
+      setValidationWarning(validation.errors[0] || 'CalAIM Billing Conflict: Encounter cannot be submitted due to scheduling or daily cap conflicts.');
+      return;
+    }
+
     // Save to Dexie.js
     await peerNotebookDB.saveNote(noteToSave);
 
@@ -674,22 +683,12 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
     // Queue for cloud sync & audit log
     await syncWorker.enqueueMutation('CREATE', 'session_note', noteToSave.id, noteToSave);
 
-    if (currentUser && currentOrg) {
-      await AuditLogger.log({
-        organizationId: currentOrg.id,
-        actorId: currentUser.id,
-        actorName: currentUser.fullName,
-        actorRole: currentUser.role,
-        action: submitToSupervisor ? 'SIGN_NOTE' : 'CREATE_NOTE',
-        entityType: 'session_note',
-        entityId: noteToSave.id,
-        details: {
-          clientId: noteToSave.clientId,
-          billingUnits: noteToSave.billingUnits,
-          totalBillableMinutes: noteToSave.durationMinutes,
-          status: noteToSave.status
-        }
-      });
+    if (currentUser) {
+      if (existingNote) {
+        await AuditTrail.recordNoteUpdate(noteToSave, currentUser);
+      } else {
+        await AuditTrail.recordNoteCreation(noteToSave, currentUser);
+      }
     }
 
     setSaveStatus(submitToSupervisor ? 'Submitted to Supervisor Queue!' : 'Draft Saved to Dexie.js Local Store!');

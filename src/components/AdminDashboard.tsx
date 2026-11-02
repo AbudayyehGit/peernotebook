@@ -42,9 +42,14 @@ import {
   Activity,
   Layers,
   Sparkles,
-  Check
+  Check,
+  ShieldAlert,
+  Key,
+  Lock,
+  UserCheck
 } from 'lucide-react';
 import { EhrIntegrationService } from '../services/ehrIntegrationService';
+import { AuditTrail } from '../services/AuditTrail';
 
 export const AdminDashboard: React.FC = () => {
   const {
@@ -53,6 +58,7 @@ export const AdminDashboard: React.FC = () => {
     allUsers,
     allOrgs,
     role,
+    switchOrg,
     createUser,
     updateUser,
     deleteUser,
@@ -61,13 +67,24 @@ export const AdminDashboard: React.FC = () => {
   } = useAuth();
 
   const [notes, setNotes] = useState<SessionNote[]>([]);
-  const [activeTab, setActiveTab] = useState<'onboarding' | 'roster' | 'capacity' | 'organization'>('onboarding');
+  const [activeTab, setActiveTab] = useState<'onboarding' | 'roster' | 'roles' | 'organizations' | 'capacity' | 'organization'>('onboarding');
   
   // Modal states
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
+  const [isProvisionOrgModalOpen, setIsProvisionOrgModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Org Provisioning state
+  const [provisionName, setProvisionName] = useState('');
+  const [provisionCounty, setProvisionCounty] = useState('01-Alameda');
+  const [provisionNpi, setProvisionNpi] = useState('');
+  const [provisionMedicaidId, setProvisionMedicaidId] = useState('');
+  const [provisionContractType, setProvisionContractType] = useState<Organization['contractType']>('CBO Partner');
+  const [provisionAllocatedUnits, setProvisionAllocatedUnits] = useState<number>(1200);
+  const [provisionContactEmail, setProvisionContactEmail] = useState('');
+  const [provisionContactPhone, setProvisionContactPhone] = useState('');
 
   // User form state
   const [userName, setUserName] = useState('');
@@ -299,6 +316,114 @@ export const AdminDashboard: React.FC = () => {
   const completedChecklistCount = Object.values(checklist).filter(Boolean).length;
   const onboardingProgressPercent = Math.round((completedChecklistCount / 6) * 100);
 
+  const handleRoleChange = async (targetUser: User, newRole: UserRole) => {
+    if (!currentUser) return;
+    const oldRole = targetUser.role;
+    if (oldRole === newRole) return;
+    try {
+      const updatedUser: User = { ...targetUser, role: newRole };
+      await updateUser(updatedUser);
+      await AuditTrail.recordRoleAssignment(targetUser.id, targetUser.email, oldRole, newRole, currentUser);
+      setStatusMessage({
+        type: 'success',
+        text: `Role for ${targetUser.fullName} updated to "${newRole.replace('_', ' ')}". Chained audit record logged.`
+      });
+      setTimeout(() => setStatusMessage(null), 4000);
+    } catch (err: unknown) {
+      setStatusMessage({ type: 'error', text: (err as Error).message || 'Failed to update user role.' });
+    }
+  };
+
+  const handleToggleUserActive = async (targetUser: User) => {
+    if (!currentUser) return;
+    try {
+      const updatedUser: User = { ...targetUser, isActive: !targetUser.isActive };
+      await updateUser(updatedUser);
+      setStatusMessage({
+        type: 'success',
+        text: `User ${targetUser.fullName} is now ${updatedUser.isActive ? 'Active' : 'Suspended'}.`
+      });
+      setTimeout(() => setStatusMessage(null), 4000);
+    } catch (err: unknown) {
+      setStatusMessage({ type: 'error', text: (err as Error).message || 'Failed to update user status.' });
+    }
+  };
+
+  const handleProvisionOrg = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!provisionName.trim()) return;
+    try {
+      const newOrg = await createOrg({
+        name: provisionName.trim(),
+        countyCode: provisionCounty,
+        npi: provisionNpi.trim() || '1982000000',
+        medicaidProviderId: provisionMedicaidId.trim() || 'CA-MC-000000',
+        contractType: provisionContractType,
+        allocatedMonthlyUnits: provisionAllocatedUnits,
+        contactEmail: provisionContactEmail.trim() || 'admin@cbopartner.org',
+        contactPhone: provisionContactPhone.trim() || '(510) 555-0100',
+        calaimContractActive: true,
+        baaSignedAt: new Date().toISOString(),
+        baaVersion: 'v2.4-GA8-CalAIM'
+      });
+      if (currentUser) {
+        await AuditTrail.recordOrgProvisioned(newOrg, currentUser);
+      }
+      setIsProvisionOrgModalOpen(false);
+      setProvisionName('');
+      setProvisionNpi('');
+      setProvisionMedicaidId('');
+      setStatusMessage({
+        type: 'success',
+        text: `Successfully provisioned new CBO tenant "${newOrg.name}" (${newOrg.countyCode}).`
+      });
+      setTimeout(() => setStatusMessage(null), 4000);
+    } catch (err: unknown) {
+      setStatusMessage({ type: 'error', text: (err as Error).message || 'Failed to provision organization.' });
+    }
+  };
+
+  // RESTRICTED ACCESS GATE: Only accessible to super_admin
+  if (role !== 'super_admin') {
+    return (
+      <div className="w-full max-w-4xl mx-auto px-4 py-16 animate-in fade-in duration-200">
+        <div className="bg-white border-2 border-amber-300 rounded-3xl p-8 sm:p-10 shadow-lg text-center space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center mx-auto shadow-xs">
+            <ShieldAlert className="w-9 h-9" />
+          </div>
+          <div className="space-y-2">
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-950 uppercase tracking-wider">
+              Administrative Boundary Restricted
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Super Administrator Access Required
+            </h2>
+            <p className="text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+              The CBO Administrative Governance &amp; Organization Provisioning Dashboard is restricted exclusively to authenticated users with the <code className="px-1.5 py-0.5 bg-slate-100 rounded text-amber-950 font-mono text-xs font-bold">super_admin</code> role to enforce CalAIM compliance and multi-tenant organizational boundaries.
+            </p>
+          </div>
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl max-w-md mx-auto text-xs text-left space-y-2 font-mono">
+            <div className="flex justify-between text-slate-600">
+              <span>Active User:</span>
+              <span className="font-bold text-slate-900">{currentUser?.fullName || 'Not authenticated'}</span>
+            </div>
+            <div className="flex justify-between text-slate-600">
+              <span>Current Role:</span>
+              <span className="font-bold text-amber-800 capitalize">{role.replace('_', ' ')}</span>
+            </div>
+            <div className="flex justify-between text-slate-600">
+              <span>Required Role:</span>
+              <span className="font-bold text-emerald-700">super_admin</span>
+            </div>
+          </div>
+          <p className="text-xs text-slate-500">
+            Please authenticate using the Super Administrator account (<span className="font-mono text-slate-700">joeabudayyeh@gmail.com</span>) in the top simulator bar or switch profile.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header Banner */}
@@ -443,7 +568,7 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-slate-200 bg-white rounded-xl px-2 pt-2 shadow-2xs">
+      <div className="flex flex-wrap border-b border-slate-200 bg-white rounded-xl px-2 pt-2 shadow-2xs gap-1">
         <button
           onClick={() => setActiveTab('onboarding')}
           className={`min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
@@ -453,7 +578,7 @@ export const AdminDashboard: React.FC = () => {
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>Medi-Cal CBO Onboarding ({completedChecklistCount}/6)</span>
+          <span>CBO Onboarding ({completedChecklistCount}/6)</span>
         </button>
 
         <button
@@ -469,6 +594,30 @@ export const AdminDashboard: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setActiveTab('roles')}
+          className={`min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
+            activeTab === 'roles'
+              ? 'border-[#0F766E] text-[#0F766E]'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Key className="w-4 h-4 text-purple-600" />
+          <span>Role Governance &amp; Boundaries</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('organizations')}
+          className={`min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
+            activeTab === 'organizations'
+              ? 'border-[#0F766E] text-[#0F766E]'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Building2 className="w-4 h-4 text-indigo-600" />
+          <span>CBO Tenant Provisioning ({allOrgs.length})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('capacity')}
           className={`min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
             activeTab === 'capacity'
@@ -477,7 +626,7 @@ export const AdminDashboard: React.FC = () => {
           }`}
         >
           <TrendingUp className="w-4 h-4" />
-          <span>CalAIM Volume &amp; Claims</span>
+          <span>CalAIM Volume</span>
         </button>
 
         <button
@@ -489,7 +638,7 @@ export const AdminDashboard: React.FC = () => {
           }`}
         >
           <Building2 className="w-4 h-4" />
-          <span>Agency Details &amp; BAA</span>
+          <span>Active BAA</span>
         </button>
       </div>
 
@@ -954,6 +1103,237 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
+      {/* Tab: User Role Assignment & Administrative Boundaries */}
+      {activeTab === 'roles' && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-900 flex items-center gap-1">
+                  <Key className="w-3.5 h-3.5" /> Super Administrator Control
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold text-[#1E3A8A] mt-1">
+                User Role Assignment &amp; Administrative Boundaries
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600">
+                Enforce strict division of labor across accounts. Every role assignment is sealed into an append-only chained audit log.
+              </p>
+            </div>
+            <button
+              onClick={() => openAddUserModal('w2_employee')}
+              className="min-h-[44px] px-4.5 py-2.5 bg-[#0F766E] hover:bg-teal-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-colors flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add User Account</span>
+            </button>
+          </div>
+
+          <div className="border border-slate-200 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
+                  <tr>
+                    <th className="p-3.5">User / Credentials</th>
+                    <th className="p-3.5">Organization</th>
+                    <th className="p-3.5">Classification</th>
+                    <th className="p-3.5">Active Role</th>
+                    <th className="p-3.5">Role Assignment Control</th>
+                    <th className="p-3.5 text-right">Account Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {allUsers.map((u) => {
+                    const userOrg = allOrgs.find((o) => o.id === u.organizationId);
+                    return (
+                      <tr key={u.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="p-3.5">
+                          <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                            <span>{u.fullName}</span>
+                            {u.role === 'super_admin' && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] bg-purple-100 text-purple-900 font-bold">
+                                Super Admin
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-slate-500 font-mono text-[11px]">{u.email}</p>
+                          <p className="text-slate-400 text-[10px] truncate max-w-xs">{u.credentialTitle}</p>
+                        </td>
+                        <td className="p-3.5 text-slate-700 font-medium">
+                          {userOrg?.name || 'Independent / Unassigned'}
+                        </td>
+                        <td className="p-3.5">
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-semibold ${
+                              u.employmentType === '1099_contractor' || u.isContractor1099
+                                ? 'bg-amber-100 text-amber-900'
+                                : 'bg-blue-100 text-blue-900'
+                            }`}
+                          >
+                            {u.employmentType === '1099_contractor' || u.isContractor1099
+                              ? '1099 Contractor'
+                              : 'W-2 Employee'}
+                          </span>
+                        </td>
+                        <td className="p-3.5">
+                          <span
+                            className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                              u.role === 'super_admin'
+                                ? 'bg-purple-100 text-purple-900 border border-purple-300'
+                                : u.role === 'supervisor'
+                                ? 'bg-blue-100 text-blue-900 border border-blue-300'
+                                : u.role === 'compliance_officer'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                : u.role === 'admin'
+                                ? 'bg-indigo-100 text-indigo-900 border border-indigo-300'
+                                : 'bg-teal-100 text-teal-900 border border-teal-300'
+                            }`}
+                          >
+                            {u.role.replace('_', ' ').toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="p-3.5">
+                          <select
+                            value={u.role}
+                            onChange={(e) => handleRoleChange(u, e.target.value as UserRole)}
+                            className="min-h-[38px] px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-[#0F766E] cursor-pointer"
+                          >
+                            <option value="peer_specialist">Peer Support Specialist</option>
+                            <option value="supervisor">Clinical Supervisor</option>
+                            <option value="compliance_officer">Compliance Officer</option>
+                            <option value="admin">CBO Administrator</option>
+                            <option value="super_admin">Super Administrator</option>
+                          </select>
+                        </td>
+                        <td className="p-3.5 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleUserActive(u)}
+                            className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                              u.isActive
+                                ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300'
+                                : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-300'
+                            }`}
+                          >
+                            {u.isActive ? 'Active' : 'Suspended'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab: CBO Tenant Provisioning Logic */}
+      {activeTab === 'organizations' && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-900 flex items-center gap-1">
+                  <Building2 className="w-3.5 h-3.5" /> Multi-Tenant Architecture
+                </span>
+                <span className="text-xs text-slate-500 font-mono">
+                  {allOrgs.length} Total CBOs Provisioned
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold text-[#1E3A8A] mt-1">
+                CBO Organization Provisioning &amp; Tenant Isolation
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600">
+                Provision new California Community-Based Organizations with distinct NPIs, county Medi-Cal provider IDs, and allocated monthly H0038 billing volume.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsProvisionOrgModalOpen(true)}
+              className="min-h-[44px] px-4.5 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-colors flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Provision New CBO Tenant</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {allOrgs.map((org) => {
+              const isCurrent = currentOrg?.id === org.id;
+              const orgUserCount = allUsers.filter((u) => u.organizationId === org.id).length;
+              const orgNotes = notes.filter((n) => n.organizationId === org.id);
+              const orgUnits = orgNotes.reduce((sum, n) => sum + (n.billingUnits || 0), 0);
+
+              return (
+                <div
+                  key={org.id}
+                  className={`p-5 rounded-2xl border transition-all ${
+                    isCurrent
+                      ? 'border-[#0F766E] bg-teal-50/30 ring-2 ring-[#0F766E]/20 shadow-sm'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700">
+                          {org.countyCode}
+                        </span>
+                        {isCurrent && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-900">
+                            Active Workspace
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="font-bold text-slate-900 text-base mt-1 line-clamp-1">{org.name}</h3>
+                    </div>
+                    <Building2 className={`w-5 h-5 shrink-0 ${isCurrent ? 'text-[#0F766E]' : 'text-slate-400'}`} />
+                  </div>
+
+                  <div className="space-y-1.5 text-xs text-slate-600 mb-4 border-t border-slate-100 pt-3">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">NPI:</span>
+                      <span className="font-mono font-bold text-slate-800">{org.npi}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Medi-Cal ID:</span>
+                      <span className="font-mono font-bold text-slate-800">{org.medicaidProviderId}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Contract Type:</span>
+                      <span className="font-semibold text-slate-700">{org.contractType || 'CBO Partner'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Monthly Cap:</span>
+                      <span className="font-bold text-[#1E3A8A]">{org.allocatedMonthlyUnits || 1200} units</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Enrolled Staff:</span>
+                      <span className="font-semibold text-slate-700">{orgUserCount} users</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> BAA Active
+                    </span>
+                    {!isCurrent && (
+                      <button
+                        type="button"
+                        onClick={() => switchOrg(org.id)}
+                        className="min-h-[36px] px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        Switch Workspace
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* User Add / Edit Modal with 1099 vs W-2 Toggle */}
       {isUserModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs transition-opacity overflow-y-auto">
@@ -1254,6 +1634,170 @@ export const AdminDashboard: React.FC = () => {
                   className="min-h-[44px] px-5 py-2.5 bg-[#0F766E] hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
                   Save Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Provision New CBO Organization Modal */}
+      {isProvisionOrgModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full shadow-2xl relative my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="bg-gradient-to-r from-[#1E3A8A] to-indigo-900 text-white p-5 sm:p-6 flex items-start justify-between">
+              <div>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-400 text-indigo-950 uppercase tracking-wider">
+                  CalAIM Multi-Tenant Provisioning
+                </span>
+                <h3 className="text-lg font-bold mt-1">Provision New CBO Organization</h3>
+                <p className="text-xs text-blue-200 mt-0.5">
+                  Initialize a California CBO entity with NPI, county code, and BAA
+                </p>
+              </div>
+              <button
+                onClick={() => setIsProvisionOrgModalOpen(false)}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-blue-200 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleProvisionOrg} className="p-5 sm:p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  CBO Organization Legal Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={provisionName}
+                  onChange={(e) => setProvisionName(e.target.value)}
+                  placeholder="e.g. East Bay Peer Recovery Services"
+                  className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    California County *
+                  </label>
+                  <select
+                    value={provisionCounty}
+                    onChange={(e) => setProvisionCounty(e.target.value)}
+                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900"
+                  >
+                    <option value="01-Alameda">01 - Alameda</option>
+                    <option value="07-Contra Costa">07 - Contra Costa</option>
+                    <option value="19-Los Angeles">19 - Los Angeles</option>
+                    <option value="38-San Francisco">38 - San Francisco</option>
+                    <option value="41-San Mateo">41 - San Mateo</option>
+                    <option value="43-Santa Clara">43 - Santa Clara</option>
+                    <option value="48-Solano">48 - Solano</option>
+                    <option value="49-Sonoma">49 - Sonoma</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    National Provider ID (NPI) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={10}
+                    value={provisionNpi}
+                    onChange={(e) => setProvisionNpi(e.target.value.replace(/\D/g, ''))}
+                    placeholder="1982049182"
+                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-900"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Medi-Cal Provider ID *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={provisionMedicaidId}
+                    onChange={(e) => setProvisionMedicaidId(e.target.value)}
+                    placeholder="CA-MC-984102"
+                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Contract Type
+                  </label>
+                  <select
+                    value={provisionContractType}
+                    onChange={(e) => setProvisionContractType(e.target.value as Organization['contractType'])}
+                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900"
+                  >
+                    <option value="CBO Partner">CBO Partner</option>
+                    <option value="County Health Department">County Health Department</option>
+                    <option value="Managed Care Plan (MCP)">Managed Care Plan (MCP)</option>
+                    <option value="Contracted Provider">Contracted Provider</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Monthly H0038 Unit Allocation
+                  </label>
+                  <input
+                    type="number"
+                    min="100"
+                    step="50"
+                    value={provisionAllocatedUnits}
+                    onChange={(e) => setProvisionAllocatedUnits(Number(e.target.value))}
+                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Compliance Contact Email
+                  </label>
+                  <input
+                    type="email"
+                    value={provisionContactEmail}
+                    onChange={(e) => setProvisionContactEmail(e.target.value)}
+                    placeholder="compliance@cbo.org"
+                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900"
+                  />
+                </div>
+              </div>
+
+              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 space-y-1">
+                <span className="font-bold flex items-center gap-1">
+                  <ShieldCheck className="w-4 h-4 text-indigo-700" /> Statutory BAA Binding
+                </span>
+                <p className="text-[11px] text-indigo-800">
+                  Provisioning automatically executes Business Associate Agreement (BAA v2.4-GA8-CalAIM) and provisions tenant encryption keys.
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsProvisionOrgModalOpen(false)}
+                  className="min-h-[44px] px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="min-h-[44px] px-5 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Provision CBO Organization
                 </button>
               </div>
             </form>

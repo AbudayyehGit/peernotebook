@@ -181,3 +181,28 @@ export class WebhookGateway {
     }
   }
 }
+
+export const PagerDutyGateway = WebhookGateway;
+
+export function formatPagerDutyEvent(
+  titleOrAlert: string | AlertPayload,
+  incidentCodeOrKey?: string,
+  severity?: AlertSeverity,
+  source?: string,
+  details?: Record<string, unknown>
+): PagerDutyEventV2 {
+  if (typeof titleOrAlert === 'object') {
+    return WebhookGateway.formatPagerDutyEvent(titleOrAlert, incidentCodeOrKey);
+  }
+  return WebhookGateway.formatPagerDutyEvent({
+    title: titleOrAlert,
+    incidentCode: incidentCodeOrKey || 'ERR_GENERIC',
+    severity: severity || 'error',
+    source: source || 'peernotebook-backend',
+    details: details || {},
+  });
+}
+
+export function formatOpsgenieAlert(alert: AlertPayload): OpsgenieAlertV2 {
+  return WebhookGateway.formatOpsgenieAlert(alert);
+}

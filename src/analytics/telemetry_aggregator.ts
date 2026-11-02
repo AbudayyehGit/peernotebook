@@ -166,3 +166,47 @@ export class TelemetryAggregator {
     return lines.join('\n');
   }
 }
+
+export interface CountyOutcomeSummary {
+  totalNotes: number;
+  totalUnits: number;
+  totalDirectMinutes: number;
+  totalTravelMinutes: number;
+  byCounty: Record<string, { notes: number; units: number }>;
+}
+
+export function aggregateCountyOutcomes(
+  encounters: Array<{
+    noteId?: string;
+    county: string;
+    durationMinutes?: number;
+    billingUnits?: number;
+    directMinutes?: number;
+    travelMinutes?: number;
+    docMinutes?: number;
+    domains?: string[];
+    isApproved?: boolean;
+  }>
+): CountyOutcomeSummary {
+  const summary: CountyOutcomeSummary = {
+    totalNotes: encounters.length,
+    totalUnits: 0,
+    totalDirectMinutes: 0,
+    totalTravelMinutes: 0,
+    byCounty: {},
+  };
+
+  for (const enc of encounters) {
+    summary.totalUnits += enc.billingUnits || 0;
+    summary.totalDirectMinutes += enc.directMinutes || 0;
+    summary.totalTravelMinutes += enc.travelMinutes || 0;
+    const countyName = enc.county || 'San Francisco';
+    if (!summary.byCounty[countyName]) {
+      summary.byCounty[countyName] = { notes: 0, units: 0 };
+    }
+    summary.byCounty[countyName].notes += 1;
+    summary.byCounty[countyName].units += enc.billingUnits || 0;
+  }
+
+  return summary;
+}

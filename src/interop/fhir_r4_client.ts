@@ -246,3 +246,50 @@ export class FhirR4Client {
     }
   }
 }
+
+export function buildEncounterResource(payload: any): Record<string, unknown> {
+  const client = new FhirR4Client();
+  const normalized: FhirEncounterPayload = {
+    encounterId: payload.encounterId || payload.id || 'enc_default',
+    syntheticPatientId: payload.syntheticPatientId || payload.patientSyntheticId || 'pat_synth_00',
+    specialistNpi: payload.specialistNpi || '1999888777',
+    specialistName: payload.specialistName || 'Certified Peer Specialist',
+    organizationId: payload.organizationId || payload.organizationNpi || 'org_01',
+    startTime: payload.startTime || payload.date || new Date().toISOString(),
+    endTime:
+      payload.endTime ||
+      new Date(
+        Date.now() + (payload.durationMinutes || (payload.units ? payload.units * 15 : 15)) * 60000
+      ).toISOString(),
+    durationMinutes: payload.durationMinutes || (payload.units ? payload.units * 15 : 15),
+    h0038Units: payload.h0038Units || payload.units || 1,
+    serviceLocationCode:
+      payload.serviceLocationCode || (String(payload.serviceLocation || '').includes('15') ? '15' : '11'),
+    carePlanGoalId: payload.carePlanGoalId || payload.goalAddressed,
+    peerInterventions: payload.peerInterventions || [
+      payload.goalAddressed || 'CalAIM Peer Support Interaction',
+    ],
+    clientResponse: payload.clientResponse || 'Client engaged and reviewed goal progress.',
+  };
+  return client.buildEncounterResource(normalized);
+}
+
+export function buildObservationResource(payload: any): Record<string, unknown> {
+  const client = new FhirR4Client();
+  const normalized: FhirEncounterPayload = {
+    encounterId: payload.encounterId || payload.id || 'enc_default',
+    syntheticPatientId: payload.syntheticPatientId || payload.patientSyntheticId || 'pat_synth_00',
+    specialistNpi: payload.specialistNpi || '1999888777',
+    specialistName: payload.specialistName || 'Certified Peer Specialist',
+    organizationId: payload.organizationId || payload.organizationNpi || 'org_01',
+    startTime: payload.startTime || payload.date || new Date().toISOString(),
+    endTime: payload.endTime || new Date().toISOString(),
+    durationMinutes: payload.durationMinutes || 15,
+    h0038Units: payload.h0038Units || 1,
+    serviceLocationCode: payload.serviceLocationCode || '15',
+    carePlanGoalId: payload.carePlanGoalId || payload.goalAddressed,
+    peerInterventions: payload.peerInterventions || ['CalAIM Peer Support Interaction'],
+    clientResponse: payload.clientResponse || 'Client engaged.',
+  };
+  return client.buildObservationResource(normalized);
+}
