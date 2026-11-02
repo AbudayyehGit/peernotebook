@@ -231,3 +231,6 @@ export class BiDirectionalSyncService {
 }
 
 export const syncService = new BiDirectionalSyncService();
+
+// Re-export Sprint 2 Offline-First Resiliency modules
+export { syncQueue, SyncQueueManager, encryptionWorker, EncryptionWorker, networkMonitor, NetworkMonitor } from '../sync';
