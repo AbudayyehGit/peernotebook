@@ -13,6 +13,7 @@ import { AuditLogger } from '../services/auditLogger';
 import { syncWorker } from '../services/syncWorker';
 import { BillingValidator } from '../services/BillingValidator';
 import { AuditTrail } from '../services/AuditTrail';
+import { announceToScreenReader } from '../utils/FocusManagement';
 import {
   FileText,
   Save,
@@ -237,6 +238,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
     if (tmpl.recommendedInterventionChips && tmpl.recommendedInterventionChips.length > 0) {
       setSelectedInterventionChips(tmpl.recommendedInterventionChips);
     }
+    announceToScreenReader(`Applied CalAIM H0038 template: ${tmpl.title}`);
     setSanitizedNotice(`Applied CalAIM H0038 Standard: "${tmpl.title}"`);
     setTimeout(() => setSanitizedNotice(null), 4500);
   };
@@ -667,7 +669,9 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
     // SP1-01: Strict Client-Side CalAIM H0038 Time-Overlap & Daily Cap Validation
     const validation = await BillingValidator.validateAgainstDB(noteToSave);
     if (!validation.isValid) {
-      setValidationWarning(validation.errors[0] || 'CalAIM Billing Conflict: Encounter cannot be submitted due to scheduling or daily cap conflicts.');
+      const err = validation.errors[0] || 'CalAIM Billing Conflict: Encounter cannot be submitted due to scheduling or daily cap conflicts.';
+      setValidationWarning(err);
+      announceToScreenReader(`Billing validation error: ${err}`, 'assertive');
       return;
     }
 
@@ -691,7 +695,9 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       }
     }
 
-    setSaveStatus(submitToSupervisor ? 'Submitted to Supervisor Queue!' : 'Draft Saved to Dexie.js Local Store!');
+    const successMsg = submitToSupervisor ? 'Submitted to Supervisor Queue!' : 'Draft Saved to Dexie.js Local Store!';
+    setSaveStatus(successMsg);
+    announceToScreenReader(successMsg, 'polite');
     setTimeout(() => {
       setSaveStatus(null);
       if (onSaveSuccess) onSaveSuccess(noteToSave);

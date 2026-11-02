@@ -29,6 +29,7 @@ import { useAuth } from '../context/AuthContext';
 import { ZeroAiBadge } from './ZeroAiBadge';
 import { SubscriptionStatusBadge } from './SubscriptionStatusBadge';
 import { SyncStatusBadge } from './SyncStatusBadge';
+import { ComplianceBadge } from './ComplianceBadge';
 import { OrgSelect } from './OrgSelect';
 import { InteractiveChecklistWidget } from './InteractiveChecklistWidget';
 
@@ -124,6 +125,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Plain-English Offline / Cloud Sync Status Badge */}
             <div className="hidden xs:flex items-center">
               <SyncStatusBadge />
+            </div>
+
+            {/* Dynamic Local Web Crypto & Protocol Compliance Badge */}
+            <div className="hidden lg:flex items-center">
+              <ComplianceBadge compact />
             </div>
 
             {/* Primary Login / RBAC Switcher Button - Strict min-h-[48px] px-6 py-3.5 */}
@@ -222,6 +228,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                     setIsMenuOpen(false);
                     onOpenBillingModal();
                   }} />
+                </div>
+              </div>
+
+              {/* 2b. Dynamic Compliance & Encryption Health */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/90 space-y-2.5">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                  Security &amp; Regulatory Health
+                </span>
+                <div className="flex items-center justify-between">
+                  <ComplianceBadge />
                 </div>
               </div>
 

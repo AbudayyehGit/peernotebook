@@ -15,6 +15,7 @@ import { runFhirClientTests } from '../src/interop/fhir_r4_client.test.ts';
 import { runSmartLaunchpadTests } from '../src/interop/smart_launchpad.test.ts';
 import { runTelemetryAggregatorTests } from '../src/analytics/telemetry_aggregator.test.ts';
 import { runSprint1ComplianceTests } from './sprint1/sprint1_compliance.test.ts';
+import { runSprint3UiUxRefinementTests } from './sprint3/sprint3_ui_ux_refinement.test.ts';
 
 async function main() {
   console.log('================================================================');
@@ -34,6 +35,7 @@ async function main() {
     { id: 10, name: 'SMART-on-FHIR Triage Launchpad', runner: runSmartLaunchpadTests },
     { id: 11, name: 'Multi-County Population Telemetry', runner: runTelemetryAggregatorTests },
     { id: 12, name: 'Sprint 1: Compliance & Billing Integrity (SP1-01, SP1-02, SP1-03)', runner: runSprint1ComplianceTests },
+    { id: 13, name: 'Sprint 3: UI/UX Refinement, Exports & Accessibility (SP3-01, SP3-02, SP3-03)', runner: runSprint3UiUxRefinementTests },
   ];
 
   let totalPassed = 0;

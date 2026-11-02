@@ -5,7 +5,7 @@
  * Copyright (c) 2024-2026 Peer Notebook LLC. All rights reserved.
  */
 
-import { createHmac } from 'node:crypto';
+import { hmacSha256Hex } from '../utils/cryptoUtils';
 
 export type AlertSeverity = 'critical' | 'error' | 'warning' | 'info';
 
@@ -75,7 +75,7 @@ export class WebhookGateway {
     secretKey: string
   ): boolean {
     if (!rawBody || !providedSignature || !secretKey) return false;
-    const computed = createHmac('sha256', secretKey).update(rawBody).digest('hex');
+    const computed = hmacSha256Hex(secretKey, rawBody);
     const cleanProvided = providedSignature.replace(/^sha256=/, '');
     return computed === cleanProvided;
   }

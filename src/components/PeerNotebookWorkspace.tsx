@@ -13,6 +13,7 @@ import { ClientManager } from './ClientManager';
 import { SessionNoteForm } from './SessionNoteForm';
 import { SupervisorDashboard } from './SupervisorDashboard';
 import { SettingsPanel } from './SettingsPanel';
+import { ExportModal } from './ExportModal';
 import { ExportSessionPDF } from './ExportSessionPDF';
 import { DocumentationViewer } from './DocumentationViewer';
 import { GoalPathTracker } from './GoalPathTracker';
@@ -1607,9 +1608,9 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       )}
       </div>
 
-      {/* PDF Export Modal */}
+      {/* CalAIM Progress Note Export Modal */}
       {selectedNoteForExport && (
-        <ExportSessionPDF
+        <ExportModal
           note={selectedNoteForExport}
           onClose={() => setSelectedNoteForExport(null)}
         />

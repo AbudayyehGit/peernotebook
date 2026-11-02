@@ -5,7 +5,7 @@
  * Copyright (c) 2024-2026 Peer Notebook LLC. All rights reserved.
  */
 
-import { createHash, randomBytes } from 'node:crypto';
+import { getRandomBytes, bytesToBase64Url, sha256Base64Url } from '../utils/cryptoUtils';
 
 export interface SmartConfiguration {
   authorization_endpoint: string;
@@ -45,14 +45,10 @@ export class SmartLaunchpad {
    * Generates a cryptographically secure PKCE Code Verifier & Challenge (RFC 7636)
    */
   public static generatePkce(): PkcePair {
-    const verifier = randomBytes(32)
-      .toString('base64url')
-      .replace(/=/g, '');
-
-    const challenge = createHash('sha256')
-      .update(verifier)
-      .digest('base64url')
-      .replace(/=/g, '');
+    // RFC 7636: Code verifier must be 43-128 characters; 32 random bytes = 43 base64url chars
+    const verifierBytes = getRandomBytes(32);
+    const verifier = bytesToBase64Url(verifierBytes);
+    const challenge = sha256Base64Url(verifier);
 
     return {
       codeVerifier: verifier,

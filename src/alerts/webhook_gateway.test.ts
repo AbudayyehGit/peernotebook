@@ -1,5 +1,5 @@
 import { WebhookGateway, AlertPayload } from './webhook_gateway.ts';
-import { createHmac } from 'node:crypto';
+import { hmacSha256Hex } from '../utils/cryptoUtils.ts';
 
 export async function runWebhookGatewayTests(): Promise<{ name: string; passed: boolean; error?: string }[]> {
   const results: { name: string; passed: boolean; error?: string }[] = [];
@@ -44,7 +44,7 @@ export async function runWebhookGatewayTests(): Promise<{ name: string; passed: 
   await test('verifyInboundSignature verifies valid HMAC signatures and rejects invalid ones', () => {
     const secret = 'super_secret_webhook_key_2026';
     const body = JSON.stringify({ action: 'sync_check', timestamp: 1711200000 });
-    const signature = createHmac('sha256', secret).update(body).digest('hex');
+    const signature = hmacSha256Hex(secret, body);
 
     const valid = WebhookGateway.verifyInboundSignature(body, signature, secret);
     if (!valid) throw new Error('Valid HMAC signature failed verification');

@@ -5,6 +5,8 @@
  * Copyright (c) 2024-2026 Peer Notebook LLC. All rights reserved.
  */
 
+import { getRandomBytes } from '../utils/cryptoUtils';
+
 export interface TokenClaims {
   sub: string;             // User UID (synthetic specialist UUID, never raw PHI)
   role: 'specialist' | 'supervisor' | 'admin' | 'super_admin';
@@ -45,14 +47,7 @@ export class OfflineTokenEngine {
    * Helper: Generate a cryptographically secure random string
    */
   public static generateCryptoNonce(length: number = 32): string {
-    const array = new Uint8Array(length);
-    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-      crypto.getRandomValues(array);
-    } else {
-      // Node.js fallback
-      const { randomBytes } = require('node:crypto');
-      return randomBytes(length).toString('hex');
-    }
+    const array = getRandomBytes(length);
     return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
   }
 
