@@ -44,7 +44,9 @@ import {
 import {
   calculateMediCalBillingUnits,
   sanitizeToNonClinicalLanguage,
-  parseUnstructuredPeerDictation
+  parseUnstructuredPeerDictation,
+  detectClinicalJargon,
+  validateNonClinicalScope
 } from '../services/peerNoteEngine';
 import { H0038TemplateDrawer, H0038Template } from './H0038TemplateDrawer';
 import { FourPartNoteGenerator, FourPartNoteData } from './FourPartNoteGenerator';

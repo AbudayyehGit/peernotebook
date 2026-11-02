@@ -1,6 +1,6 @@
 /**
- * Peer Notebook - Encrypted JSON & PDF Client Chart Export Utility
- * Conforms to Medi-Cal H0038 / CalAIM Behavioral Health Payment Reform
+ * Peer Notebook - Encrypted JSON & PDF Peer Encounter Record Export Utility
+ * Conforms to Medi-Cal H0038 / CalAIM Behavioral Health Payment Reform & SB 803
  * Standard: GA #8 • Web Crypto AES-GCM 256-Bit Encrypted Archives
  * Soft Slate (#F8FAFC) & Deep Navy (#1E3A8A) Trauma-Informed Styling
  * Minimum 48px Touch Targets & Immutable Audit Trail Logging
@@ -52,7 +52,7 @@ async function encryptPayloadWithPassword(payload: string, passphrase: string): 
   );
 
   const packageObj = {
-    format: 'PeerNotebook_Encrypted_Chart_Archive',
+    format: 'PeerNotebook_Encrypted_Encounter_Archive',
     version: '1.0-GA8',
     cipher: 'AES-GCM-256',
     kdf: 'PBKDF2-SHA256',
@@ -449,7 +449,7 @@ export const ExportSessionPDF: React.FC<ExportSessionPDFProps> = ({ note, onClos
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed">
-                Create a passphrase to encrypt this encounter chart using client-side <strong>AES-GCM 256-bit</strong> encryption. The recipient will need this passphrase to decrypt and read the archive.
+                Create a passphrase to encrypt this peer encounter record using client-side <strong>AES-GCM 256-bit</strong> encryption. The recipient will need this passphrase to decrypt and read the archive.
               </p>
 
               <form onSubmit={handleDownloadEncryptedArchive} className="space-y-3 pt-1">

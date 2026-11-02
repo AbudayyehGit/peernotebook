@@ -6,32 +6,81 @@
 
 // Medicalized clinical jargon mapped to strengths-based peer recovery language
 export const CLINICAL_TO_PEER_VOCABULARY: Record<string, string> = {
+  // Person-First & Egalitarian Framing
   'patient': 'peer',
   'patients': 'peers',
   'client is non-compliant': 'peer is navigating their own recovery pacing and exercising self-determination',
   'non-compliant': 'disengaged from current recovery goals / exercising self-determination',
   'noncompliant': 'exercising personal self-determination',
+  'compliant': 'actively engaged',
   'refuses to': 'expressed hesitation regarding',
+  'refused': 'expressed hesitation around',
+  'uncooperative': 'communicating unmet support needs',
+  'combative': 'experiencing heightened emotional distress',
+  'resistant': 'moving at their own self-determined pace',
+  'lack of insight': 'discovering personal recovery priorities',
   'denial': 'processing personal readiness for change',
   'in denial': 'exploring ambivalence around change',
-  'relapse': 'recurrence of use / recovery challenge',
-  'relapsed': 'experienced a recovery recurrence',
+
+  // Non-Clinical Services & Frameworks (California SB 803)
+  'treatment plan': 'wellness recovery goals',
+  'treatment planning': 'wellness goal planning',
+  'treatment': 'peer recovery support',
+  'clinical treatment': 'peer recovery support',
+  'therapy': 'peer mentoring and coaching',
+  'psychotherapy': 'peer counseling and lived experience sharing',
+  'clinical intervention': 'peer support intervention',
+  'clinical interventions': 'peer support interventions',
+  'therapist': 'peer support specialist',
+  'clinician': 'peer practitioner / specialist',
+  'case management': 'recovery navigation',
+  'case manager': 'peer recovery navigator',
+  'intake': 'initial welcome conversation',
+  'discharge': 'recovery graduation / milestone transition',
+  'discharged': 'transitioned to community graduation',
+  'patient chart': 'peer notebook record',
+  'medical chart': 'peer encounter documentation',
+  'medical record': 'peer encounter documentation',
+  'clinical documentation': 'strengths-based peer documentation',
+  'chart': 'encounter record',
+  'charting': 'documenting encounter',
+
+  // Substance Use & Harm Reduction Language
   'addict': 'person in substance use recovery',
+  'addicts': 'individuals in recovery',
   'substance abuser': 'individual navigating substance use challenges',
   'alcoholic': 'individual working on alcohol recovery goals',
+  'relapse': 'recurrence of use / recovery challenge',
+  'relapsed': 'experienced a recovery recurrence',
+  'clean': 'in active recovery / substance-free',
+  'dirty urine': 'toxicology indicating substance exposure',
+  'dirty screen': 'screen indicating substance exposure',
+  'failed drug test': 'test indicating substance recurrence',
+  'drug seeking': 'seeking distress relief or unmet support needs',
+
+  // Mental Health & Distress Description (De-pathologized)
   'suffering from': 'living with / experiencing',
   'decompensating': 'experiencing heightened emotional distress',
   'decompensation': 'heightened nervous system activation and emotional distress',
   'symptomatic': 'navigating distressing feelings',
+  'symptom': 'distress indicator / wellness challenge',
+  'symptoms': 'distress indicators / personal challenges',
   'treatment resistant': 'seeking aligned holistic recovery pathways',
   'manipulative': 'attempting to meet unmet needs under distress',
   'unmotivated': 'contemplating personal values and readiness for change',
   'frequent flyer': 'individual seeking continuous community connection',
   'borderline': 'experiencing intense relational sensitivity and distress',
-  'clean': 'in active recovery / substance-free',
-  'dirty urine': 'toxicology indicating substance exposure',
-  'dirty screen': 'screen indicating substance exposure',
-  'failed drug test': 'test indicating substance recurrence'
+  'pathology': 'life experience / distress pattern',
+  'diagnosis': 'self-identified recovery challenge',
+  'diagnosed with': 'living with',
+  'prognosis': 'recovery trajectory and milestone path',
+  'baseline': 'day-to-day wellness foundation',
+  'medication non-compliant': 'exploring personal preferences regarding medication self-management',
+  'medication compliant': 'actively self-managing prescribed medications',
+  'suicidal ideation': 'thoughts of acute despair and seeking relief',
+  'hallucinating': 'experiencing altered perceptions',
+  'hallucinations': 'unshared sensory perceptions',
+  'delusional': 'holding unique personal beliefs'
 };
 
 /**
@@ -85,6 +134,61 @@ export function sanitizeToNonClinicalLanguage(input: string): {
     sanitizedText: sanitized,
     replacementsCount: replacedTerms.length,
     replacedTerms
+  };
+}
+
+/**
+ * Detects clinical or medicalized jargon in real time without modifying text.
+ * Returns found terms and strengths-based replacement suggestions.
+ */
+export function detectClinicalJargon(input: string): {
+  hasClinicalJargon: boolean;
+  detectedTerms: string[];
+  suggestions: Array<{ term: string; suggestedReplacement: string }>;
+} {
+  if (!input || typeof input !== 'string') {
+    return { hasClinicalJargon: false, detectedTerms: [], suggestions: [] };
+  }
+
+  const detected: string[] = [];
+  const suggestions: Array<{ term: string; suggestedReplacement: string }> = [];
+  const keys = Object.keys(CLINICAL_TO_PEER_VOCABULARY).sort((a, b) => b.length - a.length);
+
+  for (const term of keys) {
+    const regex = new RegExp(`\\b${term}\\b`, 'i');
+    if (regex.test(input)) {
+      detected.push(term);
+      suggestions.push({
+        term,
+        suggestedReplacement: CLINICAL_TO_PEER_VOCABULARY[term]
+      });
+    }
+  }
+
+  return {
+    hasClinicalJargon: detected.length > 0,
+    detectedTerms: detected,
+    suggestions
+  };
+}
+
+/**
+ * Validates complete session note for California SB 803 non-clinical scope compliance.
+ */
+export function validateNonClinicalScope(noteTextBundle: string): {
+  isCompliant: boolean;
+  jargonCount: number;
+  detectedJargon: string[];
+  scopeAffirmation: string;
+} {
+  const check = detectClinicalJargon(noteTextBundle);
+  return {
+    isCompliant: !check.hasClinicalJargon,
+    jargonCount: check.detectedTerms.length,
+    detectedJargon: check.detectedTerms,
+    scopeAffirmation: check.hasClinicalJargon
+      ? 'Non-clinical boundary alert: Medicalized terms detected. Under SB 803, peer specialists provide lived experience mentoring and recovery coaching, not clinical evaluation.'
+      : '100% Non-Clinical & Strengths-Based: Language strictly adheres to California SB 803 CPSS standards.'
   };
 }
 

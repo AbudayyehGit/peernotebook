@@ -1,9 +1,9 @@
 /**
- * Peer Notebook - Main Clinical & Peer Support Specialist Workspace
+ * Peer Notebook - Main Peer Support Specialist & Field Recovery Workspace
  * Visual Palette: Soft Slate (#F8FAFC), Deep Navy (#1E3A8A), Muted Teal (#0F766E)
- * CalAIM & Medi-Cal H0038 Compliant • GA #8 Verified
- * Dynamic Route Handling for /docs, /clients, /notes, /supervisor, /audit, /settings
- * Minimum 44px touch targets & Trauma-Informed Clinical Container Cards
+ * CalAIM SB 803 & Medi-Cal H0038 Non-Clinical Standard Compliant • GA #8 Verified
+ * Dynamic Route Handling for /docs, /clients, /notes, /supervisor, /ehr, /audit, /settings
+ * Minimum 44px touch targets & Trauma-Informed Relational Container Cards
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -25,6 +25,7 @@ import { AdminDashboard } from './AdminDashboard';
 import { EngineeringMonitoring } from './EngineeringMonitoring';
 import { STARCurriculumView } from './STARCurriculumView';
 import { SuperAdminPortal } from './SuperAdminPortal';
+import { EHRCompatibilityHub } from './EHRCompatibilityHub';
 import { usePrivacyMode } from '../context/PrivacyModeContext';
 import {
   Users,
@@ -60,10 +61,11 @@ import {
   Building2,
   Cpu,
   GraduationCap,
-  Radio
+  Radio,
+  Server
 } from 'lucide-react';
 
-export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'curriculum' | 'supervisor' | 'audit' | 'architecture' | 'settings' | 'admin_users' | 'admin_dashboard' | 'telemetry' | 'super_admin';
+export type WorkspaceTab = 'clients' | 'notes' | 'new_note' | 'goalpath' | 'curriculum' | 'supervisor' | 'ehr' | 'audit' | 'architecture' | 'settings' | 'admin_users' | 'admin_dashboard' | 'telemetry' | 'super_admin';
 
 export interface WorkspaceNavItem {
   id: WorkspaceTab;
@@ -112,6 +114,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     if (path.startsWith('/curriculum') || path.startsWith('/star') || path.startsWith('/training')) return { tab: 'curriculum' };
     if (path.startsWith('/new-note') || path.startsWith('/new_note')) return { tab: 'new_note' };
     if (path.startsWith('/supervisor')) return { tab: 'supervisor' };
+    if (path.startsWith('/ehr') || path.startsWith('/fhir') || path.startsWith('/interop')) return { tab: 'ehr' };
     if (path.startsWith('/audit')) return { tab: 'audit' };
     if (path.startsWith('/settings')) return { tab: 'settings' };
     if (path.startsWith('/admin/dashboard') || path.startsWith('/admin-dashboard')) return { tab: 'admin_dashboard' };
@@ -122,7 +125,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     try {
       const searchParams = new URLSearchParams(window.location.search);
       const tabParam = searchParams.get('tab') as WorkspaceTab;
-      if (tabParam && ['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry', 'super_admin'].includes(tabParam)) {
+      if (tabParam && ['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'ehr', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry', 'super_admin'].includes(tabParam)) {
         return { tab: tabParam };
       }
     } catch {
@@ -134,12 +137,13 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       const hash = window.location.hash.replace('#/', '').replace('#', '').toLowerCase();
       if (hash.startsWith('docs')) return { tab: 'architecture' };
       if (hash.startsWith('super') || hash === 'platform') return { tab: 'super_admin' };
-      if (['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'settings', 'admin_users', 'admin_dashboard', 'telemetry', 'super_admin'].includes(hash)) {
+      if (['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'ehr', 'audit', 'settings', 'admin_users', 'admin_dashboard', 'telemetry', 'super_admin'].includes(hash)) {
         return { tab: hash as WorkspaceTab };
       }
       if (hash === 'new-note') return { tab: 'new_note' };
       if (hash === 'goal-path' || hash === 'wellness') return { tab: 'goalpath' };
       if (hash === 'curriculum' || hash === 'star' || hash === 'training') return { tab: 'curriculum' };
+      if (hash === 'ehr' || hash === 'fhir' || hash === 'interop') return { tab: 'ehr' };
       if (hash.startsWith('admin/dashboard') || hash === 'admin-dashboard' || hash === 'dashboard') return { tab: 'admin_dashboard' };
       if (hash.startsWith('engineering') || hash.startsWith('monitoring') || hash === 'telemetry') return { tab: 'telemetry' };
       if (hash.startsWith('admin') || hash.startsWith('user')) return { tab: 'admin_users' };
@@ -149,7 +153,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
 
     // Fallback to persisted tab from last active session
     const saved = safeStorage.getItem('peernotebook_active_tab') as WorkspaceTab;
-    if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry', 'super_admin'].includes(saved)) {
+    if (saved && ['clients', 'notes', 'new_note', 'goalpath', 'curriculum', 'supervisor', 'ehr', 'audit', 'architecture', 'settings', 'admin_users', 'admin_dashboard', 'telemetry', 'super_admin'].includes(saved)) {
       return { tab: saved };
     }
 
@@ -208,7 +212,7 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'peernotebook_active_tab' && e.newValue) {
         const nextTab = e.newValue as WorkspaceTab;
-        if (['clients', 'notes', 'new_note', 'supervisor', 'audit', 'architecture', 'settings'].includes(nextTab)) {
+        if (['clients', 'notes', 'new_note', 'supervisor', 'ehr', 'audit', 'architecture', 'settings'].includes(nextTab)) {
           setActiveTab(nextTab);
         }
       }
@@ -250,6 +254,8 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
       path = '/new-note';
     } else if (tab === 'supervisor') {
       path = '/supervisor';
+    } else if (tab === 'ehr') {
+      path = '/ehr';
     } else if (tab === 'audit') {
       path = '/audit';
     } else if (tab === 'settings') {
@@ -472,6 +478,13 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
           badge: null
         },
         {
+          id: 'ehr' as WorkspaceTab,
+          label: 'EHR Export & FHIR R4',
+          shortLabel: 'EHR Hub',
+          icon: Server,
+          badge: 'FHIR'
+        },
+        {
           id: 'settings' as WorkspaceTab,
           label: 'Field Settings & Sync',
           shortLabel: 'Settings',
@@ -521,6 +534,13 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
           badge: null
         },
         {
+          id: 'ehr' as WorkspaceTab,
+          label: 'EHR Integration & FHIR R4',
+          shortLabel: 'EHR Hub',
+          icon: Server,
+          badge: 'FHIR'
+        },
+        {
           id: 'audit' as WorkspaceTab,
           label: 'Supervisory Audit Trail',
           shortLabel: 'Audit',
@@ -567,6 +587,13 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
           shortLabel: 'Notes',
           icon: FileText,
           badge: notes.length > 0 ? notes.length : null
+        },
+        {
+          id: 'ehr' as WorkspaceTab,
+          label: 'EHR Gateway & Interop',
+          shortLabel: 'EHR Hub',
+          icon: Server,
+          badge: 'FHIR R4'
         },
         {
           id: 'audit' as WorkspaceTab,
@@ -637,6 +664,13 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
         shortLabel: 'Notes',
         icon: FileText,
         badge: notes.length > 0 ? notes.length : null
+      },
+      {
+        id: 'ehr' as WorkspaceTab,
+        label: 'EHR Interoperability Hub',
+        shortLabel: 'EHR Hub',
+        icon: Server,
+        badge: 'FHIR R4'
       },
       {
         id: 'audit' as WorkspaceTab,
@@ -1495,6 +1529,10 @@ export const PeerNotebookWorkspace: React.FC<PeerNotebookWorkspaceProps> = ({ on
 
       {activeTab === 'supervisor' && (
         <SupervisorDashboard />
+      )}
+
+      {activeTab === 'ehr' && (
+        <EHRCompatibilityHub onSelectNoteForEdit={handleEditNote} />
       )}
 
       {activeTab === 'audit' && (
