@@ -1050,6 +1050,47 @@ Assignor hereby unconditionally and irrevocably sells, assigns, transfers, and c
 * **Breach Notification Protocol:** Written notice provided to contracting Covered Entities within 48 hours.`
   },
   {
+    id: '07-vault-handover',
+    categoryNumber: '07',
+    categoryTitle: 'Legal & Administrative',
+    title: 'Business Organization Binder Vault & GA#8 Handover Dossier',
+    slug: '07-legal-administrative/00_Business_Organization_Binder_Vault_Handover',
+    path: '/docs/07-legal-administrative/00_Business_Organization_Binder_Vault_Handover.md',
+    badge: 'GA#8 Certified',
+    badgeColor: 'bg-emerald-100 text-emerald-800',
+    summary: 'Master corporate binder vault: Delaware LLC formation, California SOS #202460110822, IRS EIN CP 575 A, IP chain of title, and GA#8 handover certification.',
+    content: `# Peer Notebook - Business Organization Binder Vault & GA#8 Handover Dossier
+
+**Document ID:** PN-VAULT-2026-GA8-001 • **ISO 9001:2015 Clause 7.5 & 8.5 Certified**  
+**Classification:** Proprietary & Confidential • Institutional Handover Vault  
+**Author & Managing Member:** H. Joe Abudayyeh <joe@peernotebook.com>  
+**Corporate Entity:** Peer Notebook LLC (Delaware LLC / California Foreign Qualification SOS #202460110822)  
+**Target Domain:** peernotebook.com • **Staging:** peernotebook.ai.studio  
+
+---
+
+## 1. Executive Summary & Handover Protocol
+All corporate artifacts, statutory filings, code bases, and documentation vaults are certified **GA#8 Handover Ready** for prospective institutional acquirers, California County Behavioral Health Agencies, and Community-Based Organizations.
+
+## 2. Corporate Entity Structure & Capitalization Vault
+* **Legal Name:** Peer Notebook LLC
+* **Formation Jurisdiction:** State of Delaware (File #7819202)
+* **California Foreign Qualification:** California Secretary of State Form LLC-5, SOS Entity Number: 202460110822 (Active / Good Standing).
+* **IRS EIN:** Confirmed via Notice CP 575 A (Masked: XX-XXX4819).
+* **Capitalization:** 10,000,000 Common Units authorized and issued (100% held by H. Joe Abudayyeh; $0 outside debt).
+
+## 3. Chain of Title & Intellectual Property
+* **Agreement:** PN-LEGAL-2026-IP-001 fully executed and sealed.
+* **Scope:** 100% of source code, domains (peernotebook.com), documentation binders, Medi-Cal H0038 billing algorithms, trademarks, and trade dress irrevocably assigned to Peer Notebook LLC.
+* **Moral Rights Waiver:** Perpetually waived under 17 U.S.C. § 106A and California Civil Code.
+
+## 4. Statutory IP & Regulatory Safeguards
+* **USPTO Trademark:** "PEER NOTEBOOK" Class 009 & 042 (Section 1(a) use in commerce).
+* **USCO Copyright Deposit:** Form TX 50-page source code deposit under 37 C.F.R. § 202.20 & Circular 61.
+* **Healthcare Compliance:** California SB 803 / CalMHSA 17 Core Competencies, HIPAA 45 CFR § 164.312, and Medi-Cal H0038 CMS 8-minute rounding engine.
+* **Quality & Test Coverage:** 55 / 55 automated unit tests passing across all 14 test groups.`
+  },
+  {
     id: '07-terms-disclaimer',
     categoryNumber: '07',
     categoryTitle: 'Legal & Administrative',

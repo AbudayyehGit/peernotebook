@@ -44,3 +44,5 @@ export function DocViewer({ path }: DocViewerProps) {
     </div>
   );
 }
+
+export default DocViewer;

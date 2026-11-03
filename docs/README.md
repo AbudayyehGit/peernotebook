@@ -94,11 +94,14 @@ docs/
 │   └── 05_Deployment_Verification_Guide.md # Canonical production deployment verification protocol
 └── 07-legal-administrative/           # Compliance, privacy, licensing, corporate entity & IP
     ├── README.md                      # Section Overview & Legal Governance Framework
+    ├── 00_Business_Organization_Binder_Vault_Handover.md # Master GA#8 Corporate Handover Vault & Dossier
     ├── 01_Terms_of_Service.md         # Master Terms of Service with Non-Clinical Disclaimers
-    ├── privacy-policy-spec.md         # HIPAA Notice of Privacy Practices & CMIA Disclosures
-    ├── 06_IP_Assignment_Agreement.md  # Founder-to-LLC IP Assignment Agreement (H. Joe Abudayyeh to Peer Notebook LLC)
+    ├── 04_Independent_Contractor_Agreement_1099.md # Model 1099 Specialist Agreement (CA AB 5 / SB 803)
+    ├── 05_County_Intergovernmental_CalAIM_Agreement.md # Model County Intergovernmental CalAIM Subcontract
+    ├── 06_IP_Assignment_Agreement.md  # Executed Founder-to-LLC IP Assignment (H. Joe Abudayyeh to Peer Notebook LLC)
     ├── 07_Business_Associate_Agreement_BAA_Framework.md # Institutional BAA Framework (Supabase, AWS, Zero-AI Policy)
     ├── 08_Open_Source_License_Notice.md # Third-Party Dependency Attributions & Permissive License Matrix
+    ├── privacy-policy-spec.md         # HIPAA Notice of Privacy Practices & CMIA Disclosures
     ├── compliance-matrix.md           # SOC 2 Type II, ISO 27001, HIPAA & CalMHSA crosswalk
     └── ip-licensing.md                # Software licensing inventory, open-source attribution & IP
 
@@ -207,11 +210,14 @@ config/
 *Corporate entity structure, IP assignment, institutional BAA, non-clinical disclaimers, and open-source licensing.*
 
 * [**07-legal-administrative/README.md**](./07-legal-administrative/README.md): Legal governance and compliance overview.
+* [**00_Business_Organization_Binder_Vault_Handover.md**](./07-legal-administrative/00_Business_Organization_Binder_Vault_Handover.md): Master GA#8 Corporate Handover Vault and Dossier certifying corporate charter, equity ownership, IP chain of title, statutory filings, and production certification.
 * [**01_Terms_of_Service.md**](./07-legal-administrative/01_Terms_of_Service.md): Master Terms of Service with explicit disclaimer: administrative formatting aid only, no guarantee against Medi-Cal billing audits.
-* [**privacy-policy-spec.md**](./07-legal-administrative/privacy-policy-spec.md): Comprehensive HIPAA Notice of Privacy Practices, California CMIA disclosures, data retention timelines (10-year Medi-Cal requirement), and client confidentiality rights.
+* [**04_Independent_Contractor_Agreement_1099.md**](./07-legal-administrative/04_Independent_Contractor_Agreement_1099.md): Model 1099 Specialist Independent Contractor Agreement conforming to California AB 5 and California SB 803 non-clinical scope of practice.
+* [**05_County_Intergovernmental_CalAIM_Agreement.md**](./07-legal-administrative/05_County_Intergovernmental_CalAIM_Agreement.md): Model County Intergovernmental CalAIM H0038 Peer Services Subcontract with Qualified Clinical Supervision and ANSI 837P EDI specifications.
 * [**06_IP_Assignment_Agreement.md**](./07-legal-administrative/06_IP_Assignment_Agreement.md): Executed Founder-to-LLC Intellectual Property Assignment Agreement transferring 100% of all source code, domain names (`peernotebook.com`), algorithms, and documentation from individual founder H. Joe Abudayyeh to **Peer Notebook LLC**.
 * [**07_Business_Associate_Agreement_BAA_Framework.md**](./07-legal-administrative/07_Business_Associate_Agreement_BAA_Framework.md): Institutional BAA framework across Supabase, AWS S3 WORM storage, and Google Cloud zero-retention data logging policies.
 * [**08_Open_Source_License_Notice.md**](./07-legal-administrative/08_Open_Source_License_Notice.md): Open-source dependency attributions (React, Vite, Tailwind CSS, Dexie.js, Supabase, jsPDF) and commercial dual-licensing framework.
+* [**privacy-policy-spec.md**](./07-legal-administrative/privacy-policy-spec.md): Comprehensive HIPAA Notice of Privacy Practices, California CMIA disclosures, data retention timelines (10-year Medi-Cal requirement), and client confidentiality rights.
 * [**compliance-matrix.md**](./07-legal-administrative/compliance-matrix.md): Multi-framework audit crosswalk mapping SOC 2 Type II, ISO/IEC 27001, HIPAA 45 CFR § 164, and CalMHSA requirements.
 * [**ip-licensing.md**](./07-legal-administrative/ip-licensing.md): Software licensing inventory, patent declarations, and third-party open-source attribution tables.
 
