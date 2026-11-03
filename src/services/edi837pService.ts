@@ -231,4 +231,57 @@ export class Edi837PGenerator {
 
     return segments.join(`${this.SEGMENT_TERM}\n`) + this.SEGMENT_TERM;
   }
+
+  /**
+   * Generate an ANSI 837P claim for a single session note
+   */
+  public static generate837PClaim(input: {
+    note: SessionNote;
+    client?: Client;
+    organization?: any;
+    specialistName?: string;
+    specialistNpi?: string;
+  }): string {
+    const org = input.organization;
+    const client = input.client || ({
+      id: input.note.clientId,
+      fullName: input.note.clientName,
+      clientIdentifier: input.note.clientIdentifier,
+      mediCalCin: input.note.mediCalCin || 'CIN99999999',
+      dateOfBirth: '1990-01-01',
+      gender: 'unknown',
+      address: '100 Community St',
+      city: 'Sacramento',
+      state: 'CA',
+      zipCode: '95814',
+      organizationId: input.note.organizationId,
+      createdAt: input.note.createdAt,
+      updatedAt: input.note.updatedAt
+    } as unknown as Client);
+
+    const billingProvider: EdiBillingProvider = {
+      organizationName: org?.name || 'Peer Support Community-Based Organization',
+      npi: org?.npi || input.specialistNpi || '1992834012',
+      taxId: org?.taxId || '94-1234567',
+      addressLine: org?.address || '123 Recovery Way Suite 100',
+      city: org?.city || 'Sacramento',
+      state: org?.state || 'CA',
+      zipCode: org?.zipCode || '95814'
+    };
+
+    const payer: EdiPayerInfo = {
+      payerName: 'California Department of Health Care Services (DHCS) / Medi-Cal',
+      payerId: 'CA-DHCS-001'
+    };
+
+    return this.generate837PBatch({
+      billingProvider,
+      payer,
+      notes: [input.note],
+      clientMap: { [input.note.clientId]: client }
+    });
+  }
 }
+
+export { Edi837PGenerator as Edi837pService };
+

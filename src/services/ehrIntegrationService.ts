@@ -297,6 +297,13 @@ export class EhrIntegrationService {
   }
 
   /**
+   * Generate an HL7 v2.5.1 Medical Document Management / Observational message (MDM^T02 / ORU^R01)
+   */
+  public static generateHl7V2Mdm(note: SessionNote, client?: Client | null, org?: Organization | null): string {
+    return this.generateHl7V2Message(note, client, org);
+  }
+
+  /**
    * Generate a Consolidated CDA (C-CDA R2.1) Progress Note XML document
    */
   public static generateCcdaXml(note: SessionNote, client?: Client | null, org?: Organization | null): string {
