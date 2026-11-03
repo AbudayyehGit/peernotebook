@@ -472,3 +472,24 @@ export class EhrIntegrationService {
     this.downloadFile(ccda, `ccda_progress_note_${note.id}_${date}.xml`, 'application/xml;charset=utf-8');
   }
 }
+
+/**
+ * Standard FHIR R4 Bundle Serialization helper for Progress Notes
+ */
+export function exportToFHIR(note: { peer_id?: string; clientId?: string; content?: string; peerIntervention?: string; goalAddressed?: string; created_at?: string; encounterDate?: string; [key: string]: any }): string {
+  const fhirBundle = {
+    resourceType: "Bundle",
+    type: "document",
+    entry: [{
+      resource: {
+        resourceType: "ClinicalImpression",
+        status: "completed",
+        subject: { reference: `Patient/${note.peer_id || note.clientId || 'unknown'}` },
+        description: note.content || `${note.goalAddressed || ''}\n${note.peerIntervention || ''}`.trim(),
+        effectiveDateTime: note.created_at || note.encounterDate || new Date().toISOString()
+      }
+    }]
+  };
+  return JSON.stringify(fhirBundle, null, 2);
+}
+
