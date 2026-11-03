@@ -19,6 +19,9 @@ export interface Organization {
   contactPhone?: string;
   contractType?: 'CBO Partner' | 'County Health Department' | 'Managed Care Plan (MCP)' | 'Contracted Provider';
   allocatedMonthlyUnits?: number;
+  maxSpecialistSeats?: number;
+  maxActiveClients?: number;
+  dailyUnitCapPerSpecialist?: number;
 }
 
 export type UserRole = 'peer_specialist' | 'supervisor' | 'admin' | 'compliance_officer' | 'super_admin';

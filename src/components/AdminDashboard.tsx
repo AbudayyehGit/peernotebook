@@ -50,6 +50,7 @@ import {
 } from 'lucide-react';
 import { EhrIntegrationService } from '../services/ehrIntegrationService';
 import { AuditTrail } from '../services/AuditTrail';
+import { OrganizationProvisioningModal } from './OrganizationProvisioningModal';
 
 export const AdminDashboard: React.FC = () => {
   const {
@@ -76,15 +77,6 @@ export const AdminDashboard: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Org Provisioning state
-  const [provisionName, setProvisionName] = useState('');
-  const [provisionCounty, setProvisionCounty] = useState('01-Alameda');
-  const [provisionNpi, setProvisionNpi] = useState('');
-  const [provisionMedicaidId, setProvisionMedicaidId] = useState('');
-  const [provisionContractType, setProvisionContractType] = useState<Organization['contractType']>('CBO Partner');
-  const [provisionAllocatedUnits, setProvisionAllocatedUnits] = useState<number>(1200);
-  const [provisionContactEmail, setProvisionContactEmail] = useState('');
-  const [provisionContactPhone, setProvisionContactPhone] = useState('');
 
   // User form state
   const [userName, setUserName] = useState('');
@@ -349,39 +341,6 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleProvisionOrg = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!provisionName.trim()) return;
-    try {
-      const newOrg = await createOrg({
-        name: provisionName.trim(),
-        countyCode: provisionCounty,
-        npi: provisionNpi.trim() || '1982000000',
-        medicaidProviderId: provisionMedicaidId.trim() || 'CA-MC-000000',
-        contractType: provisionContractType,
-        allocatedMonthlyUnits: provisionAllocatedUnits,
-        contactEmail: provisionContactEmail.trim() || 'admin@cbopartner.org',
-        contactPhone: provisionContactPhone.trim() || '(510) 555-0100',
-        calaimContractActive: true,
-        baaSignedAt: new Date().toISOString(),
-        baaVersion: 'v2.4-GA8-CalAIM'
-      });
-      if (currentUser) {
-        await AuditTrail.recordOrgProvisioned(newOrg, currentUser);
-      }
-      setIsProvisionOrgModalOpen(false);
-      setProvisionName('');
-      setProvisionNpi('');
-      setProvisionMedicaidId('');
-      setStatusMessage({
-        type: 'success',
-        text: `Successfully provisioned new CBO tenant "${newOrg.name}" (${newOrg.countyCode}).`
-      });
-      setTimeout(() => setStatusMessage(null), 4000);
-    } catch (err: unknown) {
-      setStatusMessage({ type: 'error', text: (err as Error).message || 'Failed to provision organization.' });
-    }
-  };
 
   // RESTRICTED ACCESS GATE: Only accessible to super_admin
   if (role !== 'super_admin') {
@@ -1308,9 +1267,15 @@ export const AdminDashboard: React.FC = () => {
                       <span className="font-bold text-[#1E3A8A]">{org.allocatedMonthlyUnits || 1200} units</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Enrolled Staff:</span>
-                      <span className="font-semibold text-slate-700">{orgUserCount} users</span>
+                      <span className="text-slate-400">Staff Capacity:</span>
+                      <span className="font-semibold text-slate-700">{orgUserCount} / {org.maxSpecialistSeats || 10} seats</span>
                     </div>
+                    {org.maxActiveClients && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Max Caseload:</span>
+                        <span className="font-semibold text-slate-700">{org.maxActiveClients} clients</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
@@ -1641,169 +1606,20 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Provision New CBO Organization Modal */}
-      {isProvisionOrgModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity overflow-y-auto">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full shadow-2xl relative my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="bg-gradient-to-r from-[#1E3A8A] to-indigo-900 text-white p-5 sm:p-6 flex items-start justify-between">
-              <div>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-400 text-indigo-950 uppercase tracking-wider">
-                  CalAIM Multi-Tenant Provisioning
-                </span>
-                <h3 className="text-lg font-bold mt-1">Provision New CBO Organization</h3>
-                <p className="text-xs text-blue-200 mt-0.5">
-                  Initialize a California CBO entity with NPI, county code, and BAA
-                </p>
-              </div>
-              <button
-                onClick={() => setIsProvisionOrgModalOpen(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-blue-200 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleProvisionOrg} className="p-5 sm:p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  CBO Organization Legal Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={provisionName}
-                  onChange={(e) => setProvisionName(e.target.value)}
-                  placeholder="e.g. East Bay Peer Recovery Services"
-                  className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    California County *
-                  </label>
-                  <select
-                    value={provisionCounty}
-                    onChange={(e) => setProvisionCounty(e.target.value)}
-                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900"
-                  >
-                    <option value="01-Alameda">01 - Alameda</option>
-                    <option value="07-Contra Costa">07 - Contra Costa</option>
-                    <option value="19-Los Angeles">19 - Los Angeles</option>
-                    <option value="38-San Francisco">38 - San Francisco</option>
-                    <option value="41-San Mateo">41 - San Mateo</option>
-                    <option value="43-Santa Clara">43 - Santa Clara</option>
-                    <option value="48-Solano">48 - Solano</option>
-                    <option value="49-Sonoma">49 - Sonoma</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    National Provider ID (NPI) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={10}
-                    value={provisionNpi}
-                    onChange={(e) => setProvisionNpi(e.target.value.replace(/\D/g, ''))}
-                    placeholder="1982049182"
-                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-900"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Medi-Cal Provider ID *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={provisionMedicaidId}
-                    onChange={(e) => setProvisionMedicaidId(e.target.value)}
-                    placeholder="CA-MC-984102"
-                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Contract Type
-                  </label>
-                  <select
-                    value={provisionContractType}
-                    onChange={(e) => setProvisionContractType(e.target.value as Organization['contractType'])}
-                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900"
-                  >
-                    <option value="CBO Partner">CBO Partner</option>
-                    <option value="County Health Department">County Health Department</option>
-                    <option value="Managed Care Plan (MCP)">Managed Care Plan (MCP)</option>
-                    <option value="Contracted Provider">Contracted Provider</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Monthly H0038 Unit Allocation
-                  </label>
-                  <input
-                    type="number"
-                    min="100"
-                    step="50"
-                    value={provisionAllocatedUnits}
-                    onChange={(e) => setProvisionAllocatedUnits(Number(e.target.value))}
-                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Compliance Contact Email
-                  </label>
-                  <input
-                    type="email"
-                    value={provisionContactEmail}
-                    onChange={(e) => setProvisionContactEmail(e.target.value)}
-                    placeholder="compliance@cbo.org"
-                    className="w-full min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900"
-                  />
-                </div>
-              </div>
-
-              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 space-y-1">
-                <span className="font-bold flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4 text-indigo-700" /> Statutory BAA Binding
-                </span>
-                <p className="text-[11px] text-indigo-800">
-                  Provisioning automatically executes Business Associate Agreement (BAA v2.4-GA8-CalAIM) and provisions tenant encryption keys.
-                </p>
-              </div>
-
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setIsProvisionOrgModalOpen(false)}
-                  className="min-h-[44px] px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="min-h-[44px] px-5 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Provision CBO Organization
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Super Administrator Organization Provisioning Modal */}
+      <OrganizationProvisioningModal
+        isOpen={isProvisionOrgModalOpen}
+        onClose={() => setIsProvisionOrgModalOpen(false)}
+        onSuccess={(newOrg, adminUser) => {
+          setStatusMessage({
+            type: 'success',
+            text: `Successfully provisioned CBO tenant "${newOrg.name}" (${newOrg.countyCode})${
+              adminUser ? ` with administrator ${adminUser.fullName} (${adminUser.role})` : ''
+            }.`
+          });
+          setTimeout(() => setStatusMessage(null), 5000);
+        }}
+      />
     </div>
   );
 };

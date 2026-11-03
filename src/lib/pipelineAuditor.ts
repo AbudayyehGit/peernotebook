@@ -118,47 +118,50 @@ export async function auditEmailPipeline(domain = 'peernotebook.com', targetEmai
   let mxRecords: Array<{ exchange: string; priority: number }> = [];
 
   // In Node.js environment, dynamically import node:dns
-  try {
-    const dns = await import('node:dns');
-    const dnsPromises = dns.promises;
-    // Set public resolvers to avoid local stale caches
+  if (typeof window === 'undefined') {
     try {
-      dnsPromises.setServers(['8.8.8.8', '1.1.1.1']);
-    } catch {
-      // resolver set ignore if restricted
-    }
+      const dnsMod = 'node:dns';
+      const dns = await import(/* @vite-ignore */ dnsMod);
+      const dnsPromises = dns.promises;
+      // Set public resolvers to avoid local stale caches
+      try {
+        dnsPromises.setServers(['8.8.8.8', '1.1.1.1']);
+      } catch {
+        // resolver set ignore if restricted
+      }
 
-    try {
-      nameservers = await dnsPromises.resolveNs(domain);
-    } catch (e: any) {
-      console.warn(`[DNS Audit] NS query error for ${domain}:`, e.message);
-    }
+      try {
+        nameservers = await dnsPromises.resolveNs(domain);
+      } catch (e: any) {
+        console.warn(`[DNS Audit] NS query error for ${domain}:`, e.message);
+      }
 
-    try {
-      rootTxtRecords = await dnsPromises.resolveTxt(domain);
-    } catch (e: any) {
-      console.warn(`[DNS Audit] Root TXT query error for ${domain}:`, e.message);
-    }
+      try {
+        rootTxtRecords = await dnsPromises.resolveTxt(domain);
+      } catch (e: any) {
+        console.warn(`[DNS Audit] Root TXT query error for ${domain}:`, e.message);
+      }
 
-    try {
-      dmarcTxtRecords = await dnsPromises.resolveTxt(`_dmarc.${domain}`);
-    } catch (e: any) {
-      console.warn(`[DNS Audit] DMARC query error for _dmarc.${domain}:`, e.message);
-    }
+      try {
+        dmarcTxtRecords = await dnsPromises.resolveTxt(`_dmarc.${domain}`);
+      } catch (e: any) {
+        console.warn(`[DNS Audit] DMARC query error for _dmarc.${domain}:`, e.message);
+      }
 
-    try {
-      dkimTxtRecords = await dnsPromises.resolveTxt(`mail._domainkey.${domain}`);
-    } catch (e: any) {
-      console.warn(`[DNS Audit] DKIM query error for mail._domainkey.${domain}:`, e.message);
-    }
+      try {
+        dkimTxtRecords = await dnsPromises.resolveTxt(`mail._domainkey.${domain}`);
+      } catch (e: any) {
+        console.warn(`[DNS Audit] DKIM query error for mail._domainkey.${domain}:`, e.message);
+      }
 
-    try {
-      mxRecords = await dnsPromises.resolveMx(domain);
-    } catch (e: any) {
-      console.warn(`[DNS Audit] MX query error for ${domain}:`, e.message);
+      try {
+        mxRecords = await dnsPromises.resolveMx(domain);
+      } catch (e: any) {
+        console.warn(`[DNS Audit] MX query error for ${domain}:`, e.message);
+      }
+    } catch (err) {
+      console.warn('[DNS Audit] Non-Node environment or DNS module inaccessible:', err);
     }
-  } catch (err) {
-    console.warn('[DNS Audit] Non-Node environment or DNS module inaccessible:', err);
   }
 
   // Flatten and analyze root TXT

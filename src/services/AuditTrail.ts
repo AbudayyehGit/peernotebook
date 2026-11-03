@@ -275,6 +275,9 @@ export class AuditTrail {
         medicaidProviderId: org.medicaidProviderId,
         countyCode: org.countyCode,
         allocatedMonthlyUnits: org.allocatedMonthlyUnits,
+        maxSpecialistSeats: org.maxSpecialistSeats,
+        maxActiveClients: org.maxActiveClients,
+        dailyUnitCapPerSpecialist: org.dailyUnitCapPerSpecialist,
         contractType: org.contractType
       }
     });

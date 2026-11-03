@@ -94,7 +94,7 @@ export class WebhookGateway {
    */
   public static formatPagerDutyEvent(
     alert: AlertPayload,
-    routingKey: string = process.env.PAGERDUTY_ROUTING_KEY || 'MOCK_PAGERDUTY_KEY'
+    routingKey: string = (typeof process !== 'undefined' && process.env?.PAGERDUTY_ROUTING_KEY) || 'MOCK_PAGERDUTY_KEY'
   ): PagerDutyEventV2 {
     const dedupKey = this.computeDedupKey(alert);
     const sanitized = this.sanitizeDetails(alert.details);
@@ -157,7 +157,7 @@ export class WebhookGateway {
    */
   public static async dispatchToPagerDuty(
     alert: AlertPayload,
-    routingKey: string = process.env.PAGERDUTY_ROUTING_KEY || ''
+    routingKey: string = (typeof process !== 'undefined' && process.env?.PAGERDUTY_ROUTING_KEY) || ''
   ): Promise<{ success: boolean; status?: number; error?: string }> {
     const payload = this.formatPagerDutyEvent(alert, routingKey);
     if (!routingKey || routingKey.startsWith('MOCK')) {

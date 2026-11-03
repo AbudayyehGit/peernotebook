@@ -288,7 +288,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       contactEmail: orgData.contactEmail || 'admin@cbopartner.org',
       contactPhone: orgData.contactPhone || '(510) 555-0100',
       contractType: orgData.contractType || 'CBO Partner',
-      allocatedMonthlyUnits: orgData.allocatedMonthlyUnits || 1000
+      allocatedMonthlyUnits: orgData.allocatedMonthlyUnits || 1000,
+      maxSpecialistSeats: orgData.maxSpecialistSeats || 10,
+      maxActiveClients: orgData.maxActiveClients || 150,
+      dailyUnitCapPerSpecialist: orgData.dailyUnitCapPerSpecialist || 24
     };
 
     await peerNotebookDB.saveOrganization(newOrg);
