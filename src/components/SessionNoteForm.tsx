@@ -71,7 +71,62 @@ const CALAIM_FOCUS_DOMAINS = [
   'Harm Reduction',
   'CalAIM Community Supports',
   'Enhanced Care Management (ECM)',
-  'System Navigation'
+];
+
+export interface CalaimModifierOption {
+  code: 'U1' | 'U2' | 'U3' | 'U4';
+  label: string;
+  pos: string;
+  modality: ServiceModality;
+  description: string;
+}
+
+export const CALAIM_MODIFIERS: CalaimModifierOption[] = [
+  { code: 'U1', label: 'U1 · Facility / Office Site', pos: '11', modality: 'face_to_face', description: 'Clinic / Office (POS 11)' },
+  { code: 'U2', label: 'U2 · Field Outreach (POS 15)', pos: '15', modality: 'community_field', description: 'Community / Mobile (POS 15 CalAIM Standard)' },
+  { code: 'U3', label: 'U3 · Video Telehealth (POS 02)', pos: '02', modality: 'telehealth_video', description: 'Real-time Synchronous Video (POS 02)' },
+  { code: 'U4', label: 'U4 · Audio Telehealth (POS 02)', pos: '02', modality: 'phone_outreach', description: 'Audio-only Phone Outreach (POS 02)' }
+];
+
+export const SETTING_CHIPS = [
+  { label: 'Community Field Mobile (POS 15)', pos: '15', modality: 'community_field' as ServiceModality, modifier: 'U2' as const },
+  { label: 'Street Outreach / Encampment (POS 15)', pos: '15', modality: 'community_field' as ServiceModality, modifier: 'U2' as const },
+  { label: 'Supportive Housing Site (POS 15)', pos: '15', modality: 'community_field' as ServiceModality, modifier: 'U2' as const },
+  { label: 'Community Center / Library (POS 15)', pos: '15', modality: 'community_field' as ServiceModality, modifier: 'U2' as const },
+  { label: 'Office / Clinic Site (POS 11)', pos: '11', modality: 'face_to_face' as ServiceModality, modifier: 'U1' as const },
+  { label: 'Video Telehealth Encounter (POS 02)', pos: '02', modality: 'telehealth_video' as ServiceModality, modifier: 'U3' as const },
+  { label: 'Phone Outreach Call (POS 02)', pos: '02', modality: 'phone_outreach' as ServiceModality, modifier: 'U4' as const }
+];
+
+export const PRESENTATION_CHIPS = [
+  'Alert & Engaged',
+  'Guarded / Hesitant',
+  'Focused on Recovery Goals',
+  'Fatigued / Low Energy',
+  'Anxious / Restless',
+  'Receptive to Peer Coaching',
+  'Seeking Housing Stability',
+  'Strengths-Oriented'
+];
+
+export const PARTICIPANT_ENGAGEMENT_CHIPS = [
+  'Active Eye Contact & Presence',
+  'Shared Vulnerability & Personal Story',
+  'Practiced Somatic Grounding Skill',
+  'Identified Personal Triggers',
+  'Accepted Community Resource Referral',
+  'Self-Reported Reduced Distress',
+  'Demonstrated Problem-Solving Strengths'
+];
+
+export const FOLLOW_UP_ACTION_TAGS = [
+  'Housing Application Follow-up',
+  'Scheduled Next Check-in Meeting',
+  'WRAP Early Warning Signs Review',
+  'Care Team / ECM Coordination',
+  '12-Step / All-Recovery Meeting',
+  'Food Pantry & Benefits Access',
+  'CalAIM Community Supports Referral'
 ];
 
 interface PeerInterventionChip {
@@ -187,6 +242,11 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
   const [locationDetails, setLocationDetails] = useState<string>(
     existingNote?.locationDetails || 'Community Outreach / Field Mobile (POS 15)'
   );
+  const [billingModifier, setBillingModifier] = useState<'U1' | 'U2' | 'U3' | 'U4'>(
+    (existingNote?.billingModifier as any) || (existingNote?.placeOfServiceCode === '15' ? 'U2' : existingNote?.placeOfServiceCode === '11' ? 'U1' : existingNote?.modality === 'phone_outreach' ? 'U4' : 'U2')
+  );
+  const [selectedPresentationChips, setSelectedPresentationChips] = useState<string[]>([]);
+  const [selectedInterventionCategory, setSelectedInterventionCategory] = useState<string>('All');
 
   // Note Content (CalAIM DAP Format)
   const [focusDomains, setFocusDomains] = useState<string[]>(
@@ -645,6 +705,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       documentationMinutes,
       durationMinutes: totalBillableMinutes,
       billingCode,
+      billingModifier,
       billingUnits,
       modality,
       placeOfServiceCode,

@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { syncWorker, SyncStatusInfo } from '../services/syncWorker';
 import { useAuth } from '../context/AuthContext';
-import { Cloud, CloudOff, RefreshCw, ShieldCheck, X, CheckCircle2, HardDrive, Lock } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw, ShieldCheck, X, CheckCircle2, HardDrive, Lock, AlertTriangle } from 'lucide-react';
 
 export const SyncStatusBadge: React.FC = () => {
   const { hasActiveAccess } = useAuth();
@@ -34,9 +34,50 @@ export const SyncStatusBadge: React.FC = () => {
     await syncWorker.triggerManualSync();
   };
 
+  const pendingCount = syncInfo.pendingCount;
   const isOnline = syncInfo.state === 'online' || syncInfo.state === 'syncing';
   const isSyncing = syncInfo.state === 'syncing';
-  const pendingCount = syncInfo.pendingCount;
+
+  // 4 UI Sync Badging States (GA #8 CalAIM Standards):
+  // Green: Cloud Synchronized | Amber: Field Mode (Dexie Queue)
+  // Blue: Reconciling | Red: Sync Exception
+  const syncBadgeMode: 'cloud_synchronized' | 'field_mode' | 'reconciling' | 'exception' = (() => {
+    if (syncInfo.state === 'error') return 'exception';
+    if (syncInfo.state === 'syncing') return 'reconciling';
+    if (syncInfo.state === 'offline' || pendingCount > 0) return 'field_mode';
+    return 'cloud_synchronized';
+  })();
+
+  const badgeConfig = {
+    cloud_synchronized: {
+      btnClass: 'bg-emerald-50 border-emerald-300 text-[#16A34A] hover:bg-emerald-100/90',
+      dotClass: 'bg-[#16A34A]',
+      icon: <Cloud className="w-4 h-4 shrink-0 text-[#16A34A]" />,
+      shortLabel: 'Cloud Synced',
+      fullLabel: '🟢 Cloud Synchronized'
+    },
+    field_mode: {
+      btnClass: 'bg-amber-50 border-amber-300 text-[#D97706] hover:bg-amber-100/90',
+      dotClass: 'bg-[#D97706]',
+      icon: <HardDrive className="w-4 h-4 shrink-0 text-[#D97706]" />,
+      shortLabel: pendingCount > 0 ? `Field (${pendingCount})` : 'Field Mode',
+      fullLabel: pendingCount > 0 ? `Amber: Field Mode (Dexie Queue: ${pendingCount})` : 'Amber: Field Mode (Dexie Queue)'
+    },
+    reconciling: {
+      btnClass: 'bg-blue-50 border-blue-300 text-[#2563EB] hover:bg-blue-100/90',
+      dotClass: 'bg-[#2563EB]',
+      icon: <RefreshCw className="w-4 h-4 shrink-0 text-[#2563EB] animate-spin" />,
+      shortLabel: 'Reconciling...',
+      fullLabel: 'Blue: Reconciling'
+    },
+    exception: {
+      btnClass: 'bg-rose-50 border-rose-300 text-[#DC2626] hover:bg-rose-100/90',
+      dotClass: 'bg-[#DC2626]',
+      icon: <AlertTriangle className="w-4 h-4 shrink-0 text-[#DC2626]" />,
+      shortLabel: 'Sync Alert',
+      fullLabel: 'Red: Sync Exception'
+    }
+  }[syncBadgeMode];
 
   return (
     <div className="relative inline-flex items-center shrink-0">
@@ -44,72 +85,29 @@ export const SyncStatusBadge: React.FC = () => {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`min-h-[48px] flex items-center justify-center gap-2 px-3 sm:px-3.5 py-2 rounded-full text-xs font-semibold border transition-all shadow-xs cursor-pointer shrink-0 active:scale-95 ${
-          isOnline
-            ? pendingCount > 0
-              ? 'bg-amber-50 border-amber-300 text-[#D97706] hover:bg-amber-100/90'
-              : 'bg-emerald-50 border-emerald-300 text-[#16A34A] hover:bg-emerald-100/90'
-            : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200/90'
-        }`}
+        className={`min-h-[48px] flex items-center justify-center gap-2 px-3 sm:px-3.5 py-2 rounded-full text-xs font-semibold border transition-all shadow-xs cursor-pointer shrink-0 active:scale-95 ${badgeConfig.btnClass}`}
         title="Encrypted Local Device & Cloud Backup Status (Click for Details)"
       >
-        {isOnline ? (
-          <>
-            {/* Live Status Pulse Dot */}
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
-              <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                  pendingCount > 0 ? 'bg-[#D97706]' : 'bg-[#16A34A]'
-                }`}
-              />
-              <span
-                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                  pendingCount > 0 ? 'bg-[#D97706]' : 'bg-[#16A34A]'
-                }`}
-              />
-            </span>
+        {/* Live Status Pulse Dot */}
+        <span className="relative flex h-2.5 w-2.5 shrink-0">
+          <span
+            className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${badgeConfig.dotClass}`}
+          />
+          <span
+            className={`relative inline-flex rounded-full h-2.5 w-2.5 ${badgeConfig.dotClass}`}
+          />
+        </span>
 
-            {/* Cloud Icon */}
-            <Cloud className="w-4 h-4 shrink-0" />
+        {/* Dynamic State Icon */}
+        {badgeConfig.icon}
 
-            {/* Plain-English Status Text: Zero technical database names */}
-            <span className="text-xs font-semibold whitespace-nowrap">
-              {isSyncing ? (
-                <>
-                  <span className="xs:hidden">Saving...</span>
-                  <span className="hidden xs:inline">Saving to Cloud...</span>
-                </>
-              ) : pendingCount > 0 ? (
-                <>
-                  <span className="xs:hidden">{pendingCount} Saved Locally</span>
-                  <span className="hidden xs:inline sm:hidden">{pendingCount} Notes Local</span>
-                  <span className="hidden sm:inline">⚙️ {pendingCount} {pendingCount === 1 ? 'Note' : 'Notes'} Saved Locally</span>
-                </>
-              ) : (
-                <>
-                  <span className="xs:hidden">Synced</span>
-                  <span className="hidden xs:inline sm:hidden">Cloud Active</span>
-                  <span className="hidden sm:inline">🟢 Cloud Sync Active</span>
-                </>
-              )}
-            </span>
-          </>
-        ) : (
-          <>
-            <CloudOff className="w-4 h-4 text-slate-500 shrink-0" />
-            <span className="text-xs font-semibold whitespace-nowrap">
-              <span className="xs:hidden">Offline</span>
-              <span className="hidden xs:inline">Working Offline</span>
-            </span>
-            {pendingCount > 0 && (
-              <span className="bg-amber-100 text-[#D97706] px-2 py-0.5 rounded-full text-xs font-bold border border-amber-300">
-                {pendingCount}
-              </span>
-            )}
-          </>
-        )}
+        {/* Plain-English Status Text: Zero technical database names in general view */}
+        <span className="text-xs font-semibold whitespace-nowrap">
+          <span className="xs:hidden">{badgeConfig.shortLabel}</span>
+          <span className="hidden xs:inline">{badgeConfig.fullLabel}</span>
+        </span>
 
-        {/* Quick Sync Button */}
+        {/* Quick Sync Action */}
         <span
           role="button"
           tabIndex={0}
@@ -123,7 +121,7 @@ export const SyncStatusBadge: React.FC = () => {
           title="Backup Notes to Cloud Now"
           className="hidden sm:flex min-h-[44px] min-w-[44px] items-center justify-center p-2 hover:bg-black/5 rounded-full transition-transform active:scale-90 cursor-pointer"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${syncBadgeMode === 'reconciling' ? 'animate-spin' : ''}`} />
         </span>
       </button>
 

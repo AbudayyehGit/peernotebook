@@ -113,6 +113,7 @@ export interface SessionNote {
 
   // Medi-Cal Coding
   billingCode: string; // 'H0038' (Self-help / Peer support services), 'H0038-HQ' (Group), 'H0038-U8' (ECM)
+  billingModifier?: 'U1' | 'U2' | 'U3' | 'U4' | string; // CalAIM Modifiers: U1 (Facility), U2 (Field Outreach), U3 (Video Telehealth), U4 (Audio Telehealth)
   billingUnits: number; // 1 unit per 15 min increments
   modality: ServiceModality;
   locationDetails: string;
