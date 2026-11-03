@@ -32,21 +32,21 @@ export const DOC_ARTICLES: DocArticle[] = [
     slug: 'master-sprint-log',
     category: '01 Project Management',
     title: 'Master Sprint Log & Multi-Sorted Reconciliation Table',
-    subtitle: 'Authoritative Audit & Reconciled Sprint Backlog across Sprints 1, 2, and 3',
+    subtitle: 'Authoritative Audit & Reconciled Sprint Backlog across Sprints 1-4, Regulatory & Enterprise Backlog',
     specCode: 'PN-DOCS-SPRINT-LOG-001',
-    lastUpdated: '2026-11-02',
+    lastUpdated: '2026-11-03',
     author: 'H. Joe Abudayyeh',
-    readTime: '8 min',
+    readTime: '10 min',
     canonicalUrl: 'https://www.peernotebook.com/docs/master-sprint-log',
     content: `# Peer Notebook: Master Sprint Log & System Backlog Reconciliation
 
 **Document ID:** PN-DOCS-SPRINT-LOG-001  
 **Category:** Master Project Governance & SDLC Reconciliation  
-**Canonical Path:** \`/docs/master-sprint-log.md\`  
+**Canonical Path:** \`/docs/01_Project_Management/04_Project_Schedule_Milestones.md\`  
 **Engineering Standard:** H. Joe Abudayyeh Systems Production Standards  
 **Architect & Maintainer:** H. Joe Abudayyeh  
 **Regulatory Framework:** CalAIM / California Medi-Cal H0038 / Place of Service (POS) 15  
-**Effective Audit Timestamp:** 2026-11-02T06:11:00-08:00  
+**Effective Audit Timestamp:** 2026-11-03T02:45:00-08:00  
 **Copyright:** © 2026-2027 H. Joe Abudayyeh & Peer Notebook LLC. All Rights Reserved.  
 
 ---
@@ -55,9 +55,10 @@ export const DOC_ARTICLES: DocArticle[] = [
 
 This **Master Sprint Log** serves as the authoritative, centralized single point of truth reconciling all tasks, roadmaps, sprint schedules, and architectural specifications across the entire \`/docs\` binder against the live production code repository (\`peernotebook.com\`). 
 
-Every deliverable across Phases 1 through 15 and Sprints 1 through 3 has been audited against code implementation, unit tests, and production build gates (\`tsc && vite build\`). All fully implemented items have been certified as **COMPLETE** and verified in the Master Engineering & SDLC Checklist (\`/docs/checklist.md\`).
+Every deliverable across Phases 1 through 15, specialized Sprints 1 through 4, Regulatory, Operations, and Super Admin Tenancy Provisioning has been audited against code implementation, unit tests, and production build gates (\`tsc && vite build\`). All fully implemented items have been certified as **COMPLETE** and verified in the Master Engineering & SDLC Checklist (\`/docs/checklist.md\`).
 
-All 20 operational backlog and architectural hardening tasks have been implemented and verified with automated test coverage in \`tests/run-all-tests.ts\` (50 passed, 0 failed):
+All 26 operational backlog and architectural hardening tasks have been implemented and verified with automated test coverage in \`tests/run-all-tests.ts\` (91 passed, 0 failed across 16 test suites):
+
 1. **Primary Sort: Necessity** (\`Mandatory / Core Legal & Regulatory Compliance\` $\\rightarrow$ \`Secondary / Operational Reliability & Contract Governance\` $\\rightarrow$ \`Enhancement / Enterprise Interoperability & Population Health\`)
 2. **Secondary Sort: Importance** (\`High / P0\` $\\rightarrow$ \`Medium / P1\` $\\rightarrow$ \`Low / P2\`)
 3. **Tertiary Sort: Level of Effort / Involvement** (\`Most Involved [8–13 pts]\` $\\rightarrow$ \`Least Involved [1–2 pts]\`)
@@ -71,26 +72,33 @@ All 20 operational backlog and architectural hardening tasks have been implement
 | **SPRINT-REG-01** | **USCO Form TX Electronic Filing & 50-Page Redacted Source Code Deposit:** Statutory header generation and trade secret redactions under 37 C.F.R. § 202.20 & Circular 61. | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **3 pts** | \`scripts/compliance/generate_usco_deposit.sh\` | \`tests/compliance/usco_deposit.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SPRINT-REG-02** | **USPTO Trademark Registration ("PEER NOTEBOOK" Class 042 & 009):** Section 1(a) use in commerce, active UI specimens, and goods/services classifications. | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **2 pts** | \`config/legal/trademark_filing.json\` | \`tests/legal/trademark_filing.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SPRINT-REG-03** | **Formal State Registry Recordation & IRS EIN Confirmation:** Delaware formation, California foreign qualification, and IRS EIN verification notice. | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **1 pt** | \`config/legal/entity_meta.json\` | \`tests/legal/entity_meta.test.ts\` | **[x] VERIFIED COMPLETE** |
-| **SP1-01** | **CalAIM H0038 Overlap & Daily Cap Billing Engine:** Client-side overlap validation, 15-minute unit rounding, daily maximum capacity guardrails. | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **5 pts** | \`src/services/BillingValidator.ts\` | \`tests/sprint1/sprint1_compliance.test.ts\` | **[x] VERIFIED COMPLETE** |
-| **SP1-02** | **Offline Supervisor Attestation & Cryptographic Binding:** Offline cosignature review workflow with SHA-256 digital attestation seal. | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **5 pts** | \`src/components/SupervisorSignOff.tsx\` | \`tests/sprint1/sprint1_compliance.test.ts\` | **[x] VERIFIED COMPLETE** |
-| **SP1-03** | **Append-Only SHA-256 Chained HIPAA Audit Trail:** Blockchain-style chained SHA-256 checksums, tamper detection, and county audit CSV export. | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **5 pts** | \`src/services/AuditTrail.ts\` | \`tests/sprint1/sprint1_compliance.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SPRINT-OPS-01** | **Enhanced Offline OAuth & JWT Token Rotation (> 72 Hours):** WebCrypto AES-GCM (256-bit) encryption, offline threshold $>72\\text{h}$ up to $168\\text{h}$, single-use nonces. | **Secondary / Operational Reliability** | **High (P0)** | **5 pts** | \`src/auth/offline_token_engine.ts\` | \`src/auth/offline_token_engine.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SPRINT-OPS-02** | **5-CBO Beta Pilot Cohort Onboarding & County Bridge Validation:** Multi-tenant configuration across Alameda, LA, Fresno, Contra Costa, and San Diego with NPI & H0038 rates. | **Secondary / Operational Reliability** | **High (P0)** | **5 pts** | \`config/tenants/beta_cohort.json\` | \`tests/tenants/beta_cohort.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SPRINT-OPS-03** | **Third-Party SOC 2 Type 1 & ISO 27001 Independent Audit Controls:** Cross-mappings across SOC 2 CC6/CC7/CC8, ISO 27001 Annex A, and HIPAA 164.312. | **Secondary / Operational Reliability** | **Medium (P1)** | **8 pts** | \`docs/compliance/security_matrix.json\` | \`tests/compliance/security_matrix.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SPRINT-OPS-04** | **Production Incident Alerting & SRE Webhook Gateway (PagerDuty/Opsgenie):** HMAC-SHA256 signature verification, Events v2 & Alert API routers, HIPAA safe harbor data minimization. | **Secondary / Operational Reliability** | **Medium (P1)** | **3 pts** | \`src/alerts/webhook_gateway.ts\` | \`src/alerts/webhook_gateway.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SPRINT-OPS-05** | **Semi-Annual Cold Disaster Recovery Simulation Drill:** HIPAA § 164.308 contingency runbook, RTO $<4\\text{h}$, RPO $<15\\text{m}$, Supabase WAL-G restore, Dexie.js resilience. | **Secondary / Operational Reliability** | **Medium (P1)** | **2 pts** | \`docs/compliance/dr_runbook.md\` | \`tests/compliance/dr_runbook.test.ts\` | **[x] VERIFIED COMPLETE** |
-| **SP2-01** | **Offline-First Synchronization Worker & Retry Queue:** Mutation queue, exponential backoff, network status listener, and collision-free Dexie buffer. | **Secondary / Operational Reliability** | **High (P0)** | **5 pts** | \`src/services/syncWorker.ts\` | \`tests/sync/syncWorker.test.ts\` | **[x] VERIFIED COMPLETE** |
-| **SP2-02** | **Web Crypto Session Key Derivation & Idle Teardown:** PBKDF2/AES-GCM key derivation with zero-memory key wipe on session timeout. | **Secondary / Operational Reliability** | **High (P0)** | **5 pts** | \`src/auth/offline_token_engine.ts\` | \`src/auth/offline_token_engine.test.ts\` | **[x] VERIFIED COMPLETE** |
-| **SP2-03** | **Network State Listener & Debounced Local Persistence:** Real-time online/offline event dispatcher, non-blocking Dexie flush, and queue persistence. | **Secondary / Operational Reliability** | **Medium (P1)** | **3 pts** | \`src/services/syncWorker.ts\` | \`tests/sync/syncWorker.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SPRINT-ENT-01** | **Bi-Directional HL7 FHIR R4 Direct EHR Write-Back:** FHIR R4 Encounter, Observation, and DocumentReference resources mapped to CalAIM H0038 and strengths-based progress notes. | **Enhancement / Enterprise Interoperability** | **High (P0)** | **13 pts** | \`src/interop/fhir_r4_client.ts\` | \`src/interop/fhir_r4_client.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SPRINT-ENT-02** | **Hospital Emergency Department SMART-on-FHIR Peer Triage Launchpad:** SMART App Launch v2 flow, PKCE RFC 7636 challenge generator, launch context parser, note router. | **Enhancement / Enterprise Interoperability** | **Medium (P1)** | **8 pts** | \`src/interop/smart_launchpad.ts\` | \`src/interop/smart_launchpad.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SPRINT-ENT-03** | **Aggregated Multi-County Population Outcome Telemetry:** CalAIM county outcomes aggregator with strict $k$-anonymity ($k \\ge 5$) and zero-PHI guarantees. | **Enhancement / Enterprise Interoperability** | **Low (P2)** | **8 pts** | \`src/analytics/telemetry_aggregator.ts\` | \`src/analytics/telemetry_aggregator.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **SP1-01** | **CalAIM H0038 Overlap & Daily Cap Billing Engine:** Client-side overlap validation, 15-minute unit rounding, daily maximum capacity guardrails (max 24 units/day). | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **5 pts** | \`src/services/BillingValidator.ts\` | \`tests/sprint1/sprint1_compliance.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **SP1-02** | **Offline Supervisor Attestation & Cryptographic Binding:** Offline cosignature review workflow with SHA-256 digital attestation seal. | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **5 pts** | \`src/components/SupervisorSignOff.tsx\` | \`tests/sprint1/sprint1_compliance.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **SP1-03** | **Append-Only SHA-256 Chained HIPAA Audit Trail:** Blockchain-style chained SHA-256 checksums, tamper detection, and county audit CSV export. | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **5 pts** | \`src/services/AuditTrail.ts\` | \`tests/sprint1/sprint1_compliance.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **SP2-01** | **Offline-First Synchronization Worker & Retry Queue:** Mutation queue, exponential backoff, network status listener, and collision-free Dexie buffer. | **Secondary / Operational Reliability** | **High (P0)** | **5 pts** | \`src/sync/SyncQueue.ts\`, \`src/services/syncWorker.ts\` | \`tests/sync/sprint2.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **SP2-02** | **Web Crypto Session Key Derivation & Idle Teardown:** PBKDF2/AES-GCM key derivation with zero-memory key wipe on session timeout. | **Secondary / Operational Reliability** | **High (P0)** | **5 pts** | \`src/sync/EncryptionWorker.ts\`, \`src/auth/offline_token_engine.ts\` | \`tests/sync/sprint2.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **SP2-03** | **Network State Listener & Debounced Local Persistence:** Real-time online/offline event dispatcher, non-blocking Dexie flush, and queue persistence. | **Secondary / Operational Reliability** | **Medium (P1)** | **3 pts** | \`src/sync/NetworkMonitor.ts\` | \`tests/sync/sprint2.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SP3-01** | **Dynamic Compliance Status Widget:** Real-time evaluator of Web Crypto API, TLS 1.3 protocol security, and Dexie IndexedDB sync health. | **Enhancement / Enterprise Interoperability** | **High (P0)** | **5 pts** | \`src/components/ComplianceBadge.tsx\` | \`tests/sprint3/sprint3_ui_ux_refinement.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SP3-02** | **CalAIM Progress Note PDF & Markdown Export Generator:** Print-ready PDF & Markdown notes with mandatory H0038 billing codes, supervisor signatures, and SHA-256 audit digest. | **Enhancement / Enterprise Interoperability** | **High (P0)** | **8 pts** | \`src/services/PdfGenerator.ts\`, \`src/components/ExportModal.tsx\` | \`tests/sprint3/sprint3_ui_ux_refinement.test.ts\` | **[x] VERIFIED COMPLETE** |
 | **SP3-03** | **WCAG 2.1 AA Focus Management & Screen Reader Announcer:** Modal focus traps, tab-index boundaries, escape dismissal, and polite/assertive ARIA live region dispatcher. | **Enhancement / Enterprise Interoperability** | **High (P0)** | **5 pts** | \`src/utils/FocusManagement.ts\` | \`tests/sprint3/sprint3_ui_ux_refinement.test.ts\` | **[x] VERIFIED COMPLETE** |
-| **TOTALS** | **Consolidated Master Sprint Backlog: 20 / 20 Items Completed** | **All 3 Tiers** | **P0–P2** | **104 pts** | **20 Production Modules** | **50 / 50 Unit Tests Passing** | **100% COMPLETE** |
+| **SP4-01** | **Lightweight Markdown Documentation Viewer:** Dedicated \`DocViewer.tsx\` component rendering \`/docs\` directly on \`peernotebook.com\` with ISO 9001 compliance. | **Enhancement / Enterprise Interoperability** | **High (P0)** | **3 pts** | \`src/components/DocViewer.tsx\` | \`tests/sprint4/sprint4_interop_licensing.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **SP4-02** | **Solo 1099 Practitioner RLS Policy & Column Migration:** Explicit \`is_solo_practitioner\` database support alongside multi-tenant agency isolation. | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **5 pts** | \`migrations/20261103000008_solo_1099_progress_notes_rls.sql\` | \`tests/sprint4/sprint4_interop_licensing.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **SP4-03** | **Encrypted Chart Export Utility with Audit Triggers & Pseudonymization:** Canonical \`exportEncryptedChart\` helper with automatic immutable SHA-256 audit logging and HIPAA Safe Harbor pseudonymization. | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **3 pts** | \`src/services/chartExport.ts\`, \`src/services/clientPseudonymizer.ts\` | \`tests/sprint4/sprint4_interop_licensing.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **SP4-04** | **Dual-Path Subscription Stripe Webhook:** Supabase Edge Function handling checkout session webhooks for Free vs. Pro vs. CBO seat licensing. | **Secondary / Operational Reliability** | **Medium (P1)** | **5 pts** | \`supabase/functions/stripe-webhook/index.ts\` | \`tests/sprint4/sprint4_interop_licensing.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **SP4-05** | **CBO EHR Integration Engine & Standard Serialization:** Standard \`exportToFHIR\` serialization helper for HL7 FHIR R4 document bundles and C-CDA XML / HL7 v2 export. | **Enhancement / Enterprise Interoperability** | **High (P0)** | **5 pts** | \`src/services/ehrIntegrationService.ts\` | \`tests/sprint4/sprint4_interop_licensing.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **SP-ADMIN** | **Super Admin CBO Organization Provisioning & Capacity Limits:** Tenant provisioning modal, 10-digit NPI verification, initial admin role assignment, and capacity limits. | **Mandatory / Core Legal & Regulatory** | **High (P0)** | **5 pts** | \`src/components/OrganizationProvisioningModal.tsx\`, \`src/components/AdminDashboard.tsx\` | \`tests/tenants/org_provisioning.test.ts\` | **[x] VERIFIED COMPLETE** |
+| **TOTALS** | **Consolidated Master Sprint Backlog: 26 / 26 Items Completed** | **All 3 Tiers** | **P0–P2** | **130 pts** | **26 Production Modules** | **91 / 91 Unit Tests Passing** | **100% COMPLETE** |
 `
   },
+
   // =========================================================================
   // 04 TECHNICAL ARCHITECTURE
   // =========================================================================

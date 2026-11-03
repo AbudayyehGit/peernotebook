@@ -15,7 +15,9 @@ import { runFhirClientTests } from '../src/interop/fhir_r4_client.test.ts';
 import { runSmartLaunchpadTests } from '../src/interop/smart_launchpad.test.ts';
 import { runTelemetryAggregatorTests } from '../src/analytics/telemetry_aggregator.test.ts';
 import { runSprint1ComplianceTests } from './sprint1/sprint1_compliance.test.ts';
+import { runSprint2Tests } from './sync/sprint2.test.ts';
 import { runSprint3UiUxRefinementTests } from './sprint3/sprint3_ui_ux_refinement.test.ts';
+import { runSprint4Tests } from './sprint4/sprint4_interop_licensing.test.ts';
 import { runOrgProvisioningTests } from './tenants/org_provisioning.test.ts';
 
 async function main() {
@@ -36,8 +38,10 @@ async function main() {
     { id: 10, name: 'SMART-on-FHIR Triage Launchpad', runner: runSmartLaunchpadTests },
     { id: 11, name: 'Multi-County Population Telemetry', runner: runTelemetryAggregatorTests },
     { id: 12, name: 'Sprint 1: Compliance & Billing Integrity (SP1-01, SP1-02, SP1-03)', runner: runSprint1ComplianceTests },
-    { id: 13, name: 'Sprint 3: UI/UX Refinement, Exports & Accessibility (SP3-01, SP3-02, SP3-03)', runner: runSprint3UiUxRefinementTests },
-    { id: 14, name: 'Super Admin CBO Organization Provisioning & Capacity Limits', runner: runOrgProvisioningTests },
+    { id: 13, name: 'Sprint 2: Offline Synchronization & Resiliency (SP2-01, SP2-02, SP2-03)', runner: runSprint2Tests },
+    { id: 14, name: 'Sprint 3: UI/UX Refinement, Exports & Accessibility (SP3-01, SP3-02, SP3-03)', runner: runSprint3UiUxRefinementTests },
+    { id: 15, name: 'Sprint 4: Interoperability, Solo 1099 Licensing & Documentation (SP4-01 to SP4-05)', runner: runSprint4Tests },
+    { id: 16, name: 'Super Admin CBO Organization Provisioning & Capacity Limits', runner: runOrgProvisioningTests },
   ];
 
   let totalPassed = 0;

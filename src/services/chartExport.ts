@@ -8,6 +8,7 @@
 
 import { SessionNote } from '../db/peerNotebookDatabase';
 import { AuditLogger } from './auditLogger';
+import { batchPseudonymize, PseudonymizeOptions } from './clientPseudonymizer';
 
 export type ProgressNote = SessionNote | {
   id: string;
@@ -19,16 +20,34 @@ export type ProgressNote = SessionNote | {
   [key: string]: any;
 };
 
+export interface ExportChartOptions extends PseudonymizeOptions {
+  actor?: { id: string; name: string; role: any };
+  pseudonymize?: boolean;
+}
+
 /**
  * Exports an encrypted client chart JSON archive and triggers an immutable audit log
  */
-export function exportEncryptedChart(notes: ProgressNote[], actor?: { id: string; name: string; role: any }): void {
-  const data = JSON.stringify(notes, null, 2);
+export function exportEncryptedChart(
+  notes: ProgressNote[],
+  optionsOrActor?: ExportChartOptions | { id: string; name: string; role: any }
+): void {
+  const options: ExportChartOptions =
+    optionsOrActor && 'role' in optionsOrActor
+      ? { actor: optionsOrActor as { id: string; name: string; role: any } }
+      : (optionsOrActor as ExportChartOptions) || {};
+
+  const notesToExport = options.pseudonymize
+    ? batchPseudonymize(notes, options)
+    : notes;
+
+  const data = JSON.stringify(notesToExport, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `client-chart-export-${new Date().toISOString().split('T')[0]}.enc.json`;
+  const prefix = options.pseudonymize ? 'pseudonymized-' : '';
+  a.download = `${prefix}client-chart-export-${new Date().toISOString().split('T')[0]}.enc.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -36,6 +55,7 @@ export function exportEncryptedChart(notes: ProgressNote[], actor?: { id: string
 
   // Trigger immutable audit log asynchronously
   try {
+    const actor = options.actor;
     const firstNote = notes[0] as Record<string, any> | undefined;
     AuditLogger.log({
       actorId: actor?.id || firstNote?.specialist_id || firstNote?.authorId || 'system-export',
@@ -46,6 +66,7 @@ export function exportEncryptedChart(notes: ProgressNote[], actor?: { id: string
       entityId: notes[0]?.id || 'batch-export',
       details: {
         method: 'exportEncryptedChart',
+        pseudonymized: !!options.pseudonymize,
         notesCount: notes.length,
         timestamp: new Date().toISOString()
       }

@@ -47,6 +47,17 @@ export function runEntityMetaTests(): { name: string; passed: boolean; error?: s
     }
   });
 
+  test('entity formation certifies Delaware LLC and California qualification', () => {
+    const data = JSON.parse(readFileSync(filePath, 'utf-8'));
+    if (data.entity.formationState !== 'Delaware' || !data.entity.formationDate) {
+      throw new Error('Delaware LLC formation metadata incomplete');
+    }
+    if (data.entity.californiaRegistration.filingType !== 'Application for Registration - Foreign LLC (Form LLC-5)') {
+      throw new Error('California foreign qualification filing type mismatch');
+    }
+  });
+
+
   return results;
 }
 

@@ -231,7 +231,7 @@ export class EhrIntegrationService {
                     `Duration: ${note.durationMinutes} min (${note.billingUnits} units of H0038)\n` +
                     `Place of Service: POS ${note.placeOfServiceCode} - ${note.locationDetails}\n` +
                     `Specialist: ${note.authorName} (${note.authorCredentials})\n` +
-                    `Focus Domains: ${note.focusDomains.join(', ')}\n\n` +
+                    `Focus Domains: ${(note.focusDomains || []).join(', ')}\n\n` +
                     `PART 1 - CALAIM GOAL ADDRESSED:\n${note.goalAddressed}\n\n` +
                     `PART 2 - PEER SPECIALIST INTERVENTION:\n${note.peerIntervention}\n\n` +
                     `PART 3 - CLIENT OBSERVABLE RESPONSE:\n${note.clientResponse}\n\n` +
@@ -391,7 +391,7 @@ export class EhrIntegrationService {
           <text>
             <paragraph>${escapeXml(note.goalAddressed)}</paragraph>
             <list>
-              <item>Focus Domains: ${escapeXml(note.focusDomains.join(', '))}</item>
+              <item>Focus Domains: ${escapeXml((note.focusDomains || []).join(', '))}</item>
               <item>Place of Service: POS ${escapeXml(note.placeOfServiceCode)} (${escapeXml(note.locationDetails)})</item>
             </list>
           </text>

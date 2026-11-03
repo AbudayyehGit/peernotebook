@@ -17,13 +17,12 @@ This centralized **Master Documentation Binder** provides the deterministic blue
 
 ---
 
-## Master Directory Architecture
+## Master Directory Architecture & Business Organization Vault
 
 ```
 docs/
 ├── README.md                          # Master Binder Index & System Manifest
-├── checklist.md                       # Master Engineering & SDLC Verification Checklist
-├── master-sprint-log.md               # Multi-Sorted Master Sprint Log & Backlog Reconciliation
+├── checklist.md                       # Master Engineering & SDLC Verification Checklist (Phases 1-15 & Sprints 1-4)
 ├── ip-strategy-matrix.md              # IP Mechanism Mapping (Copyright, Trademark, Trade Secret, Patent)
 ├── filing-checklists.md               # USPTO Class 42 & USCO Source Code Deposit Checklists
 ├── templates/                         # Master Legal Boilerplate Templates
@@ -32,16 +31,15 @@ docs/
 ├── compliance/                        # Regulatory & Independent Audit Records
 │   ├── security_matrix.json           # SOC 2 Type 1 & ISO 27001 Control Mapping
 │   ├── dr_runbook.md                  # Cold Disaster Recovery Simulation Runbook
-│   ├── hipaa_gap_analysis.md          # CalAIM & HIPAA Technical Safeguards Gap Analysis
 │   └── usco_form_tx_deposit.txt       # USCO Form TX 50-Page Source Deposit Manifest
-├── sprints/                           # Machine-Readable Sprint Telemetry
-│   └── master_sprint_log.json         # Automated Consolidated Sprint Log Datastore
 ├── 01-project-management/             # Charters, roadmaps, sprint schedules, and governance
 │   ├── README.md                      # Section Overview & Governance Guide
 │   ├── project-charter.md             # Mission, scope, constraints, and success metrics
 │   ├── product-roadmap.md             # Three-horizon milestones and release targets
 │   ├── sprint-cadence.md              # 14-day agile sprint rituals and estimation scales
 │   ├── stakeholder-matrix.md          # RACI governance matrix and escalation protocols
+│   ├── 04_Project_Schedule_Milestones.md # Unified Master Sprint Backlog (26 items • 90 unit tests)
+│   ├── admin-cbo-onboarding-guide.md  # 6-step guided onboarding & CalAIM capacity planning
 │   └── checklist.md                   # SDLC verification matrix Phases 1-6
 ├── 02-business-strategy/              # Unit economics, market positioning, and clinical workflows
 │   ├── README.md                      # Section Overview & Commercial Foundation
@@ -52,8 +50,10 @@ docs/
 │   ├── value-proposition.md           # Pains, gains, and measurable agency administrative ROI
 │   ├── market-analysis.md             # Behavioral health market sizing and CalAIM catalysts
 │   ├── monetization-model.md          # Multi-tier pricing for solo specialists, CBOs & counties
-│   ├── investor-financial-pitch.md    # Investor pitch and financial model
-│   └── competitive-matrix.md          # Structural differentiation vs legacy medical EHRs
+│   ├── investor-financial-pitch.md    # Investor pitch and financial model ($2.5M-$4.0M M&A baseline)
+│   ├── competitive-matrix.md          # Structural differentiation vs legacy medical EHRs
+│   ├── 1099-independent-contractor-strategy.md # Solo 1099 practitioner workflow & mileage ledger
+│   └── stripe-billing-architecture.md # Stripe multi-tier subscription & dual-persistence sync
 ├── 03-design-experience/              # Design system, personas, UX journeys, and regulatory guides
 │   ├── README.md                      # Section Overview & Design Constitution
 │   ├── design-system.md               # Soft Slate (#F8FAFC), Deep Navy (#1E3A8A), 48px touch tokens
@@ -72,7 +72,9 @@ docs/
 │   ├── security-threat-model.md       # STRIDE evaluation, WebCrypto AES-GCM, and TLS 1.3 encryption
 │   ├── 07_Offline_Sync_IndexedDB.md   # Dexie.js offline persistence, sync queue & conflict rules
 │   ├── 05_Compliance_Engine_PDF_Export.md # Automated 4-part note validation & SHA-256 PDF export
-│   └── 08_HIPAA_BAA_Consent_Model.md  # HIPAA 45 CFR § 164, CMIA Civil Code § 56 & BAA checklist
+│   ├── 08_HIPAA_BAA_Consent_Model.md  # HIPAA 45 CFR § 164, CMIA Civil Code § 56 & BAA checklist
+│   ├── 09_CBO_EHR_Interoperability_FHIR_HL7_CCDA.md # HL7 FHIR R4, v2.5.1, and C-CDA XML engine
+│   └── telemetry-monitoring-spec.md   # Dexie metrics, sync worker state, and SRE signals
 ├── 05-engineering-quality/            # CI/CD, testing methodology, code review, and QA standards
 │   ├── README.md                      # Section Overview & Engineering Quality Charter
 │   ├── testing-strategy.md            # Test pyramid (70% unit, 20% integration, 10% E2E)
@@ -88,7 +90,8 @@ docs/
 │   ├── incident-response.md           # P0–P3 incident classifications, on-call paging, and war-rooms
 │   ├── disaster-recovery.md           # RTO (< 15 min), RPO (< 1 min), storage quotas & OPFS recovery
 │   ├── h0038-billing-operations.md    # Medi-Cal claims batching, billing modifiers (U1, U2, GQ)
-│   └── cbo-onboarding-governance.md   # 5-CBO Pilot Cohort Onboarding & County Bridge Validation
+│   ├── cbo-onboarding-governance.md   # 5-CBO Pilot Cohort Onboarding & County Bridge Validation
+│   └── 05_Deployment_Verification_Guide.md # Canonical production deployment verification protocol
 └── 07-legal-administrative/           # Compliance, privacy, licensing, corporate entity & IP
     ├── README.md                      # Section Overview & Legal Governance Framework
     ├── 01_Terms_of_Service.md         # Master Terms of Service with Non-Clinical Disclaimers
@@ -98,6 +101,13 @@ docs/
     ├── 08_Open_Source_License_Notice.md # Third-Party Dependency Attributions & Permissive License Matrix
     ├── compliance-matrix.md           # SOC 2 Type II, ISO 27001, HIPAA & CalMHSA crosswalk
     └── ip-licensing.md                # Software licensing inventory, open-source attribution & IP
+
+config/
+├── legal/
+│   ├── entity_meta.json               # Delaware LLC, California Foreign Qualification, IRS EIN CP 575 A
+│   └── trademark_filing.json          # USPTO Trademark "PEER NOTEBOOK" Class 042 & 009 Section 1(a)
+└── tenants/
+    └── beta_cohort.json               # 5 California CBO pilot entities (Alameda, LA, Fresno, Contra Costa, SD)
 ```
 
 ---
@@ -106,11 +116,14 @@ docs/
 *Governance, delivery velocity, milestone planning, and team synchronization.*
 
 * [**01-project-management/README.md**](./01-project-management/README.md): Governance charter and CPSS project delivery standards.
+* [**04_Project_Schedule_Milestones.md**](./01-project-management/04_Project_Schedule_Milestones.md): The **Authoritative Consolidated Master Sprint Backlog** (26 / 26 items completed, 130 pts, 90 / 90 tests passing).
 * [**project-charter.md**](./01-project-management/project-charter.md): Approved 1.1-GA Project Charter establishing mission, non-clinical scope, Medi-Cal H0038 billing compliance, and key performance indicators.
 * [**product-roadmap.md**](./01-project-management/product-roadmap.md): Three-horizon milestone schedule covering Horizon 1 (1.1-GA CPSS MVP & Field Logging), Horizon 2 (CalAIM & County Bridge), and Horizon 3 (Enterprise EHR Interoperability).
 * [**sprint-cadence.md**](./01-project-management/sprint-cadence.md): Standardized 14-day sprint cycle, Fibonacci story-point estimation rules, and standup/retro agendas.
 * [**stakeholder-matrix.md**](./01-project-management/stakeholder-matrix.md): Formal RACI matrix outlining decision rights across executive, engineering, clinical, and county operations leads.
-* [**checklist.md**](./01-project-management/checklist.md): Master Engineering & SDLC verification checklist across Phases 1 through 6.
+* [**admin-cbo-onboarding-guide.md**](./01-project-management/admin-cbo-onboarding-guide.md): 6-step guided Medi-Cal onboarding and CalAIM capacity/revenue planning.
+* [**checklist.md**](./01-project-management/checklist.md): Master Engineering & SDLC verification checklist across Phases 1 through 15 and Sprints 1 through 4.
+
 
 ---
 
@@ -127,6 +140,8 @@ docs/
 * [**monetization-model.md**](./02-business-strategy/monetization-model.md): Multi-tier subscription economics for solo specialists, community health centers, and county agencies.
 * [**investor-financial-pitch.md**](./02-business-strategy/investor-financial-pitch.md): Strategic Investor Valuation White Paper: $35k MVP replacement value, $40k Year 1 baseline ARR, $2.5M-$4.0M M&A exit, and $20M decadal economic ecosystem.
 * [**competitive-matrix.md**](./02-business-strategy/competitive-matrix.md): Structural comparison against legacy medical EHRs (Epic, Cerner, Netsmart) and generic note-taking tools.
+* [**1099-independent-contractor-strategy.md**](./02-business-strategy/1099-independent-contractor-strategy.md): Solo 1099 independent contractor operational model, mileage ledger ($0.67/mi), and direct RLS isolation.
+* [**stripe-billing-architecture.md**](./02-business-strategy/stripe-billing-architecture.md): Dual-path subscription Stripe architecture, webhook listener, and bidirectional Supabase sync.
 
 ---
 
@@ -156,6 +171,8 @@ docs/
 * [**07_Offline_Sync_IndexedDB.md**](./04-technical-architecture/07_Offline_Sync_IndexedDB.md): Approved 1.0-GA Offline Synchronization & IndexedDB: Dexie.js local-first schemas, background sync worker queues, and Last-Write-Wins conflict resolution.
 * [**05_Compliance_Engine_PDF_Export.md**](./04-technical-architecture/05_Compliance_Engine_PDF_Export.md): Automated 4-part note validation, immutable audit trails, SHA-256 tamper-evident hashing, and client-side PDF export.
 * [**08_HIPAA_BAA_Consent_Model.md**](./04-technical-architecture/08_HIPAA_BAA_Consent_Model.md): HIPAA Security Rule 45 CFR § 164, CMIA Civil Code § 56, digital signature vector capture, and SHA-256 consent binding.
+* [**09_CBO_EHR_Interoperability_FHIR_HL7_CCDA.md**](./04-technical-architecture/09_CBO_EHR_Interoperability_FHIR_HL7_CCDA.md): CBO EHR clinical interchange engine: HL7 FHIR R4 Encounter/Observation bundles, HL7 v2.5.1, and C-CDA XML progress notes.
+* [**telemetry-monitoring-spec.md**](./04-technical-architecture/telemetry-monitoring-spec.md): SRE observability specifications, IndexedDB quota probes, and sync worker latency monitoring.
 
 ---
 
@@ -182,6 +199,7 @@ docs/
 * [**disaster-recovery.md**](./06-operations-deployment/disaster-recovery.md): RTO (< 15 min) and RPO (< 1 min) failover scenarios, regional data replication, and restore drill schedules.
 * [**h0038-billing-operations.md**](./06-operations-deployment/h0038-billing-operations.md): County Medi-Cal claims processing, billing modifiers (U1, U2, GQ), and audit preparation workflows.
 * [**cbo-onboarding-governance.md**](./06-operations-deployment/cbo-onboarding-governance.md): 5-CBO Beta Pilot Cohort Onboarding and County Bridge operational validation protocol.
+* [**05_Deployment_Verification_Guide.md**](./06-operations-deployment/05_Deployment_Verification_Guide.md): Canonical release and post-deployment solid-state verification protocol.
 
 ---
 
@@ -199,7 +217,33 @@ docs/
 
 ---
 
-## 08. Standalone Extraction & Direct Vercel Deployment
+## 08. Business Organization Binder Vault (Corporate, Legal & IP Records)
+
+The **Business Organization Binder Vault** contains official corporate registry records, intellectual property deposits, and multi-tenant pilot cohort agreements:
+
+1. **Corporate Entity Profile (`config/legal/entity_meta.json`):**
+   - Entity: **Peer Notebook LLC** (Delaware formation 2024-01-15; California Foreign Qualification SOS Entity #202460110822).
+   - Tax Profile: IRS EIN CP 575 A verification notice (`XX-XXX4819`), NAICS 541511 (Healthcare SaaS) & 621420 (Outpatient Mental Health Support).
+   - HIPAA Status: Business Associate (45 CFR § 160.103) and 42 CFR Part 2 Qualified Service Organization (QSO).
+
+2. **USPTO Trademark Filing Dossier (`config/legal/trademark_filing.json`):**
+   - Mark: **"PEER NOTEBOOK"** (Class 009 Downloadable Mobile/PWA Application & Class 042 Healthcare SaaS).
+   - Basis: Section 1(a) Use in Commerce with verified mobile interface specimens and SaaS billing portal screen captures.
+
+3. **USCO Source Code Deposit Generator (`scripts/compliance/generate_usco_deposit.sh`):**
+   - Form TX automated 50-page deposit manifest under 37 C.F.R. § 202.20 & Circular 61 with automated trade secret redactions.
+
+4. **Multi-Tenant CBO Beta Pilot Cohort (`config/tenants/beta_cohort.json`):**
+   - Five enrolled California CBO entities across Alameda, Los Angeles, Fresno, Contra Costa, and San Diego counties.
+   - NPI validation, county Medi-Cal rates ($29.75–$34.00/unit), and offline token grace periods ($96\text{h}–168\text{h}$).
+
+5. **Security & Independent Audit Controls (`docs/compliance/security_matrix.json` & `docs/compliance/dr_runbook.md`):**
+   - SOC 2 Type 1 and ISO 27001 control mapping for enterprise health system procurement.
+   - Semi-annual Cold Disaster Recovery simulation runbook with RTO $< 4\text{h}$ and RPO $< 15\text{m}$.
+
+---
+
+## 09. Standalone Extraction & Direct Vercel Deployment
 
 ### Deploying to peernotebook.com on Vercel
 
