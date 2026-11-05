@@ -767,9 +767,10 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
     }, 1000);
   };
 
-  // Step 1: Careplan Milestone & Client Linkage
+  // Step 1: Contact Context & Environment (Setting & Presentation chips, Modifiers U1-U4)
   const renderStep1 = () => (
-    <div className="space-y-4 animate-in fade-in duration-150">
+    <div className="space-y-5 animate-in fade-in duration-150">
+      {/* Client Selection & Date of Service */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1.5">
@@ -807,76 +808,510 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
+      {/* CalAIM Billing Modifiers: U1, U2, U3, U4 */}
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[11px] font-bold">1</span>
-            <span>CalAIM Strengths-Based Goal Addressed (Part 1 of 4) *</span>
+          <label className="block text-xs font-bold text-slate-700">
+            CalAIM Medi-Cal Billing Modifier (H0038 Service Type) *
           </label>
-          <button
-            type="button"
-            onClick={() => setIsTemplateDrawerOpen(true)}
-            className="text-[11px] text-[#0F766E] hover:text-teal-800 font-semibold flex items-center gap-1 cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>Select from H0038 Templates</span>
-          </button>
+          <span className="text-[11px] text-[#0F766E] font-semibold">
+            Active: {billingModifier} (POS {placeOfServiceCode})
+          </span>
         </div>
-        <textarea
-          rows={3}
-          value={goalAddressed}
-          onChange={(e) => setGoalAddressed(e.target.value)}
-          placeholder="Document client-centered recovery plan goal or milestone addressed today (e.g. Housing transition, relapse prevention capital, WRAP early warning cues)..."
-          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {CALAIM_MODIFIERS.map(mod => {
+            const isSelected = billingModifier === mod.code;
+            return (
+              <button
+                key={mod.code}
+                type="button"
+                onClick={() => {
+                  setBillingModifier(mod.code);
+                  setModality(mod.modality);
+                  setPlaceOfServiceCode(mod.pos);
+                  announceToScreenReader(`Selected billing modifier ${mod.code}: ${mod.label}`);
+                }}
+                className={`min-h-[52px] p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                  isSelected
+                    ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-sm ring-2 ring-blue-300'
+                    : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200 shadow-2xs'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-extrabold ${isSelected ? 'text-amber-300' : 'text-[#1E3A8A]'}`}>{mod.code}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>POS {mod.pos}</span>
+                </div>
+                <div className="text-[11px] font-semibold truncate mt-1">{mod.description}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Setting & Environment Chips */}
+      <div className="space-y-2">
+        <label className="block text-xs font-bold text-slate-700">
+          Encounter Setting &amp; Environment Chips (Single-Tap Setup)
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {SETTING_CHIPS.map(chip => (
+            <button
+              key={chip.label}
+              type="button"
+              onClick={() => {
+                setLocationDetails(chip.label);
+                setPlaceOfServiceCode(chip.pos);
+                setModality(chip.modality);
+                setBillingModifier(chip.modifier);
+                announceToScreenReader(`Selected setting: ${chip.label}`);
+              }}
+              className={`min-h-[44px] px-3.5 py-2 rounded-full text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                locationDetails === chip.label
+                  ? 'bg-[#0F766E] text-white border-[#0F766E] shadow-xs'
+                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50 shadow-2xs'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full shrink-0 ${locationDetails === chip.label ? 'bg-amber-300' : 'bg-teal-500'}`} />
+              <span>{chip.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Client Presentation Chips */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="block text-xs font-bold text-slate-700">
+            Client Presentation at Start of Encounter
+          </label>
+          <span className="text-[11px] text-slate-500">
+            {selectedPresentationChips.length} tagged
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {PRESENTATION_CHIPS.map(chip => {
+            const isSelected = selectedPresentationChips.includes(chip);
+            return (
+              <button
+                key={chip}
+                type="button"
+                onClick={() => {
+                  setSelectedPresentationChips(prev =>
+                    prev.includes(chip) ? prev.filter(c => c !== chip) : [...prev, chip]
+                  );
+                }}
+                className={`min-h-[42px] px-3.5 py-2 rounded-full text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isSelected
+                    ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-xs'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50 shadow-2xs'
+                }`}
+              >
+                {isSelected ? <Check className="w-3.5 h-3.5" /> : <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />}
+                <span>{chip}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Location Specifics */}
+      <div>
+        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+          Location Specifics &amp; Community Landmark
+        </label>
+        <input
+          type="text"
+          value={locationDetails}
+          onChange={(e) => setLocationDetails(e.target.value)}
+          placeholder="e.g. Client supportive housing site, Library career center, Community park"
+          className="w-full min-h-[44px] px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
         />
       </div>
     </div>
   );
 
-  // Step 2: Time, Location & POS 15 (H0038 Calculator)
-  const renderStep2 = () => (
-    <div className="space-y-4 animate-in fade-in duration-150">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">
-            Modality &amp; Place of Service *
+  // Step 2: Peer Intervention (Multi-select categories + embedded micro-dictation)
+  const renderStep2 = () => {
+    const interventionCategories = ['All', 'Relational', 'Regulation', 'Navigation', 'Recovery', 'Empowerment'];
+    const filteredChips = selectedInterventionCategory === 'All'
+      ? PEER_INTERVENTION_CHIPS
+      : PEER_INTERVENTION_CHIPS.filter(c => c.category.toLowerCase() === selectedInterventionCategory.toLowerCase());
+
+    return (
+      <div className="space-y-4 animate-in fade-in duration-150">
+        {/* Category Filter Tabs */}
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-700">
+            Intervention Category Filter
           </label>
-          <select
-            value={`${modality}:${placeOfServiceCode}`}
-            onChange={(e) => {
-              const [modVal, posVal] = e.target.value.split(':') as [ServiceModality, string];
-              setModality(modVal);
-              setPlaceOfServiceCode(posVal);
-            }}
-            className="w-full min-h-[44px] px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-          >
-            <option value="community_field:15">Community Field Mobile (POS 15 - CalAIM H0038 Standard)</option>
-            <option value="community_field:99">Community Outreach / Street / Park (POS 99)</option>
-            <option value="face_to_face:11">Office / Clinic Site (POS 11)</option>
-            <option value="telehealth_video:02">Telehealth Video Encounter (POS 02)</option>
-            <option value="phone_outreach:02">Phone Outreach Encounter (POS 02)</option>
-          </select>
+          <div className="flex flex-wrap gap-1.5">
+            {interventionCategories.map(cat => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedInterventionCategory(cat)}
+                className={`min-h-[38px] px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+                  selectedInterventionCategory === cat
+                    ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-xs'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">
-            Location Specifics
+        {/* Single-Tap Intervention Chips */}
+        <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/90 space-y-3 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#D97706]" />
+              <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A]">
+                Single-Tap Peer Intervention Chips ({filteredChips.length} available)
+              </span>
+            </div>
+            <span className="text-[11px] text-[#D97706] font-semibold bg-[#FEF3C7] px-2.5 py-0.5 rounded-full border border-amber-200">
+              Single-tap adds trauma-informed language
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+            {filteredChips.map(chip => {
+              const isSelected = selectedInterventionChips.includes(chip.id);
+              return (
+                <button
+                  key={chip.id}
+                  type="button"
+                  onClick={() => toggleInterventionChip(chip)}
+                  className={`min-h-[48px] px-4 py-2 rounded-full text-xs font-semibold text-left transition-all flex items-center justify-between gap-2.5 border cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#0F766E] text-white border-[#0F766E] shadow-sm ring-1 ring-[#0F766E]/30'
+                      : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300 shadow-2xs'
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold">{chip.label}</div>
+                    <div className={`text-[10px] truncate ${isSelected ? 'text-teal-100 font-medium' : 'text-slate-400'}`}>
+                      {chip.category}
+                    </div>
+                  </div>
+                  {isSelected ? (
+                    <Check className="w-4 h-4 text-white shrink-0" />
+                  ) : (
+                    <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0">+</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Embedded Micro-Dictation Bar & Real-Time Cleanser */}
+        <div className="p-4 bg-teal-50/70 rounded-2xl border border-teal-200/90 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Mic className="w-4 h-4 text-[#0F766E]" />
+              <span className="text-xs font-bold uppercase tracking-wider text-[#0F766E]">
+                Embedded Micro-Dictation &amp; Non-Clinical Cleanser
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleSpeechRecognition}
+                className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                  isRecording
+                    ? 'bg-rose-600 text-white animate-pulse'
+                    : 'bg-[#0F766E] hover:bg-teal-800 text-white'
+                }`}
+              >
+                {isRecording ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                <span>{isRecording ? 'Stop Recording' : 'Micro-Dictate'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCleanseJargon}
+                className="min-h-[40px] px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-teal-300 rounded-full text-xs font-bold text-[#0F766E] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Transform clinical jargon into non-clinical peer support language"
+              >
+                <Wand2 className="w-3.5 h-3.5 text-[#0F766E]" />
+                <span>Cleanse Jargon</span>
+              </button>
+            </div>
+          </div>
+
+          {interimTranscript && (
+            <div className="p-2.5 bg-white border border-teal-200 rounded-xl text-xs text-teal-900 italic font-medium">
+              Listening: "{interimTranscript}..."
+            </div>
+          )}
+
+          {speechError && (
+            <div className="p-2 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700">
+              {speechError}
+            </div>
+          )}
+        </div>
+
+        {/* CalAIM Encounter Focus Domains */}
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-700">
+            CalAIM Encounter Focus Domains (Tap to toggle)
           </label>
-          <input
-            type="text"
-            value={locationDetails}
-            onChange={(e) => setLocationDetails(e.target.value)}
-            placeholder="e.g. Client supportive housing site, Library career center, Community park"
-            className="w-full min-h-[44px] px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
+          <div className="flex flex-wrap gap-2">
+            {CALAIM_FOCUS_DOMAINS.map(domain => {
+              const isSelected = focusDomains.includes(domain);
+              return (
+                <button
+                  key={domain}
+                  type="button"
+                  onClick={() => toggleDomain(domain)}
+                  className={`min-h-[44px] px-3.5 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
+                    isSelected
+                      ? 'bg-[#0F766E] text-white border-[#0F766E] shadow-sm'
+                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50 shadow-2xs'
+                  }`}
+                >
+                  {isSelected ? <Check className="w-3.5 h-3.5 text-white" /> : <span className="w-2 h-2 rounded-full bg-slate-300" />}
+                  <span>{domain}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Intervention Text Area */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full bg-teal-100 text-[#0F766E] flex items-center justify-center text-[11px] font-bold">2</span>
+            <span>Certified Peer Specialist Intervention (Part 2 of 4 - What YOU Did) *</span>
+          </label>
+          <textarea
+            rows={4}
+            value={peerIntervention}
+            onChange={(e) => setPeerIntervention(e.target.value)}
+            placeholder="Detail peer-delivered interventions: shared lived recovery experience, somatic grounding exercises, system navigation, emotional support, self-advocacy coaching..."
+            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
+          />
+        </div>
+      </div>
+    );
+  };
+
+  // Step 3: Participant Response & Goal Alignment (Dexie goal selector + engagement chips)
+  const renderStep3 = () => (
+    <div className="space-y-5 animate-in fade-in duration-150">
+      {/* Dexie Goal Selector: Active Recovery Goals from Dexie Database */}
+      <div className="p-4 bg-blue-50/70 rounded-2xl border border-blue-200/90 space-y-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#1E3A8A]" />
+            <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A]">
+              Dexie Recovery Goal Selector (Client-Centered Recovery Plan)
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsTemplateDrawerOpen(true)}
+            className="text-[11px] text-[#0F766E] hover:text-teal-800 font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Browse H0038 Templates</span>
+          </button>
+        </div>
+
+        {currentClient?.recoveryGoals && currentClient.recoveryGoals.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {currentClient.recoveryGoals.map((goal, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setGoalAddressed(goal);
+                  announceToScreenReader(`Linked client recovery goal: ${goal}`);
+                }}
+                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all text-left flex items-center gap-2 cursor-pointer ${
+                  goalAddressed.includes(goal)
+                    ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-xs'
+                    : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300 shadow-2xs'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-teal-400 shrink-0" />
+                <span>{goal}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-500 italic">
+            {selectedClientId ? 'No pre-set goals recorded for this client. Enter goal manually below or pick an H0038 template.' : 'Select a peer client in Step 1 to load their active Dexie recovery goals.'}
+          </p>
+        )}
+
+        <div className="space-y-1 pt-1">
+          <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[11px] font-bold">1</span>
+            <span>CalAIM Strengths-Based Goal Addressed (Part 1 of 4) *</span>
+          </label>
+          <textarea
+            rows={2}
+            value={goalAddressed}
+            onChange={(e) => setGoalAddressed(e.target.value)}
+            placeholder="Document client-centered recovery plan goal or milestone addressed today (e.g. Housing transition, relapse prevention capital, WRAP early warning cues)..."
+            className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] transition-colors"
           />
         </div>
       </div>
 
-      <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/90 space-y-3 shadow-[0_2px_6px_rgba(15,23,42,0.03)]">
+      {/* Participant Observable Engagement Chips */}
+      <div className="space-y-2">
+        <label className="block text-xs font-bold text-slate-700">
+          Observable Engagement &amp; Response Chips (Tap to append)
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {PARTICIPANT_ENGAGEMENT_CHIPS.map(chip => (
+            <button
+              key={chip}
+              type="button"
+              onClick={() => {
+                setClientResponse(prev => {
+                  const trimmed = prev.trim();
+                  if (trimmed.includes(chip)) return prev;
+                  return trimmed ? `${trimmed}; Observed ${chip.toLowerCase()}` : `Client exhibited ${chip.toLowerCase()}`;
+                });
+                announceToScreenReader(`Appended response: ${chip}`);
+              }}
+              className="min-h-[40px] px-3.5 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-[#1E3A8A] rounded-full text-xs font-semibold border border-slate-300 transition-all cursor-pointer shadow-2xs"
+            >
+              + {chip}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Client Response Text Area & Direct Quote Helper */}
+      <div className="space-y-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[11px] font-bold">3</span>
+            <span>Peer / Client Observable Response (Part 3 of 4 - Quotes &amp; Metrics) *</span>
+          </label>
+          <button
+            type="button"
+            onClick={handleInsertDirectQuoteTemplate}
+            className="min-h-[38px] px-3.5 py-1.5 bg-teal-50 hover:bg-teal-100 text-[#0F766E] border border-teal-200 rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs self-start sm:self-auto"
+            title="Insert client direct quote template into response"
+          >
+            <Quote className="w-3.5 h-3.5 text-[#0F766E]" />
+            <span>Insert Direct Quote ("...")</span>
+          </button>
+        </div>
+        <textarea
+          rows={3}
+          value={clientResponse}
+          onChange={(e) => setClientResponse(e.target.value)}
+          placeholder="Record client quotes, observable behavioral responses, mood, self-reported distress rating (e.g. 1-10 scale), and reception of peer coaching..."
+          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
+        />
+        <div className="flex items-center justify-between text-xs pt-0.5">
+          {goldenThreadStatus.hasDirectQuote ? (
+            <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#16A34A]" />
+              <span>Direct quote verified for Medi-Cal Golden Thread audit</span>
+            </span>
+          ) : (
+            <span className="text-[11px] text-amber-700 font-semibold flex items-center gap-1">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+              <span>Golden Thread Requirement: Include at least one verbatim quote in quotation marks ("...")</span>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Safety Concerns & De-escalation Checklist */}
+      <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
+        <label className="flex items-center gap-3 cursor-pointer min-h-[44px]">
+          <input
+            type="checkbox"
+            checked={safetyConcerns}
+            onChange={(e) => setSafetyConcerns(e.target.checked)}
+            className="w-5 h-5 rounded text-rose-600 focus:ring-0 border-slate-300"
+          />
+          <span className="text-xs font-bold text-slate-800">
+            Check here if any safety, crisis, overdose risk, or self-harm indicators were identified during session
+          </span>
+        </label>
+
+        {safetyConcerns && (
+          <div className="space-y-1.5 pt-1">
+            <span className="text-xs text-rose-700 font-bold flex items-center gap-1">
+              <AlertTriangle className="w-4 h-4 text-rose-600" />
+              Crisis De-escalation &amp; Safety Response Documentation:
+            </span>
+            <textarea
+              rows={2}
+              value={safetyNotes}
+              onChange={(e) => setSafetyNotes(e.target.value)}
+              placeholder="Document review of safety plan, supervisor contact, emergency services involvement, or mobile crisis referral..."
+              className="w-full px-3.5 py-2 bg-white border border-rose-300 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:border-rose-500"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Step 4: Plan & Next Steps (Duration timer + follow-up action tags)
+  const renderStep4 = () => (
+    <div className="space-y-5 animate-in fade-in duration-150">
+      {/* Collaborative Plan & Next Steps (Part 4 of 4) */}
+      <div className="space-y-2">
+        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+          <span className="w-5 h-5 rounded-full bg-teal-100 text-[#0F766E] flex items-center justify-center text-[11px] font-bold">4</span>
+          <span>Collaborative Plan &amp; Action Steps for Next Meeting (Part 4 of 4) *</span>
+        </label>
+        <textarea
+          rows={3}
+          value={planNextSteps}
+          onChange={(e) => setPlanNextSteps(e.target.value)}
+          placeholder="Agreed action steps for peer before next session; scheduled date, time, and focus of upcoming encounter..."
+          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
+        />
+      </div>
+
+      {/* Follow-up Action Tags */}
+      <div className="space-y-2">
+        <label className="block text-xs font-bold text-slate-700">
+          Follow-Up Action Tags (Tap to append to next steps)
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {FOLLOW_UP_ACTION_TAGS.map(tag => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => {
+                setPlanNextSteps(prev => {
+                  const trimmed = prev.trim();
+                  if (trimmed.includes(tag)) return prev;
+                  return trimmed ? `${trimmed}; ${tag}` : tag;
+                });
+                announceToScreenReader(`Appended action tag: ${tag}`);
+              }}
+              className="min-h-[40px] px-3.5 py-1.5 bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-[#0F766E] rounded-full text-xs font-semibold border border-slate-300 transition-all cursor-pointer shadow-2xs"
+            >
+              + {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Duration Timer & Time Breakdown */}
+      <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/90 space-y-3 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
           <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-[#0F766E] shrink-0" />
-            CalAIM Billable Time Breakdown (15-Minute Medi-Cal Units)
+            <Clock className="w-4 h-4 text-[#0F766E]" />
+            CalAIM Billable Time Breakdown (Face-to-Face + Travel + Doc)
           </span>
           <span className="text-xs font-bold text-[#0F766E] bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200">
             Total: {totalBillableMinutes} mins = {billingUnits} Unit{billingUnits > 1 ? 's' : ''} (H0038)
@@ -946,251 +1381,44 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
         </div>
       </div>
 
-      {isContractor && (
-        <div className="p-4 bg-amber-50/70 rounded-2xl border border-amber-200/90 space-y-3 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#D97706] flex items-center gap-1.5">
-              <Car className="w-4 h-4 text-[#D97706] shrink-0" />
-              1099 Contractor Encounter Ledger
-            </span>
-            <span className="text-xs font-bold text-amber-900 bg-amber-100/90 px-2.5 py-1 rounded-md border border-amber-300">
-              Contractor Billable: ${totalContractorAmount.toFixed(2)}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                Travel Mileage (Miles)
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                min={0}
-                value={contractorMileage}
-                onChange={(e) => setContractorMileage(Number(e.target.value) || 0)}
-                placeholder="e.g. 14.5"
-                className="w-full min-h-[44px] px-3 py-2 bg-white border border-amber-300 rounded-xl text-sm text-slate-900 font-bold focus:outline-hidden focus:border-[#D97706]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                Hourly Time Compensation
-              </label>
-              <div className="flex items-center min-h-[44px] px-3 py-2 bg-white border border-amber-300 rounded-xl text-xs font-mono text-slate-800 font-bold">
-                {totalBillableMinutes}m @ ${hourlyRate}/hr = ${contractorTimeEarnings.toFixed(2)}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                Mileage Reimbursement
-              </label>
-              <div className="flex items-center min-h-[44px] px-3 py-2 bg-white border border-amber-300 rounded-xl text-xs font-mono text-slate-800 font-bold">
-                {contractorMileage}mi @ ${mileageRate}/mi = ${contractorMileageEarnings.toFixed(2)}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  // Step 3: Peer Specialist Interventions & Chips
-  const renderStep3 = () => (
-    <div className="space-y-4 animate-in fade-in duration-150">
-      <div className="space-y-2">
-        <label className="block text-xs font-bold text-slate-700">
-          CalAIM Encounter Focus Domains (Tap to select)
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {CALAIM_FOCUS_DOMAINS.map(domain => {
-            const isSelected = focusDomains.includes(domain);
-            return (
-              <button
-                key={domain}
-                type="button"
-                onClick={() => toggleDomain(domain)}
-                className={`min-h-[46px] px-4 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
-                  isSelected
-                    ? 'bg-[#0F766E] text-white border-[#0F766E] shadow-sm'
-                    : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-50 shadow-[0_2px_4px_rgba(15,23,42,0.04)]'
-                }`}
-              >
-                {isSelected ? (
-                  <Check className="w-3.5 h-3.5 text-white shrink-0" />
-                ) : (
-                  <span className="w-2 h-2 rounded-full bg-slate-300 shrink-0" />
-                )}
-                <span>{domain}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="p-5 bg-slate-50/80 rounded-2xl border border-slate-200/90 space-y-3.5 shadow-[0_2px_6px_rgba(15,23,42,0.03)]">
+      {/* CMS 8-Minute Rounding Rule Visualizer */}
+      <div className="p-4 bg-teal-50/80 rounded-2xl border border-teal-200/90 space-y-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-[#FEF3C7] text-[#D97706] rounded-lg">
-              <Zap className="w-4 h-4" />
+          <span className="text-xs font-bold uppercase tracking-wider text-[#0F766E] flex items-center gap-1.5">
+            <Clock className="w-4 h-4 text-[#0F766E]" />
+            CMS 8-Minute Rounding Rule (H0038 15-Minute Units)
+          </span>
+          <span className="text-xs font-mono font-bold text-[#1E3A8A] bg-white px-2.5 py-1 rounded-md border border-teal-200">
+            Formula: IF(mins ≥ 8, FLOOR((mins - 8) / 15) + 1, 0)
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1 text-center text-xs">
+          {[
+            { range: '0–7 mins', units: 0, active: totalBillableMinutes >= 0 && totalBillableMinutes <= 7 },
+            { range: '8–22 mins', units: 1, active: totalBillableMinutes >= 8 && totalBillableMinutes <= 22 },
+            { range: '23–37 mins', units: 2, active: totalBillableMinutes >= 23 && totalBillableMinutes <= 37 },
+            { range: '38–52 mins', units: 3, active: totalBillableMinutes >= 38 && totalBillableMinutes <= 52 },
+            { range: '53–67 mins', units: 4, active: totalBillableMinutes >= 53 && totalBillableMinutes <= 67 }
+          ].map(tier => (
+            <div
+              key={tier.range}
+              className={`p-2 rounded-xl border transition-all ${
+                tier.active
+                  ? 'bg-[#1E3A8A] text-white border-blue-900 shadow-xs font-bold'
+                  : 'bg-white text-slate-600 border-slate-200'
+              }`}
+            >
+              <div className="text-[11px] font-mono">{tier.range}</div>
+              <div className={`text-sm font-bold ${tier.active ? 'text-amber-300' : 'text-slate-800'}`}>
+                {tier.units} {tier.units === 1 ? 'Unit' : 'Units'}
+              </div>
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A]">
-              Single-Tap Peer Intervention Chips (CalMHSA &amp; CalAIM Core)
-            </span>
-          </div>
-          <span className="text-[11px] text-[#D97706] font-semibold bg-[#FEF3C7] px-2.5 py-0.5 rounded-full border border-amber-200">
-            Single-tap adds trauma-informed language
-          </span>
+          ))}
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
-          {PEER_INTERVENTION_CHIPS.map(chip => {
-            const isSelected = selectedInterventionChips.includes(chip.id);
-            return (
-              <button
-                key={chip.id}
-                type="button"
-                onClick={() => toggleInterventionChip(chip)}
-                className={`min-h-[48px] px-4 py-2 rounded-full text-xs font-semibold text-left transition-all flex items-center justify-between gap-2.5 border cursor-pointer ${
-                  isSelected
-                    ? 'bg-[#0F766E] text-white border-[#0F766E] shadow-sm ring-1 ring-[#0F766E]/30'
-                    : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300 shadow-[0_2px_4px_rgba(15,23,42,0.04)]'
-                }`}
-              >
-                <div className="min-w-0">
-                  <div className="truncate font-semibold">{chip.label}</div>
-                  <div className={`text-[10px] truncate ${isSelected ? 'text-teal-100 font-medium' : 'text-slate-400'}`}>
-                    {chip.category}
-                  </div>
-                </div>
-                {isSelected ? (
-                  <Check className="w-4 h-4 text-white shrink-0" />
-                ) : (
-                  <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0">+</span>
-                )}
-              </button>
-            );
-          })}
+        <div className="text-[11px] text-teal-800 flex flex-wrap items-center justify-between pt-1 gap-1">
+          <span>Calculated Total: <strong>{totalBillableMinutes} mins</strong> = <strong className="text-[#0F766E]">{billingUnits} H0038 Units</strong></span>
+          <span>Daily Cap Guardrail: max 24 units/client (360 min)</span>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <span className="w-5 h-5 rounded-full bg-teal-100 text-[#0F766E] flex items-center justify-center text-[11px] font-bold">2</span>
-            <span>Certified Peer Specialist Intervention (Part 2 of 4 - What YOU Did) *</span>
-          </label>
-          <button
-            type="button"
-            onClick={handleCleanseJargon}
-            className="min-h-[40px] px-3.5 py-1.5 bg-slate-100 hover:bg-teal-50 hover:text-[#0F766E] border border-slate-300 rounded-full text-xs font-bold text-slate-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs self-start sm:self-auto"
-            title="Scan text to replace medicalized terms with non-clinical peer language"
-          >
-            <Wand2 className="w-3.5 h-3.5 text-[#0F766E]" />
-            <span>Cleanse Clinical Jargon</span>
-          </button>
-        </div>
-        <textarea
-          rows={4}
-          value={peerIntervention}
-          onChange={(e) => setPeerIntervention(e.target.value)}
-          placeholder="Detail peer-delivered interventions: shared lived recovery experience, somatic grounding exercises, system navigation, emotional support, self-advocacy coaching..."
-          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-        />
-      </div>
-    </div>
-  );
-
-  // Step 4: Observable Client Response & Recovery Metric
-  const renderStep4 = () => (
-    <div className="space-y-4 animate-in fade-in duration-150">
-      <div className="space-y-2">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[11px] font-bold">3</span>
-            <span>Peer / Client Observable Response (Part 3 of 4 - Quotes &amp; Metrics) *</span>
-          </label>
-          <button
-            type="button"
-            onClick={handleInsertDirectQuoteTemplate}
-            className="min-h-[38px] px-3.5 py-1.5 bg-teal-50 hover:bg-teal-100 text-[#0F766E] border border-teal-200 rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs self-start sm:self-auto"
-            title="Insert client direct quote template into response"
-          >
-            <Quote className="w-3.5 h-3.5 text-[#0F766E]" />
-            <span>Insert Direct Quote ("...")</span>
-          </button>
-        </div>
-        <textarea
-          rows={3}
-          value={clientResponse}
-          onChange={(e) => setClientResponse(e.target.value)}
-          placeholder="Record client quotes, observable behavioral responses, mood, self-reported distress rating (e.g. 1-10 scale), and reception of peer coaching..."
-          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-        />
-        <div className="flex items-center justify-between text-xs pt-1">
-          {goldenThreadStatus.hasDirectQuote ? (
-            <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#16A34A]" />
-              <span>Direct quote verified for Medi-Cal Golden Thread audit</span>
-            </span>
-          ) : (
-            <span className="text-[11px] text-amber-700 font-semibold flex items-center gap-1">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-              <span>Golden Thread Requirement: Include at least one verbatim quote in quotation marks ("...")</span>
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
-        <label className="flex items-center gap-3 cursor-pointer min-h-[44px]">
-          <input
-            type="checkbox"
-            checked={safetyConcerns}
-            onChange={(e) => setSafetyConcerns(e.target.checked)}
-            className="w-5 h-5 rounded text-rose-600 focus:ring-0 border-slate-300"
-          />
-          <span className="text-xs font-bold text-slate-800">
-            Check here if any safety, crisis, overdose risk, or self-harm indicators were identified during session
-          </span>
-        </label>
-
-        {safetyConcerns && (
-          <div className="space-y-1.5 pt-1">
-            <span className="text-xs text-rose-700 font-bold flex items-center gap-1">
-              <AlertTriangle className="w-4 h-4 text-rose-600" />
-              Crisis De-escalation &amp; Safety Response Documentation:
-            </span>
-            <textarea
-              rows={2}
-              value={safetyNotes}
-              onChange={(e) => setSafetyNotes(e.target.value)}
-              placeholder="Document review of safety plan, supervisor contact, emergency services involvement, or mobile crisis referral..."
-              className="w-full px-3.5 py-2 bg-white border border-rose-300 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:border-rose-500"
-            />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  // Step 5: Plan Next Steps & Attestation Signature
-  const renderStep5 = () => (
-    <div className="space-y-4 animate-in fade-in duration-150">
-      <div className="space-y-2">
-        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-          <span className="w-5 h-5 rounded-full bg-teal-100 text-[#0F766E] flex items-center justify-center text-[11px] font-bold">4</span>
-          <span>Collaborative Plan &amp; Action Steps for Next Meeting (Part 4 of 4) *</span>
-        </label>
-        <textarea
-          rows={2}
-          value={planNextSteps}
-          onChange={(e) => setPlanNextSteps(e.target.value)}
-          placeholder="Agreed action steps for peer before next session; scheduled date, time, and focus of upcoming encounter..."
-          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#0F766E] focus:bg-white transition-colors"
-        />
       </div>
 
       {/* DHCS & CalMHSA Code of Ethics Boundary Attestation */}
@@ -1218,6 +1446,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
         </label>
       </div>
 
+      {/* CPSS Electronic Signature & Attestation */}
       <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
         <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] block">
           Certified Peer Support Specialist Electronic Signature &amp; Attestation
@@ -1593,20 +1822,19 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           <div className="flex items-center justify-between text-xs">
             <span className="font-bold text-[#1E3A8A] uppercase tracking-wider flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-[#0F766E]" />
-              <span>H0038 Golden Thread Wizard: Step {wizardStep} of 5</span>
+              <span>H0038 Golden Thread Wizard: Step {wizardStep} of 4</span>
             </span>
             <span className="text-slate-500 font-medium text-[11px]">
               Tap any step to jump freely (Zero Validation Blocks)
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
-              { num: 1, title: '1. Client & Goal', valid: isPart1Valid && Boolean(selectedClientId) },
-              { num: 2, title: '2. Time & POS 15', valid: totalBillableMinutes > 0 },
-              { num: 3, title: '3. Interventions', valid: isPart2Valid },
-              { num: 4, title: '4. Response', valid: isPart3Valid },
-              { num: 5, title: '5. Next Steps & Sign', valid: isPart4Valid && signatureConfirmed }
+              { num: 1, title: '1. Contact & Setting', valid: Boolean(selectedClientId) && Boolean(encounterDate) },
+              { num: 2, title: '2. Peer Intervention', valid: isPart2Valid },
+              { num: 3, title: '3. Response & Goals', valid: isPart1Valid && isPart3Valid },
+              { num: 4, title: '4. Plan & Next Steps', valid: isPart4Valid && totalBillableMinutes > 0 && signatureConfirmed }
             ].map(step => (
               <button
                 key={step.num}
@@ -1724,16 +1952,17 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
       )}
 
       {/* Workflow Engine: Dual-Mode Rendering (Standard Full Page vs Flex Wizard) */}
+      {/* Workflow Engine: Dual-Mode Rendering (Standard Full Page vs Flex Wizard) */}
       {formMode === 'standard' ? (
         <div className="space-y-6">
           <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
                 <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[10px] font-bold">1</span>
-                Step 1 · Client & Careplan Milestone Linkage
+                Step 1 · Contact Context & Environment
               </span>
               <span className="text-[11px] font-semibold text-[#0F766E] bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                CalAIM H0038
+                CalAIM H0038 / Modifiers U1–U4
               </span>
             </div>
             {renderStep1()}
@@ -1743,10 +1972,10 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
                 <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[10px] font-bold">2</span>
-                Step 2 · CalAIM Time Accounting & Focus Domains
+                Step 2 · Peer Intervention & Micro-Dictation
               </span>
               <span className="text-[11px] font-semibold text-[#0F766E] bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                Direct + Travel + Doc
+                Trauma-Informed Chips & Jargon Cleanser
               </span>
             </div>
             {renderStep2()}
@@ -1756,10 +1985,10 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
                 <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[10px] font-bold">3</span>
-                Step 3 · Peer Intervention & Shared Recovery Experience
+                Step 3 · Participant Response & Dexie Goal Alignment
               </span>
               <span className="text-[11px] font-semibold text-[#0F766E] bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                Trauma-Informed Chips
+                Goal Selector & Engagement Chips
               </span>
             </div>
             {renderStep3()}
@@ -1769,26 +1998,13 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
                 <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[10px] font-bold">4</span>
-                Step 4 · Client Recovery Response & Plan
+                Step 4 · Plan, CMS 8-Minute Units & Attestation
               </span>
               <span className="text-[11px] font-semibold text-[#0F766E] bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                Quotes & Next Encounter
+                Units Visualizer & CPSS Signature
               </span>
             </div>
             {renderStep4()}
-          </div>
-
-          <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A] flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center text-[10px] font-bold">5</span>
-                Step 5 · Safety Check & Electronic Attestation Signature
-              </span>
-              <span className="text-[11px] font-semibold text-[#0F766E] bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                CPSS Attestation
-              </span>
-            </div>
-            {renderStep5()}
           </div>
         </div>
       ) : (
@@ -1796,12 +2012,11 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#1E3A8A]">
-                Step {wizardStep} of 5 · {
-                  wizardStep === 1 ? 'Client & Careplan Linkage' :
-                  wizardStep === 2 ? 'CalAIM Time Accounting' :
-                  wizardStep === 3 ? 'Peer Intervention & Strengths' :
-                  wizardStep === 4 ? 'Client Response & Plan' :
-                  'Safety & Electronic Attestation'
+                Step {wizardStep} of 4 · {
+                  wizardStep === 1 ? 'Contact Context & Environment' :
+                  wizardStep === 2 ? 'Peer Intervention & Strengths' :
+                  wizardStep === 3 ? 'Participant Response & Dexie Goal Alignment' :
+                  'Plan, CMS 8-Minute Units & Attestation'
                 }
               </span>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -1810,7 +2025,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             </div>
             <div className="flex items-center gap-1.5 self-start sm:self-auto">
               <span className="text-[11px] font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full">
-                Step {wizardStep}/5
+                Step {wizardStep}/4
               </span>
             </div>
           </div>
@@ -1819,13 +2034,12 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
           {wizardStep === 2 && renderStep2()}
           {wizardStep === 3 && renderStep3()}
           {wizardStep === 4 && renderStep4()}
-          {wizardStep === 5 && renderStep5()}
 
           {/* Stepper Navigation Buttons */}
           <div className="flex items-center justify-between pt-4 border-t border-slate-100">
             <button
               type="button"
-              onClick={() => setWizardStep(prev => Math.max(1, prev - 1) as 1 | 2 | 3 | 4 | 5)}
+              onClick={() => setWizardStep(prev => Math.max(1, prev - 1))}
               disabled={wizardStep === 1}
               className="min-h-[44px] px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:cursor-not-allowed"
             >
@@ -1834,13 +2048,13 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             </button>
 
             <span className="text-xs text-slate-400 font-semibold hidden sm:inline">
-              Step {wizardStep} of 5
+              Step {wizardStep} of 4
             </span>
 
-            {wizardStep < 5 ? (
+            {wizardStep < 4 ? (
               <button
                 type="button"
-                onClick={() => setWizardStep(prev => Math.min(5, prev + 1) as 1 | 2 | 3 | 4 | 5)}
+                onClick={() => setWizardStep(prev => Math.min(4, prev + 1))}
                 className="min-h-[44px] px-5 py-2 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
               >
                 <span>Next Step</span>
@@ -1849,7 +2063,7 @@ export const SessionNoteForm: React.FC<SessionNoteFormProps> = ({
             ) : (
               <span className="text-xs font-bold text-[#16A34A] flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" />
-                All Steps Ready
+                All 4 Steps Ready
               </span>
             )}
           </div>
